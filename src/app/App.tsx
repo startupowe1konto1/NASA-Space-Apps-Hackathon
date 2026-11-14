@@ -9,7 +9,7 @@ import { PrioritiesStep } from '../steps/priorities/PrioritiesStep';
 import { ReportStep } from '../steps/report/ReportStep';
 import { restoreFromHash } from '../steps/report/shareLink';
 import { PROJECT_NAME } from './brand';
-import { t } from './i18n';
+import { LANGS, setLang, t, useLang } from './i18n';
 import { StateBoundary } from '../ui-kit';
 import { STEP_COUNT, canContinue, useAppStore } from './store';
 import { useOnline } from './useOnline';
@@ -30,6 +30,8 @@ export function App() {
   const current = steps[state.step - 1] ?? steps[0]!;
   const Step = current.component;
   const online = useOnline();
+  // Subscribing here re-renders the whole tree when the language changes; t() reads the language itself.
+  const lang = useLang((s) => s.lang);
   // The glossary covers the step instead of being a step, so the farmer comes back to where they were.
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const glossaryButton = useRef<HTMLButtonElement>(null);
@@ -65,17 +67,36 @@ export function App() {
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
       <header className="border-b border-slate-200 px-4 py-3 print:hidden">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+
           <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p>
-          <button
-            ref={glossaryButton}
-            type="button"
-            aria-expanded={glossaryOpen}
-            className="-my-2 min-h-11 rounded px-3 text-base font-medium text-emerald-800 underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
-            onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
-          >
-            {t('app.glossary')}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              ref={glossaryButton}
+              type="button"
+              aria-expanded={glossaryOpen}
+              className="-my-2 min-h-11 rounded px-3 text-base font-medium text-emerald-800 underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+              onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
+            >
+              {t('app.glossary')}
+            </button>
+            <div role="group" aria-label={t('app.language')} className="-my-2 flex rounded border border-slate-300">
+              {LANGS.map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  lang={code}
+                  aria-pressed={lang === code}
+                  className={`min-h-11 min-w-11 px-2 text-sm font-medium first:rounded-l last:rounded-r focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
+                    lang === code ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700'
+                  }`}
+                  onClick={() => setLang(code)}
+                >
+                  {t(`app.lang.${code}`)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <ol className="mt-2 flex gap-1" aria-label={t('app.progress')}>
           {steps.map((s, i) => (
