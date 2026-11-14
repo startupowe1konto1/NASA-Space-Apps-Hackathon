@@ -4,9 +4,10 @@ import type { AnalyzeField, Providers } from '../contracts';
 import { precomputedContextProvider } from '../context-data/provider';
 import { analyzeField as engineAnalyzeField } from '../engine/analyzeField';
 import { fixtureProviders } from '../fixtures';
+import { powerProfileProvider } from '../profile/provider';
 
 export const providers: Providers = {
-  profile: fixtureProviders.profile, // O3-A2: powerProfileProvider
+  profile: powerProfileProvider, // O3-A2: NASA POWER monthly, live
   context: precomputedContextProvider, // O4-A3
   twins: fixtureProviders.twins, // O4-B3
   money: fixtureProviders.money, // O4-A4
