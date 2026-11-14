@@ -17,10 +17,8 @@
   "steps.rotations.twinsReady": "{count} similar regions, {similarity}% alike on average.",
   "steps.rotations.gaps": "What we do not know",
   "steps.rotations.risks": "Check locally",
-  "steps.rotations.weakTitle": "Read this first",
   "steps.rotations.noCrops": "Crop lists exist for the USA and Poland only, so we cannot suggest rotations for this field. The climate record above still applies.",
-  "steps.rotations.intro": "Your rotation and the three best others for this field, best first. Tap a goal to reorder them.",
-  "steps.rotations.goalSwitch": "Rank the rotations by",
+  "steps.rotations.intro": "Your rotation and the three best others for this field, best first.",
   "steps.rotations.summary.title": "This field",
   "steps.rotations.summary.droughtYears": "Drought years",
   "steps.rotations.summary.droughtYears.unit": "of {n} years",
@@ -76,5 +74,7 @@
   "steps.rotations.twinsCrops": "Crops",
   "steps.rotations.twinsSimilarity": "Similarity",
   "steps.rotations.twinsYield": "Yield",
-  "steps.rotations.loadingNote": "Soil data comes live from SoilGrids and can take up to two minutes to arrive. Keep this page open."
+  "steps.rotations.loadingNote": "Soil data comes live from SoilGrids and can take up to two minutes to arrive. Keep this page open.",
+  "steps.rotations.whyMore": "More reasons ({count})",
+  "steps.rotations.rangeNoteTitle": "How to read the ranges"
 }

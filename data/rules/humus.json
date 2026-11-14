@@ -368,29 +368,57 @@
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
   },
   {
-    "id": "humus.vdlufa.springMixtures",
+    "id": "humus.vdlufa.stubbleCatchCrops",
     "value": {
       "low": 80,
       "high": 120
     },
     "unit": "kg of humus carbon per ha per year; low and high are the 'Dolne' and 'Górne' values of the VDLUFA table ordered numerically (negative = loss)",
-    "appliesTo": "humus balance range (source of the low/high spread): spring-sown mixtures",
+    "appliesTo": "humus balance range (source of the low/high spread): stubble catch crops sown after a cereal harvest (e.g. phacelia, white mustard). The IUNG slide labels this row 'Mieszanki jare'; the VDLUFA 2004 original it reproduces calls it 'Stoppelfrüchte' (Körschens et al. 2005, Tabelle 1, 80/120; excerpt in data/samples/rules/korschens-2005-vdlufa-table1.txt)",
     "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Przeliczniki dla zmian zapasów glebowej materii organicznej w kg C próchnicy/ha/rok dla różnych upraw wg VDLUFA' (after Pikuła 2013, SiR IUNG-PIB z. 34: 91-106)",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 5 (PDF page 5), row 'Mieszanki jare': +80 to +120",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
   },
   {
-    "id": "humus.vdlufa.fallow",
+    "id": "humus.vdlufa.undersownCatchCrops",
     "value": {
       "low": 200,
       "high": 300
     },
     "unit": "kg of humus carbon per ha per year; low and high are the 'Dolne' and 'Górne' values of the VDLUFA table ordered numerically (negative = loss)",
-    "appliesTo": "humus balance range (source of the low/high spread): fallow (ugór)",
+    "appliesTo": "humus balance range (source of the low/high spread): catch crops undersown in the main crop. The IUNG slide labels this row 'ugory' (fallow); the VDLUFA 2004 original it reproduces calls it 'Untersaaten' under 'Zwischenfrüchte' (Körschens et al. 2005, Tabelle 1, 200/300; excerpt in data/samples/rules/korschens-2005-vdlufa-table1.txt)",
     "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Przeliczniki dla zmian zapasów glebowej materii organicznej w kg C próchnicy/ha/rok dla różnych upraw wg VDLUFA' (after Pikuła 2013, SiR IUNG-PIB z. 34: 91-106)",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 5 (PDF page 5), row 'ugory': +200 to +300",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "humus.coef.phacelia.pl",
+    "value": {
+      "light": 0.63,
+      "medium": 0.7,
+      "heavy": 0.77
+    },
+    "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy; the slide has no black earth column, so blackEarth is left out; negative = degradation, positive = reproduction",
+    "appliesTo": "humus balance, one catch crop of phacelia (facelia błękitna) (crop id phacelia) sown after harvest and ploughed in as green manure, from the row 'Międzyplony na zielony nawóz' (catch crops for green manure); slide 22 lists facelia błękitna among 'Międzyplony ścierniskowe'; Polish coefficients",
+    "sourceTitle": "Podleśny J., Leszczyńska D. (IUNG-PIB, 2025), slides 'Międzyplony i ich znaczenie w produkcji rolniczej. Doskonalenie uprawy międzyplonów jako praktyki rolnictwa węglowego', slide 'Współczynniki reprodukcji (+) i degradacji (-) glebowej substancji organicznej (t/ha)' (source given on the slide: Kundler 1981)",
+    "sourceUrl": "https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf",
+    "sourceLocator": "slide 19 (PDF page 19), row 'Międzyplony na zielony nawóz – 1 ha': light +0,63, medium +0,70, heavy +0,77; slide 22 (PDF page 22) 'Międzyplony ścierniskowe' lists gorczyca biała and facelia błękitna; excerpt in data/samples/rules/iung-podlesny-2025-miedzyplony.txt",
+    "checkedBy": "O4, source opened Sun 15 Nov 2026"
+  },
+  {
+    "id": "humus.coef.white-mustard.pl",
+    "value": {
+      "light": 0.63,
+      "medium": 0.7,
+      "heavy": 0.77
+    },
+    "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy; the slide has no black earth column, so blackEarth is left out; negative = degradation, positive = reproduction",
+    "appliesTo": "humus balance, one catch crop of white mustard (gorczyca biała) (crop id white-mustard) sown after harvest and ploughed in as green manure, from the row 'Międzyplony na zielony nawóz' (catch crops for green manure); slide 22 lists gorczyca biała among 'Międzyplony ścierniskowe'; Polish coefficients",
+    "sourceTitle": "Podleśny J., Leszczyńska D. (IUNG-PIB, 2025), slides 'Międzyplony i ich znaczenie w produkcji rolniczej. Doskonalenie uprawy międzyplonów jako praktyki rolnictwa węglowego', slide 'Współczynniki reprodukcji (+) i degradacji (-) glebowej substancji organicznej (t/ha)' (source given on the slide: Kundler 1981)",
+    "sourceUrl": "https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf",
+    "sourceLocator": "slide 19 (PDF page 19), row 'Międzyplony na zielony nawóz – 1 ha': light +0,63, medium +0,70, heavy +0,77; slide 22 (PDF page 22) 'Międzyplony ścierniskowe' lists gorczyca biała and facelia błękitna; excerpt in data/samples/rules/iung-podlesny-2025-miedzyplony.txt",
+    "checkedBy": "O4, source opened Sun 15 Nov 2026"
   }
 ]
