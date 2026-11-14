@@ -171,14 +171,20 @@ function nitrogen(ctx: Context, rows: RuleRow[], mode: Mode): Calc | null {
   const n = ctx.years.length;
   let total = 0;
   let legumeYears = 0;
-  for (const y of ctx.years) {
+  // A perennial legume (alfalfa) leaves its credit once per stand, to the crop after it: a year that continues a
+  // stand of the same perennial adds no second credit. A rotation that is the perennial in every year keeps them all.
+  const allSame = ctx.years.every((y) => y.crop === ctx.years[0]?.crop);
+  const continuesStand = (i: number) =>
+    !allSame && cropById(ctx.crops, ctx.years[i]!.crop).kind === 'perennial' && ctx.years[(i - 1 + n) % n]!.crop === ctx.years[i]!.crop;
+  for (const [i, y] of ctx.years.entries()) {
     let yearHasLegume = false;
     for (const id of [y.crop, y.coverCrop]) {
       if (!id || !cropById(ctx.crops, id).legume) continue;
       const credit = r.primary(`nitrogen.credit.${id}`);
       if (credit === undefined) return null;
-      total += credit;
       yearHasLegume = true;
+      if (id === y.crop && continuesStand(i)) continue;
+      total += credit;
     }
     if (yearHasLegume) legumeYears++;
   }
