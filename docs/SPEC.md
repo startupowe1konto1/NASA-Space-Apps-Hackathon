@@ -378,21 +378,21 @@ Places with similar climate and soil, what is grown there and how it did. Twins 
 - `<Term id="evapotranspiration">` renders the word with an info icon; the tooltip is one plain sentence. The glossary page lists all terms.
 - Terms for the minimum: evapotranspiration, anomaly, NDVI, soil moisture (m³/m³), root zone, soil wetness index, suitability class, cover crop, catch crop, humus balance, percentile range, model estimate.
 - Glossary text lives in `src/steps/glossary/terms.en.json` and `terms.pl.json` (owner O2). Other lanes ask for a new term in the PR that needs it; O2 adds it.
-- Every card ends with: "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks above against what you know about this field." The report repeats it at the top.
+- Every card ends with: "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks above against what you know about this field."
 
 ## 12. Screens and states
 
-One page, seven steps, a progress bar, back and forward.
+One page: a start page, then six steps with a progress bar, back and forward (D52).
 
 | Step | Screen | Main elements |
 |---|---|---|
-| 1 | Goal | "What matters most to you?" with three icons and one line each; one tap moves on; changeable later |
-| 2 | Field | map, address box, parcel number box (Poland), two demo-field buttons; parcel layer (KIEG), click to select, draw, later split and merge; list of fields |
+| 0 | Start | the app name as the title, two sentences on what the tool does, a large Start button; no progress bar |
+| 1 | Field | map, address box, parcel number box (Poland), two demo-field buttons; parcel layer (KIEG), click to select, draw, later split and merge; list of fields |
+| 2 | Goal | "What matters most to you?" with three icons and one line each; changeable later with Back |
 | 3 | Crops | proposed history with confirm or correct; icon picker for the last two or three years |
 | 4 | Priorities | switches with one-line explanations; excluded crops |
 | 5 | Rotations | goal switcher, field profile summary, four cards, calendar strips, sources panel |
 | 6 | Money | margins and payments per rotation with their conditions, dated, below the cards |
-| 7 | Report | print view for the advisor, shareable link (state encoded in the URL) |
 
 Every screen and every card section handles five states through `<StateBoundary>` from `src/ui-kit`: loading (skeleton with the name of the source being fetched), offline, no data, source error (which source, retry button), ready. A failed source never blanks the screen: the rest of the analysis renders and the failed part shows its error.
 

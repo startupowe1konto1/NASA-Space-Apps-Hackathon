@@ -2,19 +2,22 @@ import { expect, type Page } from '@playwright/test';
 
 export const SUPPORT_SENTENCE = 'This is decision support';
 
-/** Steps 1–4 for a demo field with the default goal and priorities. Stops on step 4, before "Next". */
+/** The start page, then steps 1–4 for a demo field with the default goal and priorities. Stops on step 4, before "Next". */
 export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field' | 'Poznań demo field') {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 1 of 7');
-  await page.getByRole('radio', { name: /Keep my soil/ }).click();
+  await page.getByRole('button', { name: 'Start', exact: true }).click();
+
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 1 of 6');
+  await page.getByRole('button', { name: demoButton }).click();
   await next(page);
 
-  await page.getByRole('button', { name: demoButton }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 2 of 6');
+  await page.getByRole('radio', { name: /Keep my soil/ }).click();
   await next(page);
 
   // Step 3. Iowa: CropScape history is proposed and the farmer confirms it.
   // Poznań: no crop maps, so the farmer taps one crop tile per season, as a real farmer would.
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 3 of 7');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 3 of 6');
   if (demoButton === 'Iowa demo field') {
     await expect(page.getByText(/Is this right\?/)).toBeVisible();
     await page.getByRole('button', { name: /Yes, use these crops/ }).click();
@@ -24,7 +27,7 @@ export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field'
   await expect(page.getByText(/Saved \d+ years of crops/)).toBeVisible();
   await next(page);
 
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 4 of 7');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 4 of 6');
 }
 
 /**

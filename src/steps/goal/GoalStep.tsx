@@ -1,4 +1,4 @@
-// Step 1: the farmer's main goal (SPEC section 12, D9). The goal only reorders the rotations; soil health is always shown first.
+// Step 2: the farmer's main goal (SPEC section 12, D9). The goal only reorders the rotations; soil health is always shown first.
 import type { ComponentType } from 'react';
 import { t } from '../../app/i18n';
 import { moneyAvailable } from '../../app/providers';

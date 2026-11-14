@@ -40,7 +40,7 @@ export function GlossaryPage(props: { onBack?: () => void; backToStep?: number }
           onClick={onBack}
           className="mt-4 min-h-11 rounded border border-slate-300 px-4 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
         >
-          {t('steps.glossary.back', { n: backToStep ?? 1 })}
+          {backToStep === 0 ? t('steps.glossary.backToStart') : t('steps.glossary.back', { n: backToStep ?? 1 })}
         </button>
       ) : null}
     </section>

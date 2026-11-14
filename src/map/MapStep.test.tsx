@@ -43,7 +43,7 @@ const realAddField = useAppStore.getState().addField;
 
 beforeEach(() => {
   useAppStore.getState().reset();
-  useAppStore.setState({ step: 2, addField: vi.fn(realAddField) });
+  useAppStore.setState({ step: 1, addField: vi.fn(realAddField) });
   leaflet.handlers = null;
   vi.clearAllMocks();
 });

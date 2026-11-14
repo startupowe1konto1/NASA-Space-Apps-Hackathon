@@ -1,4 +1,4 @@
-// Step 2: find the field. Demo buttons, a tap on the map, a drawn outline, and the list of fields, which works even when the map does not.
+// Step 1: find the field. Demo buttons, a tap on the map, a drawn outline, and the list of fields, which works even when the map does not.
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../app/i18n';
 import { useAppStore } from '../app/store';

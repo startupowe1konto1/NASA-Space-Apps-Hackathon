@@ -111,7 +111,7 @@ The deadline is Sun 15 Nov, 11:59 CET.
 
 O1, in this order (the plan has the tests):
 
-1. O1-F1: the new flow in one PR: start page, field and goal swapped, step 7 and the share link removed, SPEC §12 and DECISIONS updated, e2e updated.
+1. O1-F1: the new flow in one PR: start page, field and goal swapped, step 7 and the share link removed, SPEC §12 and DECISIONS (D52) updated, e2e updated. Done Sat night; the user approved the start page in the preview. Lanes on step 5 or 6: rebase on it, the steps are now 1–6 and step 0 is the start page.
 2. O1-F2: step 1: drop the demo tiles, add the field on a search hit (the Iowa demo outline near the demo field), switch e2e to the search box.
 3. O1-F3: step 4: the text layout.
 
