@@ -1,4 +1,5 @@
 // Step 2: find the field. Demo buttons, a tap on the map, and the list of fields, which works even when the map does not.
+// List entries are plain text on purpose: a button named "Iowa demo field, 30.0 ha" would clash with the demo button in e2e role queries.
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../app/i18n';
 import { useAppStore } from '../app/store';
@@ -15,7 +16,6 @@ export function MapStep() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
   const addField = useAppStore((s) => s.addField);
-  const selectField = useAppStore((s) => s.selectField);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapController | null>(null);
@@ -101,17 +101,14 @@ export function MapStep() {
           {fields.map((f) => {
             const selected = f.id === selectedFieldId;
             return (
-              <li key={f.id}>
-                <button
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => selectField(f.id)}
-                  className={`min-h-11 w-full rounded-lg border px-4 text-left text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-                    selected ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950' : 'border-slate-300 bg-white text-slate-900'
-                  }`}
-                >
-                  {t('map.fields.item', { name: f.name, area: f.areaHa.toFixed(1) })}
-                </button>
+              <li
+                key={f.id}
+                aria-current={selected ? 'true' : undefined}
+                className={`rounded-lg border px-4 py-3 text-base ${
+                  selected ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950' : 'border-slate-300 bg-white text-slate-900'
+                }`}
+              >
+                {t('map.fields.item', { name: f.name, area: f.areaHa.toFixed(1) })}
               </li>
             );
           })}
