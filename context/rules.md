@@ -23,7 +23,7 @@ Sources:
 
 ## Still to check (open questions)
 
-- [x] Submission deadline: Sun 15 Nov 2026, 23:59 Poznań time (CET).
+- [x] Submission deadline: Sun 15 Nov 2026, 11:59 Polish time (CET), confirmed by O1 (replaces 23:59). The Poznań schedule page lists 13:30 as the firm deadline; we follow the earlier 11:59.
 - [ ] Required submission fields (demo video length, slides, repo link, public visibility) from the Project Submission Guide.
 - [ ] Judging criteria and weights from the Judging and Awards Guide.
 - [ ] License / IP terms from the Participant Terms & Conditions.

@@ -1,7 +1,7 @@
 # Repo rules (read before every change)
 
 Project: <project name, set by T+3> · Team: Vibecodersi · Challenge: <challenge> · NASA Space Apps Challenge 2026.
-T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 23:59 CET (Poznań). Process and prompts: HACKATHON.md. Event rules: context/rules.md.
+T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 11:59 CET (Polish time). Process and prompts: HACKATHON.md. Event rules: context/rules.md.
 
 - Spec: docs/SPEC.md. Current plan: docs/<PLAN>.md (a newer version wins). Decisions: docs/DECISIONS.md.
 - You work on one task from the plan (ID, e.g. O2-A1). PR title starts with the ID.

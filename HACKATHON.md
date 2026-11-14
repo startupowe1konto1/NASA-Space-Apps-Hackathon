@@ -31,7 +31,7 @@ Source: `startupowe1konto1/hackathon-framework`, written after the Warsaw Open D
 | Event name | NASA Space Apps Challenge 2026, theme "The Next Frontier" |
 | Local event | Poznań (Poland), Europe/Warsaw time zone |
 | Work starts (T0) | Sat 14 Nov 2026, 11:09 CET |
-| Work ends (submission deadline) | **Sun 15 Nov 2026, 23:59 Poznań time (CET)**, i.e. T+36:50 |
+| Work ends (submission deadline) | **Sun 15 Nov 2026, 11:59 Polish time (CET)**, i.e. T+24:50 |
 | Pitch and questions | _to fill (Local Lead)_ |
 | Where and how we submit | Team's project page on spaceappschallenge.org ("Project" tab). Required for global judging. |
 | Required submission elements | _check the 2026 Project Submission Guide (published 13 Nov)_; at minimum a description of how AI/SI tools were used |
@@ -126,7 +126,7 @@ Clock times assume T0 = Sat 14 Nov, 11:09 CET.
 | **T+21:00** (08:10) | **feature freeze;** only critical fixes; pitch rehearsals (two, with questions) | all |
 | T+22:00 (09:10) | submission checklist (section 13) passes; README, presentation, documentation on `main` | O1 + On |
 | **T+23:00** (10:10) | **repo freeze**, `git tag submission`, project submitted on spaceappschallenge.org | O1 |
-| T+24:00 → T+36:50 (Sun 11:09 → 23:59) | about 12.8 h buffer until the deadline; polish only via PR, re-tag `submission` if anything changes, final freeze by Sun 23:14 (45 min before) | O1 |
+| T+24:00 → T+24:50 (Sun 11:09 → 11:59) | **deadline 11:59.** Repo is frozen and submitted since T+23 (10:10); this window is only for fixing a failed submission | O1 |
 
 Always get the time from `TZ=Europe/Warsaw date`. Claude checks it before any planning to count the real time left.
 
