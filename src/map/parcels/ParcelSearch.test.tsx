@@ -2,11 +2,13 @@
 import { readFileSync } from 'node:fs';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { demoFields } from '../../fixtures';
 import { pointToField } from '../pointToField';
 import { ParcelSearch } from './ParcelSearch';
 import { addFieldAt, useParcelTap } from './tap';
+import { ULDK_SOURCE } from './uldk';
 
 const sample = (file: string) => readFileSync(`data/samples/uldk/${file}`, 'utf8');
 const found = sample('parcel-by-id-428-1-srid4326.txt');
@@ -26,6 +28,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 const answer = (body: string, status = 200) => fetchMock.mockResolvedValueOnce(new Response(body, { status }));
@@ -138,6 +141,31 @@ describe('a tap on the map', () => {
 
     expect(useAppStore.getState().fields[0]).toEqual(pointToField(lat, lon));
     await screen.findByText(/GUGiK ULDK did not answer, so a 4 ha square/);
+  });
+
+  it('says the browser is offline, not that ULDK did not answer, when the tap fails offline', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    render(<ParcelSearch />);
+    const { lat, lon } = demoFields.poznan.centroid;
+    await act(() => addFieldAt(lat, lon));
+
+    expect(useAppStore.getState().fields[0]).toEqual(pointToField(lat, lon));
+    await screen.findByText(t('parcels.tap.offline'));
+    expect(screen.queryByText(t('parcels.tap.error', { source: ULDK_SOURCE }))).not.toBeInTheDocument();
+  });
+
+  it('gives a second tap on the same parcel its own field, so an edited field is not replaced', async () => {
+    answer(foundAtPoint);
+    answer(foundAtPoint);
+    const { lat, lon } = demoFields.poznan.centroid;
+    await act(() => addFieldAt(lat, lon));
+    await act(() => addFieldAt(lat, lon));
+
+    const fields = useAppStore.getState().fields;
+    expect(fields).toHaveLength(2);
+    expect(fields[0]!.id).not.toBe(fields[1]!.id);
+    expect(fields[1]!.parcelIds).toEqual([teryt]);
   });
 
   it('does not ask ULDK outside Poland', async () => {

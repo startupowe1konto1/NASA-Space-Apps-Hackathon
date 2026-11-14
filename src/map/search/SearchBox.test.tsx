@@ -95,6 +95,29 @@ describe('SearchBox', () => {
     expect(onPick).not.toHaveBeenCalled();
   });
 
+  it('credits Nominatim next to results that came from it, and not for GUGiK results', async () => {
+    answer(nominatimTwo);
+    const first = render(<SearchBox onPick={vi.fn()} throttle={noWait} />);
+    await search('Ames');
+    await screen.findByRole('list', { name: t('search.results') });
+    expect(screen.getByText(t('search.attribution'))).toBeInTheDocument();
+    first.unmount();
+
+    answer(gugikHit);
+    render(<SearchBox onPick={vi.fn()} throttle={noWait} />);
+    await search(polishQuery);
+    await screen.findByText(t('search.moved', { label: parseGugik(gugikHit)[0]!.label }));
+    expect(screen.queryByText(t('search.attribution'))).not.toBeInTheDocument();
+  });
+
+  it('shows the Nominatim credit also when Nominatim finds nothing', async () => {
+    answer(nominatimEmpty);
+    render(<SearchBox onPick={vi.fn()} throttle={noWait} />);
+    await search('Ames');
+    await screen.findByText(t('search.none'));
+    expect(screen.getByText(t('search.attribution'))).toBeInTheDocument();
+  });
+
   it('shows the source error and finds the place on retry', async () => {
     answer('Service unavailable', 503);
     answer(gugikHit);

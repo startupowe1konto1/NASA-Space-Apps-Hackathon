@@ -18,3 +18,9 @@ export const analyzeField: AnalyzeField = engineAnalyzeField; // O3-B6: the real
 
 /** True once the money tables and the income score are wired (O3-B7). The goal step reads it before any analysis exists. */
 export const moneyAvailable = true;
+
+/**
+ * True once `providers.context` fetches soil from SoilGrids live (the O4-A3 live swap). Until then soil comes from the
+ * precomputed demo files, and step 5 must not say that soil data is on its way from SoilGrids (#141 review).
+ */
+export const liveSoilData = false;
