@@ -35,7 +35,9 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-body { font-family: "Inter", system-ui, sans-serif; font-feature-settings: "tnum" 1, "cv11" 1; color: var(--text); }
+body { font-family: "Inter", system-ui, sans-serif; font-feature-settings: "cv11" 1; color: var(--text); }
+/* Tabular digits only where numbers stand in columns: Inter's tnum also widens the hyphen ("Root-zone"). */
+.facts, .row .n, .row .num, .row .idx, .ticks { font-feature-settings: "tnum" 1, "cv11" 1; }
 
 /* The stage is 1920 x 1080 and scaled to fit the window by stage.js. */
 .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden;
