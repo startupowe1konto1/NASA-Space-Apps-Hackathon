@@ -11,7 +11,7 @@ T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 11:59 CET (Polish t
 - Dev server port: O1 5171, O2 5172, O3 5173, O4 5174. e2e tests only on O1's laptop.
 - Never: push to main, `--force` without `--with-lease`, `gh pr merge --admin`, `git add -A`, push to someone else's branch.
 - Secrets only in .env (local) and hosting variables set via CLI. Never in code, logs, PRs, chat.
-- Data only from the allowed sources listed in SPEC §15 (NASA POWER, GIBS, Planetary Computer, FAO GAEZ, USDA CropScape, QuickStats and Soil Data Access, SoilGrids, GUGiK, US Census, Nominatim, OpenStreetMap tiles, Eurostat). Any other server = ask a human.
+- Data only from the allowed sources listed in SPEC §15 (NASA POWER, GIBS, Planetary Computer, FAO GAEZ, USDA CropScape, QuickStats and Soil Data Access, SoilGrids, GUGiK, US Census, Nominatim, OpenStreetMap tiles, Eurostat incl. GISCO, US Census files for build scripts). Any other server = ask a human.
 - Generated files (`data/precomputed/`, `data/twins/`, `docs/tasks.json`) are regenerated with their script after a conflict, never merged by hand.
 - API parsers are written against a saved sample in data/samples/, not from memory.
 - TDD: test → red → code → green. UI tests wait for specific text (waitFor), not just the element.
