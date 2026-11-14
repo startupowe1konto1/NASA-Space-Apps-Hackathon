@@ -3,8 +3,10 @@
 import type { ReactNode } from 'react';
 import { t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
+import { moneyAvailable as moneyOn } from '../../app/providers';
 import { ConfidenceBadge, ScoreBar, SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName } from '../shared/cropName';
+import { IncomeSection } from './IncomeSection';
 import { TermText } from './TermText';
 
 export function ordinal(n: number): string {
@@ -44,8 +46,10 @@ export function RotationCard(props: {
   datasets: Dataset[];
   /** Slot for the calendar strip (O2-B4), placed after the scores. */
   calendar?: ReactNode;
+  /** Shows the income section. Defaults to `moneyAvailable` in src/app/providers.ts; tests pass it to switch money on. */
+  moneyAvailable?: boolean;
 }) {
-  const { rotation: r, rank, goal, datasets, calendar } = props;
+  const { rotation: r, rank, goal, datasets, calendar, moneyAvailable = moneyOn } = props;
   const weak = r.soilHealth.confidence === 'weak' || r.climateResilience.confidence === 'weak';
   const total = r.totals[goal];
   const goalName = t(`steps.goal.${goal}`);
@@ -105,6 +109,8 @@ export function RotationCard(props: {
       </div>
 
       {calendar}
+
+      {moneyAvailable ? <IncomeSection money={r.money} datasets={datasets} /> : null}
 
       <Section title={t('steps.rotations.why')} empty={r.why.length === 0}>
         {r.why.map((m, i) => (
