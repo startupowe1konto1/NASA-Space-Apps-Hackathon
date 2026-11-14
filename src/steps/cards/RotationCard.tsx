@@ -1,15 +1,14 @@
 // One rotation. Soil health and climate resilience come first whatever the goal (D9); gaps and local risks are in the
 // body, never a footnote; the support sentence closes every card (SPEC section 11). Everything else is folded
-// (HANDOFF-frontend step 5): the first "why" line stays open; the range note, the income, the other reasons, the
+// (HANDOFF-frontend step 5): the first "why" line and the first three gaps and risks stay open; the income, the other reasons, the
 // evidence, the benefits and the regions open on a tap. Folded, not deleted.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { moneyAvailable as moneyOn } from '../../app/providers';
 import { ScoreBar, SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName } from '../shared/cropName';
 import { IncomeSection } from './IncomeSection';
-import { TermText } from './TermText';
 
 export function ordinal(n: number): string {
   const tens = n % 100;
@@ -50,6 +49,34 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
+/** Lists on the card show their first items; the rest open with one button, so a long list does not bury the card. */
+const SHORT_LIST = 3;
+
+function ShortList({ label, items }: { label: string; items: Message[] }) {
+  const [all, setAll] = useState(false);
+  const shown = all ? items : items.slice(0, SHORT_LIST);
+  const rest = items.length - SHORT_LIST;
+  return (
+    <>
+      <ul aria-label={label} className="list-disc space-y-1 pl-5 text-sm leading-snug text-slate-800">
+        {shown.map((m, i) => (
+          <li key={keyOf(m, i)}>{t(m)}</li>
+        ))}
+      </ul>
+      {rest > 0 ? (
+        <button
+          type="button"
+          aria-expanded={all}
+          onClick={() => setAll(!all)}
+          className="min-h-9 w-fit rounded-md text-left text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+        >
+          {all ? t('steps.rotations.listLess') : t('steps.rotations.listMore', { count: rest })}
+        </button>
+      ) : null}
+    </>
+  );
+}
+
 /** The engine may repeat a code with other params, so the key holds both. */
 const keyOf = (m: Message, i: number) => `${m.code}:${JSON.stringify(m.params ?? {})}:${i}`;
 
@@ -74,7 +101,9 @@ export function RotationCard(props: {
   return (
     <article
       data-testid={`card-${r.id}`}
-      className={`grid gap-4 rounded-2xl border-2 bg-white p-4 shadow-sm ${r.isCurrent ? 'border-slate-700' : 'border-slate-200'}`}
+      className={`grid content-start gap-4 rounded-2xl border p-4 shadow-sm ${
+        r.isCurrent ? 'border-slate-400 bg-slate-50' : 'border-slate-200 bg-white'
+      }`}
     >
       <header className="grid gap-1">
         <span
@@ -84,7 +113,7 @@ export function RotationCard(props: {
         >
           {r.isCurrent ? t('steps.rotations.current') : t('steps.rotations.option', { n: rank })}
         </span>
-        <h2 className="text-xl font-semibold leading-tight text-slate-900">{rotationTitle(r)}</h2>
+        <h2 className="text-lg font-semibold leading-snug text-slate-900">{rotationTitle(r)}</h2>
         {goal !== 'keepSoil' && keepRank !== undefined ? (
           <p className="text-sm text-slate-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
         ) : null}
@@ -110,12 +139,6 @@ export function RotationCard(props: {
           )
         ) : null}
       </div>
-
-      <Fold title={t('steps.rotations.rangeNoteTitle')}>
-        <p className="text-sm leading-relaxed text-slate-700">
-          <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
-        </p>
-      </Fold>
 
       {calendar}
 
@@ -228,19 +251,11 @@ export function RotationCard(props: {
       </div>
 
       <Section title={t('steps.rotations.gaps')} empty={r.gaps.length === 0}>
-        <ul aria-label={t('steps.rotations.gaps')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
-          {r.gaps.map((m, i) => (
-            <li key={keyOf(m, i)}>{t(m)}</li>
-          ))}
-        </ul>
+        <ShortList label={t('steps.rotations.gaps')} items={r.gaps} />
       </Section>
 
       <Section title={t('steps.rotations.risks')} empty={r.localReviewRisks.length === 0}>
-        <ul aria-label={t('steps.rotations.risks')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
-          {r.localReviewRisks.map((m, i) => (
-            <li key={keyOf(m, i)}>{t(m)}</li>
-          ))}
-        </ul>
+        <ShortList label={t('steps.rotations.risks')} items={r.localReviewRisks} />
       </Section>
 
       <p className="rounded-lg bg-slate-100 px-3 py-2 text-base leading-snug text-slate-800">{t('app.support')}</p>

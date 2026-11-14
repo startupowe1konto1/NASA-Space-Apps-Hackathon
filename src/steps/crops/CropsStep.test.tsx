@@ -1,5 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { dictionaries, setLang } from '../../app/i18n';
 import { providers } from '../../app/providers';
 import { canContinue, useAppStore } from '../../app/store';
 import { SourceError } from '../../contracts';
@@ -110,6 +111,22 @@ describe('CropsStep without a history (most of Poland)', () => {
     ]);
     expect(canContinue(useAppStore.getState())).toBe(true);
     expect(await screen.findByText(/Saved 2 years of crops/)).toBeInTheDocument();
+  });
+
+  it('says "no crop history" in Polish when the UI is in Polish', async () => {
+    const h = await providers.context.getCropHistory(demoFields.poznan);
+    if (h.status !== 'no-data') throw new Error('the Poznań demo field should have no crop history');
+    const polish = dictionaries.pl[h.reason.code];
+    expect(polish, `${h.reason.code} has no Polish text`).toBeDefined();
+    act(() => setLang('pl'));
+    try {
+      atStep3(demoFields.poznan);
+      render(<CropsStep />);
+      expect(await screen.findByText(polish!)).toBeInTheDocument();
+      expect(screen.queryByText(dictionaries.en[h.reason.code]!)).not.toBeInTheDocument();
+    } finally {
+      act(() => setLang('en'));
+    }
   });
 
   it('leaves cover crops out of the main crop list', async () => {
