@@ -1,4 +1,4 @@
-// Step 0: the start page (HANDOFF-frontend.md v2.1). The app name as the title, what the tool does in two sentences,
+// Step 0: the start page (HANDOFF-frontend.md v2.1). The app name as the title, what the tool does in one sentence,
 // and a large Start button at the bottom of the screen.
 import { PROJECT_NAME } from './brand';
 import { t } from './i18n';

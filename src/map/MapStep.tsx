@@ -1,9 +1,9 @@
-// Step 1: find the field. Demo buttons, a tap on the map, a drawn outline, and the list of fields, which works even when the map does not.
+// Step 1: find the field. The address search outlines the field at the place it finds (O1-F2), as does a tap on the
+// map; a drawn outline and the list of fields work too, the list even when the map does not.
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../app/i18n';
 import { useAppStore } from '../app/store';
 import type { Field } from '../contracts';
-import { demoFields } from '../fixtures';
 import { StateBoundary } from '../ui-kit/StateBoundary';
 import { FieldList } from './draw/FieldList';
 import { drawnField, reshapedField } from './draw/drawnField';
@@ -19,7 +19,6 @@ const BUTTON =
 export function MapStep() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
-  const addField = useAppStore((s) => s.addField);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapController | null>(null);
@@ -88,12 +87,6 @@ export function MapStep() {
     if (field) mapRef.current?.flyTo(field);
   }, [selectedFieldId]);
 
-  // A second tap on the same demo button does not change the selection, so fly here as well.
-  const pickDemo = (field: Field) => {
-    addField(field);
-    mapRef.current?.flyTo(field);
-  };
-
   const toggleParcels = (on: boolean) => {
     setParcelsOn(on);
     setParcelsFailed(false);
@@ -115,16 +108,12 @@ export function MapStep() {
     <div className="grid gap-4">
       <p className="text-base text-slate-700">{t('map.intro')}</p>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <button type="button" className={BUTTON} onClick={() => pickDemo(demoFields.iowa)}>
-          {t('map.demo.iowa')}
-        </button>
-        <button type="button" className={BUTTON} onClick={() => pickDemo(demoFields.poznan)}>
-          {t('map.demo.poznan')}
-        </button>
-      </div>
-
-      <SearchBox onPick={(place) => mapRef.current?.showPlace(place.lat, place.lon, place.label)} />
+      <SearchBox
+        onPick={(place) => {
+          mapRef.current?.showPlace(place.lat, place.lon, place.label);
+          void addFieldAt(place.lat, place.lon); // the same outline a tap there would give
+        }}
+      />
 
       {tilesFailed ? (
         <StateBoundary state="error" source={t('map.tiles.source')} reason={t('map.tiles.reason')} onRetry={retryTiles}>

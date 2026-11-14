@@ -386,7 +386,7 @@ One page: a start page, then six steps with a progress bar, back and forward (D5
 
 | Step | Screen | Main elements |
 |---|---|---|
-| 0 | Start | the app name as the title, two sentences on what the tool does, a large Start button; no progress bar |
+| 0 | Start | the app name as the title, one sentence on what the tool does, a large Start button; no progress bar |
 | 1 | Field | map, address box, parcel number box (Poland), two demo-field buttons; parcel layer (KIEG), click to select, draw, later split and merge; list of fields |
 | 2 | Goal | "What matters most to you?" with three icons and one line each; changeable later with Back |
 | 3 | Crops | proposed history with confirm or correct; icon picker for the last two or three years |
