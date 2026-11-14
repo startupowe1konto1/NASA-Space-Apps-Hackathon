@@ -5,11 +5,14 @@ import hazardRules from '../../../data/rules/hazards.json';
 export const HAZARDS: Hazard[] = ['drought', 'heat', 'frost'];
 export const COVER_STATES: CoverState[] = ['crop', 'cover-crop', 'residue', 'bare'];
 
-// Bare soil carries a hatch as well as its colour, so it reads in black-and-white print and without colour vision.
+// Every state but living crop also has its own pattern, so the four differ without colour and in black-and-white
+// print: cover crop dots, residue horizontal stripes, bare soil a diagonal hatch. Crop and residue have almost the
+// same lightness, so colour alone would fail for red-green colour blindness.
 export const COVER_CLASS: Record<CoverState, string> = {
   crop: 'bg-emerald-600',
-  'cover-crop': 'bg-lime-500',
-  residue: 'bg-yellow-700',
+  'cover-crop':
+    'bg-lime-500 bg-[radial-gradient(theme(colors.lime.900)_1px,transparent_1.5px)] bg-[length:5px_5px]',
+  residue: 'bg-yellow-700 bg-[repeating-linear-gradient(0deg,theme(colors.white)_0_1.5px,transparent_1.5px_5px)]',
   bare: 'bg-stone-300 bg-[repeating-linear-gradient(135deg,theme(colors.stone.500)_0_2px,transparent_2px_6px)]',
 };
 
@@ -60,29 +63,29 @@ export const markShare: number | null = (() => {
   return row && typeof row.value === 'number' ? row.value : null;
 })();
 
-/**
- * True when an exposure earns a mark. A missing share is marked too: the hazard cannot be ruled out, and tapping the
- * mark shows why the number is missing.
- */
-export function isMarked(probability: Sourced, threshold: number | null = markShare): boolean {
+/** True when the share of years is missing: the strip shows it as missing, never as a hazard. */
+export function isMissing(probability: Sourced): boolean {
   const value = probability.value;
-  if (typeof value !== 'number' || !Number.isFinite(value)) return true;
-  return threshold === null || value > threshold;
+  return typeof value !== 'number' || !Number.isFinite(value);
 }
 
-/**
- * How many years a share of years covers, read only from what the value says about itself: "45 years" or a
- * "1981–2025" span in the basis of its range. Null when it does not say, so the caller shows a percentage instead.
- */
-export function yearCount(probability: Sourced): number | null {
-  const basis = probability.range?.basis;
-  if (!basis) return null;
-  const counted = /(\d+)\s+years/.exec(basis);
-  if (counted) return Number(counted[1]);
-  const span = /(\d{4})\s*[–-]\s*(\d{4})/.exec(basis);
-  if (span) {
-    const years = Number(span[2]) - Number(span[1]) + 1;
-    return years > 0 ? years : null;
-  }
-  return null;
+/** True when an exposure earns a hazard mark: a known share above the mark share of the hazard rules. */
+export function isMarked(probability: Sourced, threshold: number | null = markShare): boolean {
+  if (isMissing(probability)) return false;
+  return threshold === null || (probability.value as number) > threshold;
+}
+
+/** The "?" shown in a cell whose share of years is missing. */
+export function MissingMark(props: { size?: number }) {
+  const { size = 10 } = props;
+  return (
+    <span
+      aria-hidden="true"
+      data-testid="mark-missing"
+      style={{ width: size, height: size, fontSize: size }}
+      className="inline-flex shrink-0 items-center justify-center font-bold leading-none text-slate-900"
+    >
+      ?
+    </span>
+  );
 }

@@ -1,11 +1,12 @@
 // Month-by-month calendar of one rotation: cover state per month and hazard marks (SPEC section 8).
 // O2-B3 places one strip on each card, the current rotation's strip above the others.
+// No list elements inside: O1's e2e reads the card's lists by position (gaps, then risks).
 import { useId, useState } from 'react';
 import type { CalendarMonth, CropId, Dataset, Hazard, Sourced } from '../../contracts';
 import { t } from '../../app/i18n';
 import { SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName as sharedCropName } from '../shared/cropName';
-import { COVER_CLASS, COVER_STATES, HAZARDS, HazardMark, isMarked, yearCount } from './marks';
+import { COVER_CLASS, COVER_STATES, HAZARDS, HazardMark, MissingMark, isMarked, isMissing } from './marks';
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -19,43 +20,51 @@ function hazardList(hazards: Hazard[]): string {
   return `${names.slice(0, -1).join(', ')} ${t('calendar.and')} ${names[names.length - 1]}`;
 }
 
-function cellLabel(month: number, cell: CalendarMonth | undefined, cropName: (id: CropId) => string, marked: Hazard[]) {
+interface CellHazards {
+  marked: Hazard[];
+  missing: Hazard[];
+}
+
+function cellLabel(month: number, cell: CalendarMonth | undefined, cropName: (id: CropId) => string, hazards?: CellHazards) {
   const parts = [monthName(month)];
   if (!cell) parts.push(t('calendar.cell.missing'));
   else if (cell.cover === 'crop') parts.push(cell.crop ? cropName(cell.crop) : t('calendar.cover.crop').toLowerCase());
   else if (cell.cover === 'cover-crop')
     parts.push(cell.crop ? t('calendar.cell.cover-cropNamed', { crop: cropName(cell.crop) }) : t('calendar.cell.cover-crop'));
   else parts.push(t(`calendar.cell.${cell.cover}`));
-  if (marked.length > 0) parts.push(t('calendar.cell.risk', { hazards: hazardList(marked) }));
+  if (hazards && hazards.marked.length > 0) parts.push(t('calendar.cell.risk', { hazards: hazardList(hazards.marked) }));
+  if (hazards && hazards.missing.length > 0) parts.push(t('calendar.cell.missingShare', { hazards: hazardList(hazards.missing) }));
   return parts.join(', ');
 }
 
 /**
- * The share of years as "11 of 45 years" when the value says how many years it covers, otherwise as a percentage.
- * A missing share stays missing, so SourcedNumber shows its reason.
+ * The share of years as a percentage. "11 of 45 years" needs a structured year count in the contract, which does not
+ * exist yet. A missing share stays missing, so SourcedNumber shows its reason.
  */
 function shareForDisplay(probability: Sourced): Sourced {
   const { value, range } = probability;
   if (typeof value !== 'number' || !Number.isFinite(value)) return probability;
-  const years = yearCount(probability);
-  const scale = years ?? 100;
-  const unit = years ? t('calendar.detail.ofYears', { n: years }) : t('calendar.detail.percent');
   return {
     ...probability,
-    value: Math.round(value * scale),
-    unit,
-    range: range ? { ...range, low: Math.round(range.low * scale), high: Math.round(range.high * scale) } : undefined,
+    value: Math.round(value * 100),
+    unit: t('calendar.detail.percent'),
+    range: range ? { ...range, low: Math.round(range.low * 100), high: Math.round(range.high * 100) } : undefined,
   };
 }
 
-function Marks(props: { hazards: Hazard[] }) {
+function Marks(props: CellHazards) {
   return (
-    <span className="flex max-w-full flex-wrap items-center justify-center gap-px">
-      {props.hazards.map((hazard) => (
+    <span aria-hidden="true" className="flex max-w-full flex-wrap items-center justify-center gap-px">
+      {props.marked.map((hazard) => (
         <span key={hazard} className="inline-flex rounded-sm bg-white p-px">
           <HazardMark hazard={hazard} />
         </span>
       ))}
+      {props.missing.length > 0 ? (
+        <span className="inline-flex rounded-sm bg-white p-px">
+          <MissingMark />
+        </span>
+      ) : null}
     </span>
   );
 }
@@ -78,11 +87,14 @@ export function CalendarStrip(props: CalendarStripProps) {
 
   const years = [...new Set(months.map((m) => m.yearIndex))].sort((a, b) => a - b);
   const find = (yearIndex: number, month: number) => months.find((m) => m.yearIndex === yearIndex && m.month === month);
-  const markedOf = (cell: CalendarMonth | undefined) =>
-    cell ? HAZARDS.filter((h) => cell.exposure.some((e) => e.hazard === h && isMarked(e.probability))) : [];
+  const hazardsOf = (cell: CalendarMonth | undefined): CellHazards => ({
+    marked: cell ? HAZARDS.filter((h) => cell.exposure.some((e) => e.hazard === h && isMarked(e.probability))) : [],
+    missing: cell ? HAZARDS.filter((h) => cell.exposure.some((e) => e.hazard === h && isMissing(e.probability))) : [],
+  });
+  const hasDetails = (h: CellHazards) => h.marked.length > 0 || h.missing.length > 0;
 
   const selectedCell = selected ? find(selected.yearIndex, selected.month) : undefined;
-  const selectedMarked = markedOf(selectedCell);
+  const selectedHazards = hazardsOf(selectedCell);
   const yearNumber = (yearIndex: number) => years.indexOf(yearIndex) + 1;
 
   return (
@@ -113,14 +125,16 @@ export function CalendarStrip(props: CalendarStripProps) {
                 </th>
                 {MONTHS.map((month) => {
                   const cell = find(yearIndex, month);
-                  const marked = markedOf(cell);
-                  const text = cellLabel(month, cell, cropName, marked);
+                  const hazards = hazardsOf(cell);
+                  const text = cellLabel(month, cell, cropName, hazards);
                   const colour = cell ? COVER_CLASS[cell.cover] : 'border border-dashed border-slate-500 bg-white';
                   const box = `flex h-10 min-w-6 w-full items-center justify-center rounded-sm ${colour}`;
 
-                  if (marked.length === 0) {
+                  // Screen readers often skip aria-label on a <td>, so the words sit in the cell as sr-only text.
+                  if (!hasDetails(hazards)) {
                     return (
-                      <td key={month} aria-label={text} title={text} className="p-0">
+                      <td key={month} title={text} className="p-0">
+                        <span className="sr-only">{text}</span>
                         <span aria-hidden="true" className={box} />
                       </td>
                     );
@@ -130,14 +144,14 @@ export function CalendarStrip(props: CalendarStripProps) {
                     <td key={month} className="p-0">
                       <button
                         type="button"
-                        aria-label={text}
                         title={text}
                         aria-expanded={isOpen}
                         aria-controls={isOpen ? detailsId : undefined}
                         onClick={() => setSelected(isOpen ? null : { yearIndex, month })}
                         className={`${box} cursor-pointer outline-none ring-offset-1 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-slate-900 motion-safe:transition ${isOpen ? 'ring-2 ring-slate-900' : ''}`}
                       >
-                        <Marks hazards={marked} />
+                        <span className="sr-only">{text}</span>
+                        <Marks {...hazards} />
                       </button>
                     </td>
                   );
@@ -153,39 +167,43 @@ export function CalendarStrip(props: CalendarStripProps) {
             aria-label={t('calendar.detail.title', { month: monthName(selected.month), year: yearNumber(selected.yearIndex) })}
             className="mt-2 rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm"
           >
-            <p className="font-semibold text-slate-900">{cellLabel(selected.month, selectedCell, cropName, [])}</p>
-            <ul className="mt-1 space-y-1">
+            <p className="font-semibold text-slate-900">{cellLabel(selected.month, selectedCell, cropName)}</p>
+            <div className="mt-1 space-y-1">
               {selectedCell.exposure
-                .filter((e) => selectedMarked.includes(e.hazard))
+                .filter((e) => selectedHazards.marked.includes(e.hazard) || selectedHazards.missing.includes(e.hazard))
                 .map((e) => (
-                  <li key={e.hazard} className="flex flex-wrap items-center gap-x-2">
-                    <HazardMark hazard={e.hazard} size={14} />
+                  <div key={e.hazard} className="flex flex-wrap items-center gap-x-2">
+                    {isMissing(e.probability) ? <MissingMark size={14} /> : <HazardMark hazard={e.hazard} size={14} />}
                     <span className="text-slate-900">
                       {t('calendar.detail.hazard', { hazard: hazardName(e.hazard), month: monthName(selected.month) })}
                     </span>
                     <SourcedNumber value={shareForDisplay(e.probability)} datasets={datasets} decimals={0} />
-                  </li>
+                  </div>
                 ))}
-            </ul>
+            </div>
           </section>
-        ) : months.some((m) => markedOf(m).length > 0) ? (
+        ) : months.some((m) => hasDetails(hazardsOf(m))) ? (
           <p className="mt-1 text-xs text-slate-700">{t('calendar.detail.hint')}</p>
         ) : null}
 
-        <ul aria-label={t('calendar.legend')} className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700">
+        <div role="group" aria-label={t('calendar.legend')} className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700">
           {COVER_STATES.map((cover) => (
-            <li key={cover} className="inline-flex items-center gap-1">
-              <span aria-hidden="true" className={`inline-block h-3 w-4 rounded-sm ${COVER_CLASS[cover]}`} />
+            <span key={cover} className="inline-flex items-center gap-1">
+              <span aria-hidden="true" data-testid={`swatch-${cover}`} className={`inline-block h-3 w-4 rounded-sm ${COVER_CLASS[cover]}`} />
               {t(`calendar.cover.${cover}`)}
-            </li>
+            </span>
           ))}
           {HAZARDS.map((hazard) => (
-            <li key={hazard} className="inline-flex items-center gap-1">
+            <span key={hazard} className="inline-flex items-center gap-1">
               <HazardMark hazard={hazard} size={12} />
               {hazardName(hazard)}
-            </li>
+            </span>
           ))}
-        </ul>
+          <span className="inline-flex items-center gap-1">
+            <MissingMark size={12} />
+            {t('calendar.legend.missing')}
+          </span>
+        </div>
         <p className="mt-1 text-xs text-slate-700">{t('calendar.note')}</p>
       </div>
     </StateBoundary>
