@@ -1,4 +1,4 @@
-import { useRef, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { MapStep } from '../map/MapStep';
 import { RotationsStep } from '../steps/cards/RotationsStep';
 import { CropsStep } from '../steps/crops/CropsStep';
@@ -38,6 +38,15 @@ export function App() {
     glossaryButton.current?.focus();
   }
 
+  useEffect(() => {
+    if (!glossaryOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeGlossary();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [glossaryOpen]);
+
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
       <header className="border-b border-slate-200 px-4 py-3">
@@ -70,14 +79,16 @@ export function App() {
       </header>
 
       <main className="flex-1 px-4 py-4">
-        {/* The glossary replaces the step while open. The analysis needs NASA POWER, so step 5 waits for a connection instead of starting a request that will fail. */}
-        {glossaryOpen ? (
-          <GlossaryPage onBack={closeGlossary} backToStep={state.step} />
-        ) : current.key === 'rotations' && !online && state.analysis.status !== 'ready' ? (
-          <StateBoundary state="offline">{null}</StateBoundary>
-        ) : (
-          <Step />
-        )}
+        {glossaryOpen ? <GlossaryPage onBack={closeGlossary} backToStep={state.step} /> : null}
+        {/* Hidden, not unmounted, while the glossary is open, so the step keeps its local state (the map view). */}
+        <div hidden={glossaryOpen}>
+          {/* The analysis needs NASA POWER, so step 5 waits for a connection instead of starting a request that will fail. */}
+          {current.key === 'rotations' && !online && state.analysis.status !== 'ready' ? (
+            <StateBoundary state="offline">{null}</StateBoundary>
+          ) : (
+            <Step />
+          )}
+        </div>
       </main>
 
       {glossaryOpen ? null : (
