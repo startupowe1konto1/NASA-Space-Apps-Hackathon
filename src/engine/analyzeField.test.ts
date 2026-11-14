@@ -423,6 +423,22 @@ describe('analyzeField with fixture providers', () => {
     });
   });
 
+  // D54: winter rapeseed has only the IUNG annual C factor; the farmer's wheat and rapeseed rotation now gets erosion,
+  // and the card says the rapeseed months use one yearly value.
+  it('scores erosion with the annual C factor for winter rapeseed and names it in the gaps', async () => {
+    const history: CropYear[] = [
+      { year: 2023, crop: 'winter-wheat', source: 'farmer' },
+      { year: 2024, crop: 'winter-rapeseed', source: 'farmer' },
+      { year: 2025, crop: 'winter-wheat', source: 'farmer' },
+    ];
+    const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.poznan, cropHistory: history, priorities }, fixtureProviders);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    expect(current.indicators.erosion).toBeDefined();
+    expect(current.gaps.filter((g) => g.code === 'gap.erosion-no-row').map((g) => g.params?.crop)).toEqual([]);
+    expect(current.gaps.some((g) => g.code === 'gap.erosion-annual-c')).toBe(true);
+    expect('gap.erosion-annual-c' in en).toBe(true);
+  });
+
   it('names the crop when erosion is left out for want of a soil cover row (alfalfa residue)', async () => {
     const history: CropYear[] = [
       { year: 2023, crop: 'maize', source: 'farmer' },

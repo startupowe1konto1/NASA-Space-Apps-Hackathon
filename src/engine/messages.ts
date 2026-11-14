@@ -56,6 +56,7 @@ export const CARD_MESSAGE_CODES = [
   'gap.erosion-rye-row',
   'gap.leaching-not-counted',
   'gap.erosion-no-row',
+  'gap.erosion-annual-c',
   'gap.humus-not-adjusted',
   'soil.evidence.nitrogen-no-leaching',
   'soil.evidence.organic-matter-unadjusted',
@@ -117,6 +118,8 @@ export interface SoilOutcome {
   missing: IndicatorId[];
   /** Crops without a sourced C factor row; named in the gaps when erosion is left out. */
   erosionNoRow?: string[];
+  /** Main crops whose erosion months use one annual C factor (D54); named in the gaps when erosion is scored. */
+  erosionAnnual?: string[];
   /** Adjustments a scored indicator left out for want of a sourced rule row (named in the gaps). */
   notAdjusted?: { leaching: boolean; humus: string[] };
 }
@@ -324,6 +327,10 @@ export function cardMessages(c: CardInput): CardMessages {
     const noRow = id === 'erosion' ? (c.soil.erosionNoRow ?? []) : [];
     if (noRow.length === 0) gaps.push(m('gap.rule-missing', { indicator: INDICATOR_LABEL[id] }));
     for (const crop of noRow) gaps.push(m('gap.erosion-no-row', { crop: cropLabel(crop) }));
+  }
+  // D54: only when erosion is scored; when it is left out, the missing row is the gap that matters
+  if (!c.soil.missing.includes('erosion')) {
+    for (const crop of c.soil.erosionAnnual ?? []) gaps.push(m('gap.erosion-annual-c', { crop: cropLabel(crop) }));
   }
   if (c.soilComparedOn) {
     gaps.push(
