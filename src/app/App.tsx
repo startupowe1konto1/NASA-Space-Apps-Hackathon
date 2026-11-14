@@ -7,6 +7,7 @@ import { GoalStep } from '../steps/goal/GoalStep';
 import { MoneyStep } from '../steps/money/MoneyStep';
 import { PrioritiesStep } from '../steps/priorities/PrioritiesStep';
 import { ReportStep } from '../steps/report/ReportStep';
+import { restoreFromHash } from '../steps/report/shareLink';
 import { PROJECT_NAME } from './brand';
 import { t } from './i18n';
 import { StateBoundary } from '../ui-kit';
@@ -38,6 +39,11 @@ export function App() {
     glossaryButton.current?.focus();
   }
 
+  // A shared report link (#s=...) restores the farmer's input and opens the report (O2-B7).
+  useEffect(() => {
+    restoreFromHash(window.location.hash, useAppStore.getState());
+  }, []);
+
   useEffect(() => {
     if (!glossaryOpen) return;
     const onKey = (event: KeyboardEvent) => {
@@ -49,7 +55,7 @@ export function App() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
-      <header className="border-b border-slate-200 px-4 py-3">
+      <header className="border-b border-slate-200 px-4 py-3 print:hidden">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p>
           <button
@@ -92,7 +98,7 @@ export function App() {
       </main>
 
       {glossaryOpen ? null : (
-        <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3">
+        <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3 print:hidden">
           <button
             type="button"
             className="min-h-11 rounded border border-slate-300 px-4 disabled:opacity-40"
