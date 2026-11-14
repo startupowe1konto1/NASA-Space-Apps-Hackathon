@@ -1,170 +1,134 @@
-# Handoff v2: challenge shortlist with research results
+# Handoff v3: Field Shift chosen, ready for spec and plan
 
-Status: Sat 14 Nov, 12:15 CET (T+1:06). Five challenges on the shortlist, none chosen yet. Research questions 1, 2, 3, 5 are answered and 4 is answered without a login; see "Recommended solution per challenge" below. The idea decision is due at T+2:00 (13:10), per HACKATHON.md §5. When the team picks one, this file is rewritten as the full handoff from HACKATHON.md §7 point 1.
+Written Sat 14 Nov 2026, 14:15 CET (T+3:06), for a fresh Claude Code session. Everything below was checked in this repo's history and in live requests; where something was not checked, it says so. The shortlist analysis that led here (v2 of this file) is in git history and in [context/challenge-comparison.md](context/challenge-comparison.md).
 
-Changes since v0: the team dropped groups 3 and 4 whole, except Flame in Freefall, which O1 kept on the shortlist (DECISIONS D6). Health Monitoring stays dropped. Projects are global for now: no region is assumed. Research question 1 (Martian Map) is answered.
+## Start here (fresh session)
 
-Everything below comes from the challenge Details and Resources tabs (read without logging in) and from live requests to the data sources listed there.
+1. Read `CLAUDE.md` (repo rules), `HACKATHON.md` §5 (schedule), §7 (idea to plan), §14 P2 (prompt), then this file.
+2. Then read, in this order: [context/field-shift-team-notes.md](context/field-shift-team-notes.md) (team decisions, concept, farmer journey), [context/field-shift-datasets.md](context/field-shift-datasets.md) (43 sources with test status), [context/field-shift-data.md](context/field-shift-data.md) (O1's SMAP, NISAR SME2 and GAEZ checks), [context/field-shift-power-gaez.md](context/field-shift-power-gaez.md) (NASA POWER + GAEZ checks), [context/field-shift-candidate-datasets.md](context/field-shift-candidate-datasets.md) (O1's neutral list), [context/rules.md](context/rules.md).
+3. Next task: prompt P2. Write `docs/SPEC.md` with `superpowers:brainstorming`, then `docs/PLAN.md` with `superpowers:writing-plans`. Skills the user approved for this phase: `superpowers:brainstorming`, `superpowers:writing-plans`, `ui-ux-pro-max`, `dataviz`, `anthropic-skills:anti-ai-writing`.
+4. The user (team Vibecodersi) writes in Polish; answer in Polish. Repo files, UI and submission are in English (DECISIONS D3).
+5. We are behind the §5 schedule: the skeleton should have been on `main` at T+3 (14:10). Spec and plan are the critical path.
 
-## What to do next
+## Event facts
 
-1. **Now → 12:30.** Read "Recommended solution per challenge" and the `context/` files. Only research question 4 has an open part (NISAR HDF5, needs an Earthdata login).
-2. **Now.** Agree the idea rejection criteria (proposal at the bottom). If anyone has an Earthdata account, log in and keep any token in `.env` only; it is needed only for measured NISAR change and for Giovanni/AppEEARS. The top three options do not need it.
-3. **12:30 → 13:10.** Compare the research results against the criteria. Cut to two, then pick one challenge and one idea from the "Ideas" lists. Name the project. Choose a region or area of interest only after the idea is picked, and only if the idea needs one.
-4. **13:10.** Record the decision in `docs/DECISIONS.md`, then run prompt P2: rewrite this file as the full handoff, write `docs/SPEC.md` and `docs/PLAN.md`.
+- T0: Sat 14 Nov 11:09 CET. Our deadline: **Sun 11:59** (DECISIONS D5). Freeze and submit at T+23 (Sun 10:10).
+- **Open conflict, needs O1:** the official [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/) says submission closes Sun 15 Nov **11:59 p.m.** local time. The [Poznań schedule](https://www.spaceappschallenge.org/2026/local-events/poznan/?tab=schedule) asks for submission and slides at the info desk by **13:30**, pitches from 14:30 (3 min + 2 min Q&A). D5 (11:59) is stricter than both, so it is safe, but it may be a misread of "11:59 p.m.".
+- Mentors: Sat 15:00, Sun 10:30 (pitch coaching).
+- Submission needs: a demo (max 7 slides or a 30 s video), English, all data, code and images listed in References, a description of AI ("SI") use, no NASA logos in generated content.
 
-## Event facts found at T0
+## Decision
 
-- Local event schedule ([event page, Schedule tab](https://www.spaceappschallenge.org/2026/local-events/poznan/?tab=schedule)): Sun 13:30 is the "Firm Deadline" to submit on the global portal and hand pitch slides to the info desk. Live pitches start at 14:30: 3 minutes plus 2 minutes of questions in front of the jury. Awards at 18:00.
-- Our deadline is **Sun 11:59** (DECISIONS D5, set by O1), earlier than the 13:30 on the local schedule. Freeze and submit at T+23 (Sun 10:10); there is no buffer after T+24.
-- Mentors: Sat 15:00 (session 1), Sun 10:30 (pitch coaching). Local Lead: Rahaf Zorba (contact on the event page). Venue: +Jeden, ul. Za Bramką 1.
-- A 3-minute pitch rewards a project that shows real data on screen within the first 30 seconds.
+**Challenge: [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).** Demo fields in the **USA (Iowa)** and **Poland**. Dropped: Trend Detective, Dancing with the SARs, Martian Map, Flame in Freefall and the other nine challenges.
 
-## All 14 challenges, grouped
+Not yet in `docs/DECISIONS.md`: O1 should add D7 (challenge and demo fields).
 
-Source: [2026 challenges](https://www.spaceappschallenge.org/2026/challenges/). Add `?tab=resources` to a challenge URL to open its data list.
+## What the challenge asks
 
-| Group | Challenge | Difficulty | Team decision |
-|---|---|---|---|
-| 1. Earth data | [Be An Earth System Trend Detective!](https://www.spaceappschallenge.org/2026/challenges/earth-system-trend-detective/) | Advanced | **shortlist** |
-| 1. Earth data | [Dancing with the SARs](https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/) | Advanced, Intermediate | **shortlist** |
-| 1. Earth data | [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/) | Advanced, Intermediate | **shortlist** |
-| 1. Earth data | [Harmonization of MODIS and VIIRS Hot Spots](https://www.spaceappschallenge.org/2026/challenges/modis-and-viirs-hot-spots/) | Advanced, Intermediate | dropped |
-| 2. Moon, Mars, sky | [Interplanetary Survival Guide: Martian Map](https://www.spaceappschallenge.org/2026/challenges/interplanetary-survival-guide-martian-map/) | Intermediate | **shortlist** |
-| 2. Moon, Mars, sky | [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) | Advanced, Intermediate | dropped |
-| 2. Moon, Mars, sky | [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/) | Advanced, Intermediate, Beginner | dropped |
-| 2. Moon, Mars, sky | [Planet X and SPHEREx](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/) | Advanced | dropped |
-| 3. Crew health and safety | [Create Health Monitoring Software for Astronauts on Space Missions](https://www.spaceappschallenge.org/2026/challenges/health-monitoring-software/) | Intermediate | dropped |
-| 3. Crew health and safety | [Flame in Freefall: SI-Powered Fire Safety Insights](https://www.spaceappschallenge.org/2026/challenges/flame-in-freefall/) | Advanced, Intermediate | **shortlist** (kept by O1, D6) |
-| 4. Education, games, art | [Build a Junior Astronaut Mission Trainer](https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/) | Intermediate, Beginner | dropped (whole group) |
-| 4. Education, games, art | [Space Mission Design Game](https://www.spaceappschallenge.org/2026/challenges/space-mission-design-game/) | Intermediate, Beginner | dropped (whole group) |
-| 4. Education, games, art | [Abandoned but not Forgotten](https://www.spaceappschallenge.org/2026/challenges/nasas-discarded-equipment-storytelling/) | Intermediate, Beginner | dropped (whole group) |
-| 4. Education, games, art | [The Earth Information Jukebox](https://www.spaceappschallenge.org/2026/challenges/the-earth-information-jukebox/) | Intermediate, Beginner | dropped (whole group) |
+Farmers face shifting temperatures, less predictable rain, water shortages, extreme weather and declining soil health, so choosing rotations that protect fields and conserve water is hard. Build a decision-support tool that uses NASA Earth observations with local soil, crop traits and farmer priorities to explore rotations that improve soil health and resilience. Explicit asks from the Objectives:
 
-## Data access checked so far
+- compare **at least three rotation strategies, including the existing one**;
+- for each: why it was suggested, the evidence, benefits, information gaps, risks that need local review;
+- show bare-field periods and seasons when current crops are vulnerable;
+- take farmer priorities into account: water use, forage, nitrogen fixing, erosion, organic matter, market suitability, supplemental income;
+- explain terms (evapotranspiration, anomalies, NDVI), show uncertainty, and say the tool supports and does not replace farmer judgment.
 
-Real requests from the venue network, not guesses. Where a point was needed for a test, we used 52.41 N, 16.93 E only because it was at hand; it says nothing about where the project will focus.
+AI is welcome but **not required** (it appears as an opportunity and in the optional "Potential Considerations").
 
-| Source | Result |
+## Judging criteria (each scored 1–5)
+
+Impact, Creativity, Validity, Relevance ("NASA data integral, not superficial"), Presentation. To be eligible for global awards the project must use at least one NASA dataset or resource ([Judging & Awards Guide](https://www.spaceappschallenge.org/resources/judging-awards-guide/)). Phase 1 judging is local: the Poznań jury picks the global nominees.
+
+## Concept
+
+**One sentence:** the farmer marks a field and gets the **3 best rotations plus the current one**, ranked first on **soil health** and **climate resilience** from 45 years of NASA data for that field, each with evidence, risks and data gaps, and only then the money; the same app works in the USA and in Poland.
+
+Team rules (from the discussion, see team notes):
+
+- Soil health is the core. Money (payments, costs, revenue) is an add-on and must not reorder the ranking by default. The team explicitly does not want a price or subsidy comparison site.
+- Recommendations come from the field's history, NASA climate risk, soil-health effects and, last, the money.
+- Show 3 best rotations plus the current one. The engine may score more.
+
+### Farmer journey (7 steps)
+
+1. **Find the field:** address (GUGiK geocoder in Poland, US Census in the USA, Nominatim elsewhere), parcel number (ULDK, Poland) or click.
+2. **Boundaries:** Polish cadastral parcels shown on the map (KIEG); the farmer can split a parcel, merge parcels, redraw. A cadastral parcel is not a field.
+3. **Crops:** where data exists (USA, CropScape) the app asks "corn in 2025, soy in 2024, correct?"; otherwise (most of Poland) the farmer picks the last 2–3 crops from an icon list. The farmer's answer wins.
+4. **Priorities:** soil health always on; the farmer adds water, forage, income, equipment limits.
+5. **Rotations:** 3 best + current; each card has why, evidence, benefits, gaps, risks.
+6. **Money (add-on):** Poland: eco-schemes and the GAEC 7 rotation rule; USA: NRCS practices 340 (cover crop) and 328 (conservation crop rotation), shown as "if your application is selected" (EQIP/CSP are competitive: about 24% and 37% of applications funded in FY2025). Costs and revenue at current prices.
+7. **Decision:** report for the farm advisor.
+
+### Analysis engine (background)
+
+- **Field profile:** droughts, heat, frost, soil moisture, bare-soil periods, slope, from NASA data.
+- **Field twins:** places and years with similar climate and soil, what was grown there and how it did (county or regional yields; NDVI from NASA satellites). Twins are evidence inside the cards, not a separate screen. Builds on the known climate-analogue method ([CCAFS Climate Analogues](https://ccafs.cgiar.org/fr/node/113047)); new is adding soil, the crops actually grown and their results. The USA (CropScape + NASS yields) is the richest case base; Polish fields can find twins there. Optional future view: NASA NEX-GDDP-CMIP6 projections (on Planetary Computer and AWS, no login). Scope for 24 h: precomputed features for US farm counties and EU NUTS 2 regions, not a global search.
+- **Soil health score:** nitrogen, organic matter, erosion, pest-cycle break. Highest weight. Each rule needs a source.
+
+### Add-ons, in priority order
+
+1. Pictures and icons instead of text, colour scores, risk pictograms (cheap, wanted).
+2. Polish and English UI, ready for more languages.
+3. WhatsApp/Telegram bot that sends back the report link (simplest version only; full chat after T+8 if ever).
+4. Sonification: 45 years of soil moisture as sound, droughts heard as silence (pitch differentiator, only if time is left).
+5. Offline mode: not now.
+
+### What is new compared with existing tools
+
+FAO GAEZ shows suitability but no rotations; Crop-CASMA (NASA/USDA) shows soil moisture, US only; US cover-crop selectors are regional; climate-analogue tools compare climate only. We found no free tool that combines a field's NASA climate risk, soil-health scoring of whole rotations, evidence from similar places with real outcomes, and the payment rules, in two countries. Sources in [context/challenge-comparison.md](context/challenge-comparison.md) and the team notes.
+
+## Data
+
+Full list with status: [context/field-shift-datasets.md](context/field-shift-datasets.md). Rule: every number that decides a recommendation comes from NASA data.
+
+Tested and working (no login unless noted):
+
+| Source | Use | Access notes |
+|---|---|---|
+| NASA POWER | 45 years of climate and soil wetness per point or 10°×10° grid | CORS `*`; regional endpoint takes one parameter per request |
+| SMAP L4 via NASA GIBS | soil moisture since 2015 | values read from the GIBS colormap (O1) |
+| NASA HLS (30 m) and NASADEM via Microsoft Planetary Computer | field-level NDVI, slope | STAC CORS `*`, anonymous SAS token per collection; MODIS collections returned 403 (token to fix) |
+| FAO GAEZ v4 ImageServer | suitability and attainable yield, 50 crops, past and future | one raster per `getSamples` call (lock raster ID); 3 MB GeoTIFF per crop on S3 |
+| USDA CropScape (CDL) | crop history per field, USA | x/y in EPSG:5070 (Albers); **no CORS**, needs a server or prefetch |
+| USDA SSURGO (Soil Data Access) | field soil, USA | CORS `*`, SQL over POST |
+| SoilGrids | soil texture, pH, carbon, Poland | 3–15 s per request (O1) |
+| GUGiK geocoder (UUG), ULDK, KIEG WMS | address, parcel by click or ID, parcel map, Poland | CORS `*`; KIEG renders only in **EPSG:2180** (needs proj4 or a proxy) |
+| US Census geocoder, Nominatim | addresses, USA and global | Nominatim: max 1 request/s |
+| Giovanni | 2,049 variables, area time series | Earthdata login done in the browser pane and GES DISC licence accepted at 13:05; time series not run yet |
+
+Still to check before building on them: MODIS NDVI/ET from Planetary Computer (403), NRCS Iowa rates for practices 340/328, ARiMR 2026 eco-scheme rates (portals quote 437.60 PLN/ha for catch crops in 2025 and about 700 PLN/ha for legumes in 2026, not confirmed), EuroCrops coverage of Poland, crop prices and fertilizer costs.
+
+## Technical gotchas found today
+
+- The WebFetch tool fails on the venue network ("unable to get local issuer certificate"); use curl or the built-in browser.
+- Python on this Windows machine writes `\r\n`; strip `\r` before using its output in shell URLs. Use `python -I`.
+- ASF/NISAR HDF5 downloads do not accept the browser-pane Earthdata session; they would need an Earthdata token in `.env` (not set up).
+- Test pages from today: `data/samples/mars-trek/leaflet-spike.html` (Leaflet + EPSG:4326 tiles), `data/samples/power/trend-spike.html` (POWER grid + Mann-Kendall in the browser). Serve a folder with `python -m http.server 5171`.
+
+## Risks
+
+| Risk | Mitigation |
 |---|---|
-| [NASA POWER API](https://power.larc.nasa.gov/) | No key, CORS `*`. Point: 45 years (1981–2025) of monthly agroclimate and soil wetness in about 1 s. Grid: a 10°×10° box (357 cells) in 2.5–7 s, one parameter per request. Details: [context/trend-detective.md](context/trend-detective.md), [context/field-shift-data.md](context/field-shift-data.md). |
-| [FAO GAEZ v4](https://gaez.fao.org/) (Field Shift partner resource) | No key. Crop suitability for 50 crops at any point, about 4 s per crop; each global layer is a 3 MB GeoTIFF. Details: [context/field-shift-data.md](context/field-shift-data.md). |
-| [ASF search API](https://search.asf.alaska.edu/) for NISAR | No key for search. 226 granules at the test point over one year. Geocoded browse PNGs (2–4 MB) download without a login; HDF5 files need an Earthdata login: GCOV 1.3–2.1 GB, GUNW about 2.5 GB, SME2 63–136 MB (O1). NISAR GCOV is also a NASA GIBS map layer with no login (O1). Details: [context/sars-nisar-data.md](context/sars-nisar-data.md). |
-| [PSI](https://psi.nasa.gov/physci/repo/search?q=combustion) | No key. 24 combustion investigations with full metadata; 20 have CSV experimental tables (22 files, 2,009 non-empty rows, 211 KB, CC0, DOI). CORS limited to psi.nasa.gov, so fetch at build time. Details: [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md). |
-| [Mars Trek](https://trek.nasa.gov/mars/) | No key, CORS open. Tiles, 1 m DEM heights in metres, Curiosity route as GeoJSON. No radiation layer in the Trek catalogue. Details: [context/martian-map-trek.md](context/martian-map-trek.md). |
-| [AppEEARS](https://appeears.earthdatacloud.nasa.gov/), [Giovanni](https://giovanni.gsfc.nasa.gov/) | Need an Earthdata login. Not tested: the login in the browser pane failed at 12:20. |
+| Soil-health and rotation rules are ours | one source per rule; mentor check at 15:00; show "check locally" |
+| Turning into a subsidy comparison site | money section below the cards, not used for ranking by default |
+| Twins scope too big for 24 h | precomputed US counties + EU NUTS 2 only; show similarity and number of cases |
+| Yield depends on inputs and management, not only climate | present twins as evidence and inspiration, not a forecast; never promise "best yield" |
+| Payment rules change yearly and differ by country | one country table each, dated "campaign 2026, check ARiMR / NRCS" |
+| Poland lacks per-field crop history | farmer enters it; icon list makes it quick |
+| KIEG projection and CropScape CORS | proj4 in the map; a small server for CropScape and prefetched GAEZ |
 
-The built-in WebFetch tool fails on this network ("unable to get local issuer certificate"). curl and the browser work.
+## Pitch outline (3 minutes)
 
-## Analysis of the five shortlisted challenges
+0–30 s: a real field near Poznań and one in Iowa, the drought of 2026 in NASA soil-moisture data. 30–120 s: live app: mark the field, confirm crops, three rotations with soil-health scores and "places like yours" evidence. 120–150 s: the money add-on in both countries. 150–180 s: who benefits, what is next (more countries as plug-ins), the limits we state openly.
 
-Scores out of 5, updated after the research. Build = chance of a working demo on real data by T+8 (19:10). Pitch = what a judge sees in 3 minutes. Data = how well the data we reached supports the brief. Login = whether the demo needs an Earthdata login.
+## Open questions for the spec
 
-| Challenge | Build | Pitch | Data | Login | One-line verdict |
-|---|---|---|---|---|---|
-| Martian Map | 4 | 5 | 5 | no | best demo; every layer tested in a browser |
-| Flame in Freefall | 4 | 4 | 4 | no | real ISS flight data (2,009 non-empty rows, CC0); AI is the core of the brief |
-| Trend Detective | 5 | 3 | 4 | no | working trend map in a browser already; must not look like Giovanni |
-| Field Shift | 4 | 4 | 4 | no | POWER + GAEZ work for any point; rotation rules are ours |
-| Dancing with the SARs | 4 | 4 | 3 | for measured values | NISAR GCOV is on NASA GIBS without a login (O1, `context/sar-data.md`); measured change needs 1.3–2.1 GB HDF5 files |
+- Exact soil-health score: which indicators, which sources, which weights.
+- Which rotations the engine generates (crop list per country, 6–8 crops for the demo).
+- Twins: features, distance measure, outcome measure (yield vs NDVI), case base size.
+- Stack and hosting (CLAUDE.md still has placeholders), owner folders for O1–O4.
+- Project name (HACKATHON.md §2 rule 7: one name everywhere).
 
-### Interplanetary Survival Guide: Martian Map
+## Repo state at 14:15
 
-Brief: a map or interface a Mars astronaut could use on a surface walk. Choose a science goal and a place (the brief's example is Curiosity's boxwork at Mount Sharp), layer at least three kinds of data (optical, thermal, spectral, topographic, atmospheric, radiation…), with astronaut safety first.
-
-Resources: [Mars Trek](https://trek.nasa.gov/mars/), [USGS–NASA geologic map of Mars](https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars), [Curiosity's proposed route up Mount Sharp](https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/), [NASA Worldview](https://worldview.earthdata.nasa.gov/), [Perseverance raw images](https://mars.nasa.gov/mars2020/multimedia/raw-images/) (over 1 million rover images).
-
-Research result (question 1, done): HiRISE (about 0.6 m/px), CTX, MOLA, THEMIS day and night IR, and the USGS geologic map load as tiles in Leaflet from localhost. The Gale 1 m DEM returns heights in metres per point, along a line, or as a float32 grid. Curiosity's route (19,188 points) and 14 named stops come as GeoJSON. Limits: the 1 m DEM and HiRISE cover only Gale crater; the route layer ends around 2018, before the 2025 boxwork area.
-
-Ideas:
-- **Marswalk planner.** Draw a route on Mount Sharp; the app shows the elevation profile and slope from the DEM, flags steep or loose ground (THEMIS night IR), estimates walking time and a "return to rover" point, with geology underneath.
-- **Science stop cards.** Along Curiosity's real stops, each card shows a rover image, the geologic unit and what to sample there.
-- **3D flyover for the pitch.** DEM grid turned into terrain, camera follows the planned route. Extra work, not a blocker.
-
-Risk: the Trek catalogue has no radiation layer (the brief mentions radiation); a radiation estimate would need a source outside the Resources list and a human OK.
-
-### Field Shift: Adapting Farms with NASA Data
-
-Brief: a decision-support tool that uses NASA Earth observations plus soil, crop and farmer priorities to compare crop rotations, for farmers anywhere. At least three strategies, including the current one, each with the reason, the evidence and the trade-offs.
-
-Resources, NASA (all global): [SMAP](https://www.earthdata.nasa.gov/data/platforms/space-based-platforms/smap) soil moisture every 2–3 days, [GPM/IMERG](https://gpm.nasa.gov/data) rainfall, [Landsat](https://earthexplorer.usgs.gov/) and [MODIS](https://lpdaac.usgs.gov/products/)/[VIIRS](https://search.earthdata.nasa.gov/search?q=VIIRS) NDVI, [NASA POWER](https://power.larc.nasa.gov/) agroclimate, [SRTM](https://www.earthdata.nasa.gov/data/instruments/srtm) terrain, [ECOSTRESS](https://ecostress.jpl.nasa.gov/data) heat and evapotranspiration, GLDAS (search in Earthdata), [GEDI](https://gedi.umd.edu/data). Partner resources with global coverage: [Sentinel-2](https://dataspace.copernicus.eu/), [ERA5](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview), [FAO GAEZ](https://gaez.fao.org/) (crop suitability and soil constraints). The USDA sources in the list (Web Soil Survey, SSURGO, CropScape, NASS, PRISM, OpenET) cover the US only, so a global tool cannot rely on them.
-
-Ideas:
-- **Rotation compare for any field.** The farmer clicks a field anywhere and enters the current rotation. The app shows 20+ years of rain, heat and frost from NASA POWER, soil moisture from SMAP, crop suitability from GAEZ, and scores three alternatives (add a legume, a cover crop, a drought-tolerant crop) on water use, soil, erosion and income, with the evidence for each score.
-- **Bare-soil and stress calendar.** NDVI and SMAP by month show when the field is bare or stressed under each rotation.
-- **Plain-language "why".** Each recommendation gets a short explanation built only from the numbers on screen.
-
-Risk: the rotation rules are ours. Get a mentor to sanity-check them at the 15:00 session. A global tool also needs crop rules that work across climates; GAEZ suitability is the most likely way to keep that honest.
-
-### Be An Earth System Trend Detective!
-
-Brief: pick Earth science variables, get them for a region, plot a long time series, test whether the trend is significant (t-test, Mann-Kendall, confidence intervals). Plot plus test meets the full scope.
-
-Resources: [Giovanni](https://giovanni.gsfc.nasa.gov/) (many variables, time series, download), [Hydrology Time Series](https://disc.gsfc.nasa.gov/information/tools?title=Hydrology%20Time%20Series), [AppEEARS](https://appeears.earthdatacloud.nasa.gov/) (time series from federal archives), [NOAA CDO](https://www.ncei.noaa.gov/cdo-web/), [SeaWiFS trend paper](https://ntrs.nasa.gov/api/citations/20090042747/downloads/20090042747.pdf) (example of significance testing), [KNMI Climate Explorer](https://climexp.knmi.nl/), [trend tests article](https://medium.com/@snp.kriss/statistical-test-methods-to-detect-trends-in-time-series-data-b361a0ec530b), CSA: [RCM](https://donnees-data.asc-csa.gc.ca/en/dataset/rcm), [SWOT](https://www.asc-csa.gc.ca/eng/satellites/swot/), [SAR tutorial](https://github.com/asc-csa/Synthetic_Aperture_Radar_Tutorial).
-
-Ideas:
-- **Trend map with verdicts.** Draw a box anywhere on Earth; the app runs Mann-Kendall and Sen's slope on each grid cell and colours where a variable rises, falls or shows no significant change. This answers the brief's point that one variable can trend up in one region and down in another.
-- **"Detective case file".** For one region, test ten variables at once (temperature, rain, soil moisture, NDVI, snow…) and list only the significant ones, in plain language with p-values.
-- **Shared code with Field Shift.** The NASA POWER time-series code is the same, so this is also a fallback if Field Shift stalls.
-
-Risk: looks like Giovanni with a new skin unless the map of opposite trends or the case file is the visible feature.
-
-### Dancing with the SARs
-
-Brief: an interactive app that uses NISAR radar data to track and visualize one or more types of surface change (floods, forests, crops, soil moisture, glaciers, subsidence) at locations around the world, open source, for a broad audience.
-
-Resources: [Earthdata Search](https://search.earthdata.nasa.gov/search), [ASF Vertex](https://search.asf.alaska.edu/) (NASA's SAR archive), [NISAR data user guide](https://nisar-docs.asf.alaska.edu/), [intro to remote sensing](https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing), [intro to SAR](https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar), [ARSET trainings](https://appliedsciences.nasa.gov/get-involved/training), [NISAR StoryMaps](https://nisar.jpl.nasa.gov/applications/arcgis-storymaps/), [NISAR application white papers](https://nisar.jpl.nasa.gov/applications/societal-benefit/), [UAVSAR postcards](https://uavsar.jpl.nasa.gov/education/postcards.html); partners: CSA [RCM](https://donnees-data.asc-csa.gc.ca/en/dataset/rcm), [RADARSAT-1](https://donnees-data.asc-csa.gc.ca/en/dataset/radarsat1) (open archive), [SAR tutorial](https://github.com/asc-csa/Synthetic_Aperture_Radar_Tutorial), CONAE [SAOCOM](https://catalogos.conae.gov.ar/catalogo/catalogoSatSaocomInfo.html) (registration).
-
-Ideas:
-- **Soil-moisture year anywhere.** NISAR SME2 granules (about one per week at the test point) played as a time-lapse with a slider, next to rainfall from GPM. Links to the Field Shift story.
-- **Change-type gallery.** A handful of places around the world, one per change type from the brief (flood, forest loss, subsidence, glacier), each as a before/after swipe built from GCOV or GUNW.
-- **Flood or wetland pulse.** Water mask per date from GCOV backscatter, area of water over time for a chosen river valley.
-
-Risk: HDF5 products, likely gigabytes each, Earthdata login, SAR know-how. Workable only if one person preprocesses a small area into PNG frames or tiles in the first two hours.
-
-### Flame in Freefall: SI-Powered Fire Safety Insights
-
-Brief: an AI-powered web dashboard that summarizes, ranks and explains combustion experiments for fire safety in spacecraft, stations, lunar and Mars bases and pressurized rovers.
-
-Resources: the [PSI combustion repository](https://psi.nasa.gov/physci/repo/search?q=combustion) is named as "the source of the data upon which the NASA Space App is to be based". Background: [NASA combustion science](https://www.nasa.gov/glenn/glenn-expertise-space-exploration/physical-sciences-program/combustion-science/), [researcher's guide to ISS combustion science](https://www.nasa.gov/missions/station/a-researchers-guide-to-combustion-science/) (2015, 50+ pages), [ScienceCasts video](https://www.youtube.com/watch?v=W1oXykoz9zg), accident reports [Apollo 1](https://sma.nasa.gov/sma-disciplines/accllp/apollo-1), [Apollo 13](https://sma.nasa.gov/sma-disciplines/accllp/apollo-13), [Mir 1997](https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/), spinoffs ([air tanks](https://spinoff.nasa.gov/node/9582), [fire detector](https://spinoff.nasa.gov/node/9407), [fire attire](https://spinoff.nasa.gov/node/9918)).
-
-Ideas:
-- **Habitat fire-risk ranker.** Pick a habitat (ISS module, pressurized rover, lunar base) and a material or scenario; the app ranks PSI experiments by relevance and shows the findings that apply, each linked to its PSI page and DOI.
-- **Lessons-learned timeline.** Apollo 1, Apollo 13 and Mir mapped to the PSI experiments that later studied the same failure.
-- **Earth spinoff view.** The same findings applied to firefighting on Earth, as the brief suggests.
-
-Research result (question 5, done): 24 combustion investigations with full metadata through a public API; 20 publish CSV experimental tables (22 files, 2,009 non-empty rows, 211 KB, CC0, each with a DOI), all downloaded without a login in 27 s. Examples: FLEX droplet tests (274 rows: fuel, pressure, O2/CO2/He, burn time, extinction), SAFFIRE large-scale fires on Cygnus (material, thickness, air flow, O2), BASS and ACME flame tests. CORS allows only psi.nasa.gov, so the app ships the data as static JSON. The PSI site asks users to cite each dataset's DOI. The AI layer must only summarize what the PSI records say, with links, so judges can check every claim.
-
-## Comparison table
-
-Data quality, data usefulness, access, existing tools and the gap each challenge leaves: [context/challenge-comparison.md](context/challenge-comparison.md). Totals out of 30: Martian Map 26, Flame in Freefall 26, Field Shift 23, Trend Detective 22, Dancing with the SARs 22 (up from 17 after O1 found NISAR GCOV on NASA GIBS without a login).
-
-## Recommended solution per challenge
-
-One concrete product per challenge, built only on data we have already fetched. Each is a static web app plus, where noted, a build-time script.
-
-| Challenge | Recommended product | Data (tested) | First screen in the pitch | Main risk |
-|---|---|---|---|---|
-| Martian Map | **Marswalk planner on Mount Sharp.** Draw a route; elevation profile and slope from the 1 m DEM, loose-ground warning from THEMIS night IR / TES thermal inertia, geology underneath, Curiosity's real stops as science cards, walking time and turn-back point. | Mars Trek tiles, Gale DEM ImageServer, Curiosity route GeoJSON | HiRISE close-up with a drawn route and a red "too steep" segment | no radiation map in Trek; the 2025 boxwork area is past the 2018 route data |
-| Flame in Freefall | **Habitat fire-safety explorer.** Choose a habitat (ISS, rover, lunar base) and its atmosphere (O2 %, pressure, air flow); the app filters the 22 PSI tables to tests run near those conditions, shows what burned or went out and how fast, and an AI summary ranks the investigations that matter for that habitat, every sentence linked to a PSI record and DOI. | PSI search and detail API, 22 CSV tables (build-time fetch) | "Lunar base, 34% O2, 0.56 atm": a ranked list with FLEX and SAFFIRE results and a plot of burn time vs O2 | columns differ per table, so a common schema has to be made and checked; AI claims must stay traceable |
-| Trend Detective | **Trend map with verdicts.** Draw a box anywhere, pick a variable; per-cell Mann-Kendall + Sen's slope, map of rising / falling / no trend, click a cell for its series and a plain-language verdict with p-value; a false-discovery-rate option. | NASA POWER regional grid (CORS open) | East Africa soil moisture: blue and red cells side by side in one region | POWER is not on this challenge's Resources list; Giovanni/AppEEARS need a login |
-| Field Shift | **Rotation compare for any field.** Click a field, enter the current rotation; 45 years of rain, heat, frost and soil wetness from POWER, GAEZ suitability for the candidate crops, three alternatives scored on water, soil, erosion and suitability, each score with its evidence. | NASA POWER point, FAO GAEZ getSamples (or preprocessed GeoTIFFs) | one field, three rotation cards with scores and the climate chart behind them | the agronomy rules are ours and need sources; data is about 9–50 km, not field-scale |
-| Dancing with the SARs | **NISAR change viewer.** Click a place; the app lists NISAR passes and plays the geocoded browse images on the map with a date slider and before/after swipe. Measured change (water area, soil moisture) only if someone with an Earthdata login downloads and processes a granule. | ASF search, browse PNGs | a river valley flickering through a year of radar passes | without the HDF5 files it shows change but cannot measure it |
-
-Ranking for the 13:10 decision, against the proposed rejection criteria:
-
-1. **Martian Map** passes all three criteria and has the strongest first 30 seconds.
-2. **Flame in Freefall** passes all three. It is the only one where AI is the brief itself, and its data is real flight data that few teams will have parsed. Its weak point is the schema work on 22 different tables.
-3. **Trend Detective** passes all three and is already half-built (`data/samples/power/trend-spike.html`). Weakest "wow".
-4. **Field Shift** passes, but the value depends on rotation rules we would have to write and defend.
-5. **Dancing with the SARs** now passes for a visual change viewer (NISAR GCOV on GIBS, no login). It still fails for measured change unless a login and 1.3–2.1 GB HDF5 files can be processed in time.
-
-## Research questions (status)
-
-1. **Martian Map:** done. [context/martian-map-trek.md](context/martian-map-trek.md). The Trek catalogue has no radiation layer (searched "radiation", "dust"); TES dust and thermal inertia layers exist.
-2. **Field Shift:** done. O1: [context/field-shift-data.md](context/field-shift-data.md) (SMAP via GIBS without login, GAEZ past and future, a clicked point in 1–2 s). Ours: [context/field-shift-power-gaez.md](context/field-shift-power-gaez.md) (NASA POWER 45 years + GAEZ at several test points). POWER point + GAEZ: a clicked point gets climate and three crops in about 13 s (1 s + 3 × 4 s), or under 2 s with preprocessed GAEZ layers. SMAP via Earthdata not tested.
-3. **Trend Detective:** done with POWER. [context/trend-detective.md](context/trend-detective.md). Giovanni/AppEEARS not tested (login).
-4. **Dancing with the SARs:** done. O1: [context/sar-data.md](context/sar-data.md) (file sizes, NISAR GCOV on GIBS, download speed). Ours: [context/sars-nisar-data.md](context/sars-nisar-data.md) (ASF search and browse images). Open: HDF5 processing time, needs an Earthdata login.
-5. **Flame in Freefall:** done. O1: [context/flame-psi-data.md](context/flame-psi-data.md). Ours: [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md). Both found the same API and 22 tables; the correct row count is 2,009 non-empty rows.
-
-Proposed idea rejection criteria (agree by 12:10): no demo on real NASA data by T+8; data needs more than 1 h of preprocessing; an existing NASA tool already does the same thing without a clear difference.
+`main` at `98634fa` (PR #17 merged), no open PRs. Merged today from this session: #4, #5, #7, #10, #13, #15 (O1's, at the user's request), #16, #17 (O1's, at the user's request); #9 closed as a duplicate of O1's #8. Never push to `main`; squash-merge through PRs; the user asks to merge handoff updates as soon as they are written.
