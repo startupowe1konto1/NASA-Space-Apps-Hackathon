@@ -6,6 +6,7 @@
   "ui.kind.derived": "our calculation",
   "ui.range.label": "range",
   "ui.source.details": "Source details",
+  "ui.source.chip": "Source: {kind}",
   "ui.source.provider": "Provider",
   "ui.source.resolution": "Native resolution",
   "ui.source.period": "Period",
