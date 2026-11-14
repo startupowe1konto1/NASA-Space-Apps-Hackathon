@@ -44,7 +44,10 @@ export function createTableMoneyProvider(tables: MoneyTables, crops: CropTables)
       for (const crop of [...new Set(requested)]) {
         if (cover.has(crop)) continue;
         const row = table.economics.find((r) => r.crop === crop);
-        if (!row) return { status: 'no-data', reason: { code: 'money.no-economics', params: { crop } } };
+        // A row without a yield or a price (a cover-crop row, D34) cannot back a sold crop.
+        if (!row || row.referenceYieldTPerHa == null || row.pricePerT == null) {
+          return { status: 'no-data', reason: { code: 'money.no-economics', params: { crop } } };
+        }
         out.push({
           crop,
           referenceYieldTPerHa: value(row.sources, 'yield', row.referenceYieldTPerHa, 't/ha'),

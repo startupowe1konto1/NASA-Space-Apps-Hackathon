@@ -87,8 +87,10 @@ export const moneyFile = z.object({
   economics: z.array(
     z.object({
       crop: z.string().min(1),
-      referenceYieldTPerHa: z.number().positive(),
-      pricePerT: z.number().positive(),
+      // 'cover': a cover crop is not sold, so its row carries direct costs only (D34, issue #98 item 5)
+      kind: z.literal('cover').optional(),
+      referenceYieldTPerHa: z.number().positive().nullable().optional(),
+      pricePerT: z.number().positive().nullable().optional(),
       directCostsPerHa: z.number().min(0),
       // Each value has its own period (issue #79 item 4): yields are a mean over past years, prices a marketing year
       // or a week, costs a budget year. Optional until data/money fills them (src/money/data.test.ts then requires them).
@@ -97,6 +99,8 @@ export const moneyFile = z.object({
       costsPeriod: z.string().min(1).optional(), // e.g. '2026 budget'
       year: z.number().int().optional(), // deprecated: one year per row could not say which value it dated
       sources: z.array(sourceRef).min(1),
+    }).refine((r) => r.kind === 'cover' || (typeof r.referenceYieldTPerHa === 'number' && typeof r.pricePerT === 'number'), {
+      message: 'referenceYieldTPerHa and pricePerT are required unless kind is cover',
     }),
   ),
   payments: z.array(
