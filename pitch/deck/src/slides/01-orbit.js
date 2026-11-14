@@ -5,7 +5,7 @@ export default {
     const { EVENT, CHALLENGE, PROJECT_NAME, TEAM, MEMBERS, LOCAL_EVENT } = ctx.constants;
     ctx.el.innerHTML = `
       <div class="copy">
-        <div class="eyebrow">${EVENT} · ${CHALLENGE}</div>
+        <div class="eyebrow">${EVENT}<br>${CHALLENGE}</div>
         <div class="title">${PROJECT_NAME}</div>
         <div class="lede">From orbit to one field.</div>
         <div class="facts members">
