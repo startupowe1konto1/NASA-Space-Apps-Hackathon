@@ -90,6 +90,22 @@ describe('toSoilRules on the rows in data/rules', () => {
     expect(sourceIds['erosion.zeroScoreIndex']).toContain('erosion.slr.bare');
   });
 
+  // #105 item 5: the zero point is bare fallow on the RUSLE unit plot (LS = 1, the row's unit text), so the field's
+  // slope factor moves the erosion score instead of cancelling out.
+  it('a steeper field scores lower on erosion: the zero point is bare fallow on the unit plot, LS = 1', () => {
+    const years = [{ crop: 'maize' }, { crop: 'soybean' }];
+    const erosionAt = (pct: number) => {
+      const slopePct = { ...iowaSlope, value: pct };
+      const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, years, { monthly: iowaClimate.monthly, slopePct });
+      const profile = { ...iowaClimate, soil: { sandPct: iowaSlope, clayPct: iowaSlope, organicCarbon: iowaSlope, ph: iowaSlope }, slopePct };
+      return { rules, score: soilHealth(years, fixtureCrops.US, profile, rules, { goal: 'keepSoil', on: [], excludedCrops: [] }).indicators.erosion!.value };
+    };
+    const flat = erosionAt(1);
+    const steep = erosionAt(12);
+    expect(steep.score).toBeLessThan(flat.score);
+    expect(find(flat.rules.erosion, 'erosion.zeroScoreIndex')).toBe(find(steep.rules.erosion, 'erosion.zeroScoreIndex'));
+  });
+
   it('leaves erosion C factors out for a cover crop without a row', () => {
     const { rules, erosionNoRow } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
       monthly: poznanClimate.monthly,

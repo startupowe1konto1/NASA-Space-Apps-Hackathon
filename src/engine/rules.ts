@@ -118,9 +118,9 @@ export const shippedRules: LoadedRules = loadRules(ruleFiles);
 //   erosion.slr.residueCover.<crop>.tilled30, else the crop's 'residue' stage, else its 'roughFallow' stage, / 100;
 //   cover-crop = mean over the cover crops of erosion.slr.meadow.redClover (red clover) or the mean of
 //   erosion.slr.maize.noTillInRyeCover (cereal rye), / 100. A crop or cover without a row: erosion is left out.
-//   slopeFactor = erosion.ls.slopeLength75ft. zeroScoreIndex = the index of continuous bare fallow on this field
-//   (C = 1 every month, the field's mean monthly rain, the same slope factor), sourced to erosion.slr.bare, so 0
-//   means "as bad as bare fallow".
+//   slopeFactor = erosion.ls.slopeLength75ft. zeroScoreIndex = the index of continuous bare fallow on the RUSLE unit
+//   plot (C = 1 every month, the field's mean monthly rain, LS = 1), sourced to erosion.slr.bare and erosion.ls, so 0
+//   means "as bad as bare fallow on the unit plot" and the field's own slope moves the score (#105 item 5).
 // - pestBreak.minReturn.<family>: for each family of the crop list, the O4 'pestBreak.returnYears.<x>' rows where x is
 //   the family or a crop of that family ('wheat' = crops with 'wheat' in the id) give {low = largest low, mid = that,
 //   high = largest high}; a family without such a row gets 'pestBreak.returnYears.anyFamily'.
@@ -149,17 +149,6 @@ function derivedRow(id: string, value: RuleRow['value'], unit: string, from: Rul
     sourceLocator: from.sourceLocator,
     checkedBy: `derived by the engine from ${from.id}`,
   };
-}
-
-/** Step lookup like soilHealth's: the value under the largest numeric key that is ≤ x. */
-function stepLookup(table: Record<string, number>, x: number | null): number | undefined {
-  if (x === null) return undefined;
-  let best: { key: number; value: number } | undefined;
-  for (const [k, value] of Object.entries(table)) {
-    const key = Number(k);
-    if (Number.isFinite(key) && key <= x && (!best || key > best.key)) best = { key, value };
-  }
-  return best?.value;
 }
 
 export function toSoilRules(
@@ -274,17 +263,18 @@ export function toSoilRules(
       const src = get(v.from[0]!)!;
       add('erosion', derivedRow(`erosion.cFactor.${state}`, v.c, 'RUSLE cover-management factor C', src, `calendar cover state '${state}' of this rotation`), v.from);
     }
-    let slopeFactor: number | undefined;
     if (ls && typeof ls.value === 'object') {
       add('erosion', derivedRow('erosion.slopeFactor', ls.value, ls.unit, ls, ls.appliesTo), [ls.id]);
-      slopeFactor = stepLookup(ls.value, profile.slopePct.value as number | null);
     }
     const rain = Array.from({ length: 12 }, (_, i) => {
       const vals = profile.monthly.filter((m) => m.month === i + 1 && m.rainMm !== null).map((m) => m.rainMm as number);
       return vals.length === 0 ? null : meanOf(vals);
     });
     if (rain.every((x) => x !== null)) {
-      const zero = r3((rain as number[]).reduce((a, b) => a + b, 0) * (slopeFactor ?? 1));
+      // The zero point is bare fallow on the RUSLE unit plot (LS = 1.0, '72.6 ft unit plot at 9% slope' in the
+      // erosion.ls row's unit), not on this field: the field's slope factor scales only the rotation's index, so a
+      // steeper field scores lower (#105 item 5). On a field steeper than the unit plot the score can reach 0.
+      const zero = r3((rain as number[]).reduce((a, b) => a + b, 0));
       if (zero > 0) {
         add(
           'erosion',
