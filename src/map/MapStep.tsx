@@ -9,6 +9,7 @@ import { FieldList } from './draw/FieldList';
 import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
 import { ParcelSearch } from './parcels/ParcelSearch';
+import { cutField } from './parcels/editFields';
 import { addFieldAt } from './parcels/tap';
 import { SearchBox } from './search/SearchBox';
 
@@ -24,6 +25,11 @@ export function MapStep() {
   const mapRef = useRef<MapController | null>(null);
   const [tilesFailed, setTilesFailed] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
+  const [cutting, setCutting] = useState(false);
+  // The note is about the fields as they were when it was written; any later change to the list hides it.
+  const [editNote, setEditNote] = useState<{ text: string; fields: Field[] } | null>(null);
+  const [parcelsOn, setParcelsOn] = useState(false);
+  const [parcelsFailed, setParcelsFailed] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -48,6 +54,20 @@ export function MapStep() {
           if (field) updateField(reshapedField(field, polygon));
         },
         onRemoved: (id) => useAppStore.getState().removeField(id),
+        onCut: (line) => {
+          const { selectedFieldId: id, fields } = useAppStore.getState();
+          const parent = fields.find((f) => f.id === id);
+          const outcome = parent ? cutField(parent.id, line) : ({ ok: false, reason: 'no-field' } as const);
+          const note = (text: string) => setEditNote({ text, fields: useAppStore.getState().fields });
+          if (!parent || !outcome.ok) return note(t(`edit.cut.fail.${outcome.ok ? 'no-field' : outcome.reason}`));
+          const [a, b] = outcome.fields;
+          note(t('edit.cut.done', { name: parent.name, a: a.name, b: b.name }));
+        },
+        onCutMode: (active) => {
+          setCutting(active);
+          if (active) setEditNote(null);
+        },
+        onParcelLayerError: () => setParcelsFailed(true),
       });
     } catch {
       setMapFailed(true);
@@ -72,6 +92,18 @@ export function MapStep() {
   const pickDemo = (field: Field) => {
     addField(field);
     mapRef.current?.flyTo(field);
+  };
+
+  const toggleParcels = (on: boolean) => {
+    setParcelsOn(on);
+    setParcelsFailed(false);
+    mapRef.current?.setParcelLayer(on);
+  };
+
+  const retryParcels = () => {
+    setParcelsFailed(false);
+    mapRef.current?.setParcelLayer(false);
+    mapRef.current?.setParcelLayer(true);
   };
 
   const retryTiles = () => {
@@ -99,6 +131,11 @@ export function MapStep() {
           {null}
         </StateBoundary>
       ) : null}
+      {parcelsFailed ? (
+        <StateBoundary state="error" source={t('edit.layer.source')} reason={t('edit.layer.error')} onRetry={retryParcels}>
+          {null}
+        </StateBoundary>
+      ) : null}
       {mapFailed ? (
         <StateBoundary state="error" source={t('map.source')} reason={t('map.tiles.reason')}>
           {null}
@@ -114,6 +151,29 @@ export function MapStep() {
         />
         <p className="mt-2 text-sm text-slate-600">{t('map.hint')}</p>
         <p className="mt-1 text-sm text-slate-600">{t('draw.hint')}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button
+            type="button"
+            className={BUTTON}
+            disabled={!cutting && !selectedFieldId}
+            onClick={() => (cutting ? mapRef.current?.stopCut() : mapRef.current?.startCut())}
+          >
+            {cutting ? t('edit.cut.cancel') : t('edit.cut.start')}
+          </button>
+          <label className="flex min-h-11 items-center gap-2 text-base text-slate-900">
+            <input
+              type="checkbox"
+              checked={parcelsOn}
+              onChange={(e) => toggleParcels(e.target.checked)}
+              className="h-6 w-6 shrink-0 accent-emerald-700"
+            />
+            {t('edit.layer.label')}
+          </label>
+        </div>
+        {parcelsOn ? <p className="mt-1 text-sm text-slate-600">{t('edit.layer.hint')}</p> : null}
+        <div role="status" className="mt-2 text-base text-slate-900">
+          {cutting ? t('edit.cut.hint') : editNote?.fields === fields ? editNote.text : null}
+        </div>
       </div>
 
       <ParcelSearch />

@@ -56,11 +56,16 @@ function shape(polygon: Polygon): Pick<Field, 'polygon' | 'centroid' | 'country'
   return { polygon: closed, centroid, country: guessCountry(centroid.lat, centroid.lon), areaHa: areaHa(closed) };
 }
 
-/** A new field from a freshly drawn outline. `existing` keeps the default name unique. */
-export function drawnField(polygon: Polygon, existing: Field[]): Field {
+/** An id no field in `existing` has. */
+export function uniqueFieldId(existing: Field[]): string {
   let id = newId();
   while (existing.some((f) => f.id === id)) id = newId();
-  return { id, name: defaultName(existing), ...shape(polygon) };
+  return id;
+}
+
+/** A new field from a freshly drawn outline. `existing` keeps the default name unique. */
+export function drawnField(polygon: Polygon, existing: Field[]): Field {
+  return { id: uniqueFieldId(existing), name: defaultName(existing), ...shape(polygon) };
 }
 
 /** The same field (id, name, parcels) with a reshaped outline. */

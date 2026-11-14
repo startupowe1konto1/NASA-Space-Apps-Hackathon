@@ -10,7 +10,7 @@ export type TapState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'parcel'; teryt: string }
-  | { status: 'fallback'; reason: 'none' | 'error' };
+  | { status: 'fallback'; reason: 'none' | 'error' | 'offline' };
 
 export const useParcelTap = create<{ tap: TapState }>(() => ({ tap: { status: 'idle' } }));
 
@@ -40,5 +40,5 @@ export async function addFieldAt(lat: number, lon: number, fetchImpl: typeof fet
   if (ticket !== latestTap) return;
 
   if (parcel) add(parcel, { status: 'parcel', teryt: parcel.parcelIds?.[0] ?? parcel.name });
-  else add(pointToField(lat, lon), { status: 'fallback', reason: failed ? 'error' : 'none' });
+  else add(pointToField(lat, lon), { status: 'fallback', reason: failed ? (navigator.onLine === false ? 'offline' : 'error') : 'none' });
 }

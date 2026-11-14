@@ -1,7 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { cwd } from 'node:process';
+import { setLang } from '../../app/i18n';
 import terms from './terms.en.json';
+import plTerms from './terms.pl.json';
 import { TERM_IDS, lookupTerm, term, useTerm } from './useTerm';
 
 const REQUIRED = [
@@ -89,5 +91,45 @@ describe('useTerm', () => {
 
   it('shows the id instead of crashing outside tests', () => {
     expect(lookupTerm('no-such-term', false)).toEqual({ label: 'no-such-term', explanation: 'no-such-term' });
+  });
+});
+
+// #76 / HANDOFF v7 second task: under ?lang=pl the glossary and the <Term> pop-ups read terms.pl.json.
+describe('useTerm in Polish', () => {
+  afterEach(() => setLang('en'));
+
+  it('returns the Polish label and sentence when the language is Polish', () => {
+    setLang('pl');
+    expect(term('root-zone')).toEqual(plTerms['root-zone']);
+    expect(useTerm('ndvi')).toEqual(plTerms.ndvi);
+  });
+
+  it('goes back to English when the language is switched back', () => {
+    setLang('pl');
+    setLang('en');
+    expect(term('root-zone')).toEqual(terms['root-zone']);
+  });
+
+  it('falls back to the English entry for a term with no Polish text', () => {
+    const tables = { en: terms, pl: {} };
+    expect(lookupTerm('ndvi', true, 'pl', tables)).toEqual(terms.ndvi);
+  });
+
+  it('still fails loudly on an unknown id in Polish', () => {
+    setLang('pl');
+    expect(() => term('no-such-term' as never)).toThrow('no-such-term');
+  });
+});
+
+describe('Polish glossary terms', () => {
+  it('follow the English rules: one short plain sentence per term', () => {
+    for (const [id, entry] of Object.entries(plTerms)) {
+      expect(entry.label.trim(), id).not.toBe('');
+      const words = entry.explanation.trim().split(/\s+/);
+      expect(words.length, `${id}: ${words.length} words`).toBeLessThanOrEqual(25);
+      expect(entry.explanation, id).toMatch(/^\p{Lu}.*\.$/u);
+      expect(entry.explanation, `${id}: one sentence`).not.toMatch(/[.!?]\s+\p{Lu}/u);
+      expect(entry.explanation, `${id}: no dashes as punctuation`).not.toMatch(/[–—]| - /);
+    }
   });
 });

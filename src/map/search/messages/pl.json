@@ -7,5 +7,6 @@
   "search.none": "Nie znaleziono miejsca dla tego tekstu. Dopisz miejscowość lub kod pocztowy albo sprawdź pisownię.",
   "search.moved": "Mapa przesunięta do: {label}.",
   "search.error.format": "Nie da się odczytać odpowiedzi z {source}.",
-  "search.error.http": "Odpowiedź z {source}: kod HTTP {status}."
+  "search.error.http": "Odpowiedź z {source}: kod HTTP {status}.",
+  "search.attribution": "Wyszukiwanie: OpenStreetMap Nominatim"
 }

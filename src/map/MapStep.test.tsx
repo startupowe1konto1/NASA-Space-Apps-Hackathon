@@ -20,6 +20,9 @@ const leaflet = vi.hoisted(() => ({
     destroy: vi.fn(),
     isEditing: vi.fn(() => false),
     showPlace: vi.fn(),
+    startCut: vi.fn(),
+    stopCut: vi.fn(),
+    setParcelLayer: vi.fn(),
   },
 }));
 
@@ -205,3 +208,97 @@ describe('MapStep', () => {
     expect(screen.getAllByRole('button', { name: /Iowa demo field/ })).toHaveLength(1);
   });
 });
+
+describe('cutting a field and the parcel layer', () => {
+  const lineThrough = (f: { centroid: { lat: number; lon: number } }): [[number, number], [number, number]] => [
+    [f.centroid.lon - 1, f.centroid.lat],
+    [f.centroid.lon + 1, f.centroid.lat],
+  ];
+  const cutButton = () => screen.getByRole('button', { name: t('edit.cut.start') });
+
+  it('keeps the cut button off until a field is selected', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    expect(cutButton()).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    expect(cutButton()).toBeEnabled();
+  });
+
+  it('starts cut mode, explains it, and offers to cancel until the map reports the mode is off', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+
+    await user.click(cutButton());
+    expect(leaflet.controller.startCut).toHaveBeenCalledTimes(1);
+    act(() => leaflet.handlers!.onCutMode(true));
+    expect(await screen.findByText(t('edit.cut.hint'))).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: t('edit.cut.cancel') }));
+    expect(leaflet.controller.stopCut).toHaveBeenCalledTimes(1);
+    act(() => leaflet.handlers!.onCutMode(false));
+    await waitFor(() => expect(screen.queryByText(t('edit.cut.hint'))).not.toBeInTheDocument());
+    expect(cutButton()).toBeInTheDocument();
+  });
+
+  it('replaces the selected field with its two parts when the cut line arrives, and says so', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    const { iowa } = demoFields;
+
+    act(() => leaflet.handlers!.onCut(lineThrough(iowa)));
+
+    const first = t('split.field.name', { name: iowa.name, n: 1 });
+    const second = t('split.field.name', { name: iowa.name, n: 2 });
+    expect(await screen.findByText(t('edit.cut.done', { name: iowa.name, a: first, b: second }))).toBeInTheDocument();
+    const names = useAppStore.getState().fields.map((f) => f.name);
+    expect(names).toEqual(expect.arrayContaining([first, second]));
+    expect(names).not.toContain(iowa.name);
+    expect(canContinue(useAppStore.getState())).toBe(true);
+  });
+
+  it('says why a cut failed and keeps the field', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    const { iowa } = demoFields;
+
+    act(() =>
+      leaflet.handlers!.onCut([
+        [iowa.centroid.lon + 5, iowa.centroid.lat],
+        [iowa.centroid.lon + 5, iowa.centroid.lat + 1],
+      ]),
+    );
+
+    expect(await screen.findByText(t('edit.cut.fail.no-crossing'))).toBeInTheDocument();
+    expect(useAppStore.getState().fields.map((f) => f.id)).toEqual([iowa.id]);
+  });
+
+  it('shows the parcel layer when its box is ticked and hides it when it is cleared', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    const box = screen.getByRole('checkbox', { name: t('edit.layer.label') });
+    expect(box).not.toBeChecked();
+
+    await user.click(box);
+    expect(leaflet.controller.setParcelLayer).toHaveBeenLastCalledWith(true);
+    await user.click(box);
+    expect(leaflet.controller.setParcelLayer).toHaveBeenLastCalledWith(false);
+  });
+
+  it('shows a source error when the parcel layer does not load, and retries it', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    await user.click(screen.getByRole('checkbox', { name: t('edit.layer.label') }));
+
+    act(() => leaflet.handlers!.onParcelLayerError());
+    expect(await screen.findByText(t('edit.layer.error'))).toBeInTheDocument();
+
+    leaflet.controller.setParcelLayer.mockClear();
+    await user.click(screen.getByRole('button', { name: t('ui.state.retry') }));
+    expect(leaflet.controller.setParcelLayer.mock.calls).toEqual([[false], [true]]);
+    await waitFor(() => expect(screen.queryByText(t('edit.layer.error'))).not.toBeInTheDocument());
+  });
+});
+
