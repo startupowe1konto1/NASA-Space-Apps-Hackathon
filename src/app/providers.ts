@@ -16,5 +16,5 @@ export const providers: Providers = {
 
 export const analyzeField: AnalyzeField = engineAnalyzeField; // O3-B6: the real engine
 
-/** False until the money tables and the income score are wired (O3-B7). The goal step reads it before any analysis exists. */
-export const moneyAvailable = false;
+/** True once the money tables and the income score are wired (O3-B7). The goal step reads it before any analysis exists. */
+export const moneyAvailable = true;
