@@ -52,22 +52,25 @@ export function PrioritiesStep() {
           const hintId = `priority-${id}-hint`;
           const titleId = `priority-${id}-title`;
           return (
+            // Title and switch share the top row; the hint runs under them across the card on a phone, so it is not
+            // squeezed into a narrow column between the icon and the switch.
             <label
               key={id}
-              className={`flex min-h-[64px] cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/40 ${
+              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/40 ${
                 on ? 'border-emerald-700 bg-emerald-50' : 'border-slate-300 bg-white hover:border-slate-500'
               }`}
             >
-              <span className={`shrink-0 ${on ? 'text-emerald-800' : 'text-slate-700'}`}>
+              <span className={`col-start-1 row-start-1 ${on ? 'text-emerald-800' : 'text-slate-700'}`}>
                 <Icon size={28} />
               </span>
-              <span className="grid flex-1 gap-0.5">
-                <span id={titleId} className="text-lg font-semibold text-slate-900">
-                  {t(`steps.priorities.${id}`)}
-                </span>
-                <span id={hintId} className="text-base leading-snug text-slate-700">
-                  {t(`steps.priorities.${id}.hint`)}
-                </span>
+              <span id={titleId} className="col-start-2 row-start-1 min-w-0 text-lg font-semibold leading-snug text-slate-900">
+                {t(`steps.priorities.${id}`)}
+              </span>
+              <span
+                id={hintId}
+                className="col-span-3 row-start-2 text-base leading-snug text-slate-700 sm:col-span-1 sm:col-start-2"
+              >
+                {t(`steps.priorities.${id}.hint`)}
               </span>
               <input
                 type="checkbox"
@@ -79,7 +82,7 @@ export function PrioritiesStep() {
               />
               <span
                 aria-hidden="true"
-                className={`relative h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-emerald-700' : 'bg-slate-400'}`}
+                className={`relative col-start-3 row-start-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-emerald-700' : 'bg-slate-400'}`}
               >
                 <span
                   className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform duration-150 motion-reduce:transition-none ${
@@ -192,7 +195,7 @@ function ExcludedCrops(props: {
         onRetry={load}
       >
         {state.status === 'ready' ? (
-          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <ul className="grid grid-cols-2 gap-2">
             {state.crops.map((crop) => {
               const out = excluded.includes(crop.id);
               return (
@@ -211,7 +214,9 @@ function ExcludedCrops(props: {
                     >
                       {out ? <IconCheck size={16} strokeWidth={3} /> : null}
                     </span>
-                    <span className={`text-base font-medium ${out ? 'line-through' : ''}`}>{cropName(crop.id)}</span>
+                    <span className={`min-w-0 break-words text-base font-medium leading-snug ${out ? 'line-through' : ''}`}>
+                      {cropName(crop.id)}
+                    </span>
                   </label>
                 </li>
               );

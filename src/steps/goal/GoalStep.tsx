@@ -55,7 +55,6 @@ export function GoalStep() {
           );
         })}
       </div>
-      <p className="text-base text-slate-700">{t('steps.goal.changeLater')}</p>
     </section>
   );
 }

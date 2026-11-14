@@ -91,6 +91,13 @@ describe('step order', () => {
     await user.click(screen.getByRole('button', { name: en['app.next'] }));
     expect(await screen.findByRole('heading', { level: 1, name: heading('en', 2, 'app.step.goal') })).toBeInTheDocument();
   });
+
+  it('shows no Next button on the last step, which leads nowhere since step 7 is gone', async () => {
+    useAppStore.getState().goToStep(STEP_COUNT);
+    render(<App />);
+    expect(await screen.findByRole('button', { name: en['app.back'] })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: en['app.next'] })).not.toBeInTheDocument();
+  });
 });
 
 describe('step shell on fixtures', () => {

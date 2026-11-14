@@ -28,6 +28,12 @@ describe('GoalStep', () => {
     expect(screen.getByRole('radio', { name: /Income/ })).toBeInTheDocument();
   });
 
+  it('does not promise a goal switch on the rotations screen, which goes away (the user, Sat 14 Nov)', async () => {
+    render(<GoalStep />);
+    await screen.findByRole('radiogroup', { name: 'What matters most to you?' });
+    expect(screen.queryByText(/rotations screen/)).not.toBeInTheDocument();
+  });
+
   it('marks keeping the soil as chosen by default', () => {
     render(<GoalStep />);
     expect(screen.getByRole('radio', { name: /Keep my soil/ })).toBeChecked();
@@ -55,11 +61,6 @@ describe('GoalStep', () => {
     money.available = true;
     render(<GoalStep />);
     expect(screen.queryByText(/price data not loaded yet/i)).not.toBeInTheDocument();
-  });
-
-  it('tells the farmer the goal can be changed later', () => {
-    render(<GoalStep />);
-    expect(screen.getByText(/change this later/i)).toBeInTheDocument();
   });
 
   it('reads the price note once: inside the income option, not again as its description', () => {
