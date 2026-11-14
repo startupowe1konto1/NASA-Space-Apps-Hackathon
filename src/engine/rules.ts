@@ -115,7 +115,8 @@ export const shippedRules: LoadedRules = loadRules(ruleFiles);
 // - erosion (per rotation, because soilHealth takes one C factor per cover state):
 //   bare = erosion.slr.bare / 100; crop = mean over the rotation's main crops of the crop's conventional stage values
 //   (seedbed to maturing) / 100, alfalfa = erosion.slr.meadow.alfalfa / 100; residue = mean over the main crops of
-//   erosion.slr.residueCover.<crop>.tilled30, else the crop's 'residue' stage, else its 'roughFallow' stage, / 100;
+//   erosion.slr.residueCover.<crop>.tilled30, else the crop's 'residue' stage, else its 'roughFallow' stage, / 100
+//   (alfalfa: the same meadow value, because the stand stays in the ground until the next crop is sown);
 //   cover-crop = mean over the cover crops of erosion.slr.meadow.redClover (red clover) or the mean of
 //   erosion.slr.maize.noTillInRyeCover (cereal rye), / 100. A crop or cover without a row: erosion is left out.
 //   slopeFactor = erosion.ls.slopeLength75ft. zeroScoreIndex = the index of continuous bare fallow on the RUSLE unit
@@ -222,6 +223,9 @@ export function toSoilRules(
     return stages.length === 0 ? undefined : { c: meanOf(stages) / 100, from: rowId };
   };
   const residueC = (id: string): { c: number; from: string } | undefined => {
+    // After its last cut an alfalfa stand stays in the ground until the next crop is sown: the full-year value for
+    // an established meadow (AH 537 Table 5-B) covers those months too.
+    if (id === 'alfalfa') return cropC(id);
     const cover = record(`erosion.slr.residueCover.${id}`)?.tilled30;
     if (cover !== undefined) return { c: cover / 100, from: `erosion.slr.residueCover.${id}` };
     const rowId = SMALL_GRAINS.has(id) ? 'erosion.slr.smallGrain.conventional' : `erosion.slr.${id}.conventional`;
@@ -278,7 +282,7 @@ export function toSoilRules(
       if (zero > 0) {
         add(
           'erosion',
-          derivedRow('erosion.zeroScoreIndex', zero, 'index of continuous bare fallow on this field', bare, 'erosion score 0 = as much soil loss as continuous bare fallow on this field'),
+          derivedRow('erosion.zeroScoreIndex', zero, 'index of continuous bare fallow on the RUSLE unit plot (LS = 1)', bare, 'erosion score 0 = as much soil loss as continuous bare fallow on the RUSLE unit plot (LS = 1)'),
           [bare.id, ...(ls ? [ls.id] : [])],
         );
       }

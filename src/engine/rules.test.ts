@@ -104,6 +104,20 @@ describe('toSoilRules on the rows in data/rules', () => {
     const steep = erosionAt(12);
     expect(steep.score).toBeLessThan(flat.score);
     expect(find(flat.rules.erosion, 'erosion.zeroScoreIndex')).toBe(find(steep.rules.erosion, 'erosion.zeroScoreIndex'));
+    const zeroRow = flat.rules.erosion.find((r) => r.id === 'erosion.zeroScoreIndex')!;
+    expect(`${zeroRow.unit} ${zeroRow.appliesTo}`).toMatch(/unit plot/);
+    expect(`${zeroRow.unit} ${zeroRow.appliesTo}`).not.toMatch(/this field/);
+  });
+
+  // #124 review item 2: after its last cut the alfalfa stand stays in the ground until the next crop is sown, so its
+  // residue months use the same established-meadow full-year value (AH 537 Table 5-B) as its crop months.
+  it('gives an alfalfa rotation erosion C factors, the stand counting as meadow until the next crop', () => {
+    const { rules, sourceIds, erosionNoRow } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'alfalfa' }, { crop: 'maize' }], iowa);
+    const meadow = rowValue('erosion.slr.meadow').alfalfa!;
+    const maizeResidue = rowValue('erosion.slr.residueCover.maize').tilled30!;
+    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeCloseTo((meadow + maizeResidue) / 200, 3);
+    expect(sourceIds['erosion.cFactor.residue']).toContain('erosion.slr.meadow');
+    expect(erosionNoRow).not.toContain('alfalfa');
   });
 
   it('leaves erosion C factors out for a cover crop without a row', () => {
