@@ -9,7 +9,9 @@
   "soil.basis.no-indicators": "No soil health indicator could be scored: the rule tables are missing.",
   "soil.basis.cover-only": "Only soil cover is counted so far: the share of months with a crop, cover crop or residue. Nitrogen, organic matter, erosion and pest break are not scored yet. The range is 15% either side, a rule of thumb.",
   "soil.evidence.nitrogen": "{legumeYears} of {years} years carry a legume, about {creditKgPerHa} kg N/ha a year. Leaching loss counted: {leachingLossPct}%.",
+  "soil.evidence.nitrogen-no-leaching": "{legumeYears} of {years} years carry a legume, about {creditKgPerHa} kg N/ha a year. Nitrate leaching is not counted: no sourced leaching rule.",
   "soil.evidence.organic-matter": "Humus balance of {balancePerYear} units a year on this field ({climateClass} climate).",
+  "soil.evidence.organic-matter-unadjusted": "Humus balance of {balancePerYear} units a year, not adjusted for {adjustments}: no sourced rule.",
   "soil.evidence.erosion": "{exposedMonths} bare months per cycle catch about {bareRainMm} mm of rain a year.",
   "soil.evidence.pest-break": "{violations} of {years} crops come back before their family's minimum break.",
 
@@ -56,6 +58,8 @@
   "gap.soil-compared-shared": "Ranked on {shared}, the indicators scored for both this rotation and yours.",
   "gap.humus-medium-class": "Organic matter uses the coefficients for medium soil. Your soil class may differ.",
   "gap.erosion-rye-row": "For the cereal rye cover, erosion uses the soil loss rate for maize sown without tillage into a rye cover.",
+  "gap.leaching-not-counted": "Nitrogen does not count nitrate lost to leaching in bare months. No sourced leaching rule yet.",
+  "gap.humus-not-adjusted": "Organic matter is not adjusted for {adjustments}. No sourced rule yet.",
   "gap.unknown-crop": "Your crop history has {crop}, which is not in our crop list. Those years were left out of your current rotation.",
   "gap.soil-missing": "Soil data is missing for: {inputs}. Scores that use soil texture or organic carbon leave it out.",
   "gap.slope-missing": "The field's slope is missing, so erosion does not account for it.",

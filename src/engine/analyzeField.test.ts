@@ -225,5 +225,54 @@ describe('analyzeField with fixture providers', () => {
     expect(current.soilHealth.basis.code === 'soil.basis.total' || current.soilHealth.basis.code === 'soil.basis.total-complete').toBe(true);
     if (current.soilHealth.basis.code === 'soil.basis.total') expect(String(current.soilHealth.basis.params?.missing)).not.toMatch(/organicMatter|pestBreak/);
   });
-});
 
+  describe('soil adjustments without a sourced rule are named, not shown as a measured zero', () => {
+    const row = (id: string, value: unknown) => ({ id, value, unit: 'test', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
+    const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
+    const withExtra = (rows: ReturnType<typeof row>[]) => createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': rows }) });
+    const leachingRows = [row('nitrogen.leachingRainMm', 200), row('nitrogen.leachingMaxLoss', 0.3), row('nitrogen.leachingBySand', { '0': 1 })];
+    const humusRows = [
+      row('humus.climateLimits', { meanTMaxC: 10, annualRainMm: 600 }),
+      row('humus.climateFactor', { 'cool-dry': 1, 'cool-wet': 1, 'warm-dry': 1, 'warm-wet': 1 }),
+      row('humus.textureBySand', { '0': 1 }),
+    ];
+    const evidenceCodes = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!.evidence.map((e) => e.message.code);
+    const gapCodes = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!.gaps.map((g) => g.code);
+
+    it('nitrogen without leaching rows: no leaching percentage, a gap names the left-out adjustment', async () => {
+      const hasLeaching = shippedRules.byId.has('nitrogen.leachingRainMm') && shippedRules.byId.has('nitrogen.leachingMaxLoss');
+      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+      expect(a.rotations.find((r) => r.isCurrent)!.indicators.nitrogen).toBeDefined();
+      expect(evidenceCodes(a).includes('soil.evidence.nitrogen')).toBe(hasLeaching);
+      expect(evidenceCodes(a).includes('soil.evidence.nitrogen-no-leaching')).toBe(!hasLeaching);
+      expect(gapCodes(a).includes('gap.leaching-not-counted')).toBe(!hasLeaching);
+    });
+
+    it('nitrogen with leaching rows keeps the leaching evidence and no gap', async () => {
+      const a = await withExtra(leachingRows)({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+      expect(evidenceCodes(a)).toContain('soil.evidence.nitrogen');
+      expect(evidenceCodes(a)).not.toContain('soil.evidence.nitrogen-no-leaching');
+      expect(gapCodes(a)).not.toContain('gap.leaching-not-counted');
+    });
+
+    it('organic matter without climate or texture rows says it is not adjusted, and a gap names what was left out', async () => {
+      const missing = [
+        ...(['humus.climateLimits', 'humus.climateFactor'].every((id) => shippedRules.byId.has(id)) ? [] : ['climate']),
+        ...(shippedRules.byId.has('humus.textureBySand') ? [] : ['soil texture']),
+      ];
+      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.poznan, cropHistory: poznanHistory, priorities }, fixtureProviders);
+      const current = a.rotations.find((r) => r.isCurrent)!;
+      expect(current.indicators.organicMatter).toBeDefined();
+      expect(evidenceCodes(a).includes('soil.evidence.organic-matter-unadjusted')).toBe(missing.length > 0);
+      const gap = current.gaps.find((g) => g.code === 'gap.humus-not-adjusted');
+      expect(gap !== undefined).toBe(missing.length > 0);
+      if (gap) expect(gap.params?.adjustments).toBe(missing.join(' and '));
+    });
+
+    it('organic matter with climate and texture rows keeps its evidence and no gap', async () => {
+      const a = await withExtra(humusRows)({ field: demoFields.poznan, cropHistory: poznanHistory, priorities }, fixtureProviders);
+      expect(evidenceCodes(a)).toContain('soil.evidence.organic-matter');
+      expect(gapCodes(a)).not.toContain('gap.humus-not-adjusted');
+    });
+  });
+});

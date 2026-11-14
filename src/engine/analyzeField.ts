@@ -122,6 +122,31 @@ export function soilStep(
   return { score, coverOnly: false, evidence: result.evidence, missing: result.missing, indicators: result.indicators };
 }
 
+/**
+ * soilHealth scores nitrogen without leaching, and organic matter without the climate or texture factor, when those
+ * rule rows are missing; its evidence would then print a leaching loss of 0% or an "unknown" climate as if measured.
+ * Swap those texts for ones that say the adjustment is not counted, and record it for the card's gaps.
+ */
+export function markNotAdjusted(out: SoilOutcome, rules: SoilRules): void {
+  const has = (group: keyof SoilRules, id: string) => rules[group].some((r) => r.id === id);
+  const leaching = !(has('nitrogen', 'nitrogen.leachingRainMm') && has('nitrogen', 'nitrogen.leachingMaxLoss'));
+  const humus = [
+    ...(has('humus', 'humus.climateLimits') && has('humus', 'humus.climateFactor') ? [] : ['climate']),
+    ...(has('humus', 'humus.textureBySand') ? [] : ['soil texture']),
+  ];
+  out.notAdjusted = { leaching, humus };
+  out.evidence = out.evidence.map((e) => {
+    const p = e.message.params ?? {};
+    if (e.message.code === 'soil.evidence.nitrogen' && leaching) {
+      return { ...e, message: { code: 'soil.evidence.nitrogen-no-leaching', params: { legumeYears: p.legumeYears!, years: p.years!, creditKgPerHa: p.creditKgPerHa! } } };
+    }
+    if (e.message.code === 'soil.evidence.organic-matter' && humus.length > 0) {
+      return { ...e, message: { code: 'soil.evidence.organic-matter-unadjusted', params: { balancePerYear: p.balancePerYear!, adjustments: humus.join(' and ') } } };
+    }
+    return e;
+  });
+}
+
 interface Candidate extends Scored {
   months: ReturnType<typeof buildCalendar>['months'];
   bareMonths: number;
@@ -251,6 +276,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           ...e,
           ruleIds: [...new Set(e.ruleIds.flatMap((id) => soilRules.sourceIds[id] ?? [id]))],
         }));
+        markNotAdjusted(soilOut, soilRules.rules);
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
         candidates.push({
