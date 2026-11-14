@@ -1,0 +1,12 @@
+{
+  "parcels.source": "GUGiK ULDK",
+  "parcels.field.name": "Działka {teryt}",
+  "parcels.search.title": "Znajdź działkę ewidencyjną",
+  "parcels.search.label": "Numer działki",
+  "parcels.search.hint": "Pełny numer z ewidencji gruntów, na przykład 302116_5.0008.428/1. W Polsce działkę znajdziesz też, dotykając jej na mapie.",
+  "parcels.search.button": "Znajdź działkę",
+  "parcels.added": "Dodano działkę {teryt}.",
+  "parcels.notFound": "Nie ma działki o takim numerze. Porównaj go z wypisem z rejestru gruntów, razem z kodem obrębu przed kropką.",
+  "parcels.tap.none": "W tym miejscu nie znaleziono działki, więc w zamian dodano kwadrat 4 ha.",
+  "parcels.tap.error": "Brak odpowiedzi z GUGiK ULDK, więc w zamian dodano kwadrat 4 ha."
+}
