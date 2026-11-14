@@ -36,16 +36,27 @@ export function buildCalendar(
   const cells: (CalendarCell | undefined)[] = new Array(size).fill(undefined);
   const mains = years.map((y) => cropById(crops, y.crop));
 
-  // 1. main crops
-  const harvestIndex: number[] = [];
-  mains.forEach((crop, i) => {
+  // 1. main crops. Each cell keeps one crop. When a crop is sown in the month the previous one is harvested,
+  // the newly sown crop takes that month. Any other overlap can only come from a sequence that fails canFollow
+  // (a farmer's own history is not filtered); there the crop already in the ground keeps the months, so the
+  // later one loses its first months. Both rules depend only on the cycle, not on which year is listed first.
+  const spans = mains.map((crop, i) => {
     const end = i * 12 + crop.harvestMonth - 1;
     const start = isWinterCrop(crop) ? (i - 1) * 12 + crop.sowMonth - 1 : i * 12 + crop.sowMonth - 1;
-    for (let t = start; t <= end; t++) {
-      cells[wrap(t)] = { yearIndex: Math.floor(wrap(t) / 12), month: (wrap(t) % 12) + 1, crop: crop.id, cover: 'crop' };
-    }
-    harvestIndex[i] = wrap(end);
+    return { crop, start: wrap(start), end: wrap(end), length: end - start + 1 };
   });
+  const claims: { span: (typeof spans)[number]; age: number }[][] = Array.from({ length: size }, () => []);
+  for (const span of spans) {
+    for (let k = 0; k < span.length && k < size; k++) claims[wrap(span.start + k)]?.push({ span, age: k });
+  }
+  claims.forEach((list, t) => {
+    if (list.length === 0) return;
+    const sown = list.find((c) => c.age === 0);
+    const othersEndHere = list.every((c) => c === sown || c.span.end === t);
+    const winner = sown && othersEndHere ? sown : list.reduce((a, b) => (b.age > a.age ? b : a));
+    cells[t] = { yearIndex: Math.floor(t / 12), month: (t % 12) + 1, crop: winner.span.crop.id, cover: 'crop' };
+  });
+  const harvestIndex = spans.map((s) => s.end);
 
   // 2. the gap after each harvest, until the next crop is in the ground
   mains.forEach((crop, i) => {
@@ -55,11 +66,19 @@ export function buildCalendar(
       if (cells[t]) break;
       gap.push(t);
     }
+    // A perennial (alfalfa) followed by another year of itself stays in the ground over winter.
+    const next = mains[(i + 1) % n];
+    if (crop.kind === 'perennial' && next?.id === crop.id) {
+      gap.forEach((t) => (cells[t] = { yearIndex: Math.floor(t / 12), month: (t % 12) + 1, crop: crop.id, cover: 'crop' }));
+      return;
+    }
     const coverId = years[i]?.coverCrop;
     const cover = coverId ? cropById(crops, coverId) : undefined;
     let coverStart = gap.length;
     let coverEnd = -1;
     if (cover && gap.length > 0) {
+      // If the cover's sowing month is not in the gap, it was sown into the standing crop (interseeded, e.g.
+      // red clover sown in 8 under maize harvested in 10), so it covers the soil from the first month after harvest.
       const sowAt = gap.findIndex((t) => (t % 12) + 1 === cover.sowMonth);
       coverStart = sowAt === -1 ? 0 : sowAt;
       const endAt = gap.findIndex((t, k) => k >= coverStart && (t % 12) + 1 === cover.harvestMonth);

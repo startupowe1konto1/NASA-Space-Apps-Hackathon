@@ -76,6 +76,46 @@ describe('buildCalendar', () => {
     expect(at(3)?.cover).toBe('crop');
   });
 
+  it('the newly sown crop takes a shared month, wherever the cycle starts', () => {
+    // winter wheat (sown 10) follows maize (harvested 10)
+    const a = buildCalendar([{ crop: 'maize' }, { crop: 'winter-wheat' }], us).months;
+    const b = buildCalendar([{ crop: 'winter-wheat' }, { crop: 'maize' }], us).months;
+    const at = (months: typeof a, y: number, m: number) => months.find((c) => c.yearIndex === y && c.month === m);
+    expect(at(a, 0, 10)?.crop).toBe('winter-wheat');
+    expect(at(a, 0, 9)?.crop).toBe('maize');
+    // listed first, wheat wraps: sown in month 10 of the last year, harvested in 7 of the first
+    expect(at(b, 1, 10)?.crop).toBe('winter-wheat');
+    expect(at(b, 1, 11)?.crop).toBe('winter-wheat');
+    expect(at(b, 0, 1)?.crop).toBe('winter-wheat');
+    expect(at(b, 0, 7)?.crop).toBe('winter-wheat');
+    expect(at(b, 1, 9)?.crop).toBe('maize');
+    const count = (months: typeof a, id: string) => months.filter((c) => c.crop === id).length;
+    expect(count(a, 'winter-wheat')).toBe(count(b, 'winter-wheat'));
+    expect(count(a, 'maize')).toBe(count(b, 'maize'));
+  });
+
+  it('in an impossible sequence the crop already in the ground keeps its months', () => {
+    // winter rapeseed sown in 8 cannot follow maize harvested in 10
+    const { months } = buildCalendar([{ crop: 'maize' }, { crop: 'winter-rapeseed' }], pl);
+    const at = (y: number, m: number) => months.find((c) => c.yearIndex === y && c.month === m);
+    expect(at(0, 8)?.crop).toBe('maize');
+    expect(at(0, 10)?.crop).toBe('maize');
+    expect(at(0, 11)?.crop).toBe('winter-rapeseed');
+  });
+
+  it('a perennial followed by itself stays in the ground over winter', () => {
+    const { months, bareMonths } = buildCalendar([{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }], us);
+    const at = (y: number, m: number) => months.find((c) => c.yearIndex === y && c.month === m);
+    expect(at(0, 12)?.cover).toBe('crop');
+    expect(at(1, 2)?.crop).toBe('alfalfa');
+    expect(at(1, 12)?.cover).toBe('residue');
+    expect(bareMonths).toBe(0);
+  });
+
+  it('an empty rotation gives an empty calendar', () => {
+    expect(buildCalendar([], us)).toEqual({ months: [], bareMonths: 0 });
+  });
+
   it('throws on an unknown crop id', () => {
     expect(() => buildCalendar([{ crop: 'banana' }], us)).toThrow(/banana/);
   });
