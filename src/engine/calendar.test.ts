@@ -112,6 +112,14 @@ describe('buildCalendar', () => {
     expect(bareMonths).toBe(0);
   });
 
+  it('a cover sown under the standing crop covers from harvest; one that cannot be sown is left out', () => {
+    const clover = buildCalendar([{ crop: 'maize', coverCrop: 'red-clover' }], us);
+    expect(clover.months.find((c) => c.month === 11)?.cover).toBe('cover-crop');
+    // cereal rye is sown in 10, but winter wheat goes in then: the gap after oats is only months 8-9
+    const none = buildCalendar([{ crop: 'oats', coverCrop: 'cereal-rye' }, { crop: 'winter-wheat' }], us);
+    expect(none.months.some((c) => c.cover === 'cover-crop')).toBe(false);
+  });
+
   it('an empty rotation gives an empty calendar', () => {
     expect(buildCalendar([], us)).toEqual({ months: [], bareMonths: 0 });
   });

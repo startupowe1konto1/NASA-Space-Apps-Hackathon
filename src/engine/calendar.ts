@@ -23,6 +23,10 @@ export function canFollow(prev: CropTraits, next: CropTraits): boolean {
   return next.sowMonth >= prev.harvestMonth;
 }
 
+/** True when `month` lies between the crop's sowing and harvest months, wrapping over the new year. */
+const inSeason = (crop: CropTraits, month: number) =>
+  isWinterCrop(crop) ? month >= crop.sowMonth || month <= crop.harvestMonth : month >= crop.sowMonth && month <= crop.harvestMonth;
+
 const residueState = (crop: CropTraits): CoverState => (crop.residueCover === 'low' ? 'bare' : 'residue');
 
 /** Months of the rotation cycle with the cover state of each, and the count of bare months per cycle. */
@@ -77,10 +81,11 @@ export function buildCalendar(
     let coverStart = gap.length;
     let coverEnd = -1;
     if (cover && gap.length > 0) {
-      // If the cover's sowing month is not in the gap, it was sown into the standing crop (interseeded, e.g.
-      // red clover sown in 8 under maize harvested in 10), so it covers the soil from the first month after harvest.
+      // If the cover's sowing month is not in the gap but falls in the main crop's season, it was sown into the
+      // standing crop (interseeded, e.g. red clover sown in 8 under maize harvested in 10), so it covers the soil
+      // from the first month after harvest. A sowing month outside both means the cover cannot be sown: no cover.
       const sowAt = gap.findIndex((t) => (t % 12) + 1 === cover.sowMonth);
-      coverStart = sowAt === -1 ? 0 : sowAt;
+      coverStart = sowAt !== -1 ? sowAt : inSeason(crop, cover.sowMonth) ? 0 : gap.length;
       const endAt = gap.findIndex((t, k) => k >= coverStart && (t % 12) + 1 === cover.harvestMonth);
       coverEnd = endAt === -1 ? gap.length - 1 : endAt;
     }
