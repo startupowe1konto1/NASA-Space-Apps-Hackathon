@@ -60,6 +60,7 @@ export const CARD_MESSAGE_CODES = [
   'soil.evidence.organic-matter-unadjusted',
   'gap.unknown-crop',
   'soil.basis.total-complete',
+  'soil.basis.compared',
   'empty.outside-coverage',
   'empty.no-history',
   'empty.crops-error',
