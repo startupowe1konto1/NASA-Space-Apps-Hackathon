@@ -16,6 +16,10 @@ T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 11:59 CET (Polish t
 - API parsers are written against a saved sample in data/samples/, not from memory.
 - TDD: test → red → code → green. UI tests wait for specific text (waitFor), not just the element.
 - Before a PR: git fetch && git rebase origin/main && npm run typecheck && npm run test && npm run build && npm run validate:data.
+- Only O1 merges (D31). Lanes set the PR to ready and stop there. The repo is private, so GitHub does not enforce this (D32): O1 merges only after `gh pr checks <n> --watch --fail-fast` is green on a branch that is up to date with `main`, with `--match-head-commit`.
+- A PR with "changes needed" is not merged until every review item is answered in the PR: fixed, or moved to a named follow-up PR.
+- No stacked PRs: do not build a PR on another PR's unmerged branch. If you must wait, keep yours as a draft with "After #n" in the body and rebase once #n is on `main`.
+- Tests never hard-code values that come from fixtures or data files (areas, crop lists, names). Read them from `demoFields`, the providers or the data file, so a provider swap does not turn `main` red.
 - Every screen has states: loading, offline, no data, source error. Never an empty screen.
 - English UI text and docs go through the anti-ai-writing skill.
 - Every person logs AI use in docs/ai-usage/O<n>.md (Space Apps requires an AI usage description in the submission).

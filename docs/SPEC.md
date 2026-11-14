@@ -167,13 +167,14 @@ export interface FieldProfile extends ClimateProfile { soil: Soil; slopePct: Sou
 
 // ---------- crop traits (data/crops/<country>.json, owner O4) ----------
 export interface SourceRef { title: string; url: string; locator: string }       // locator = page, table or section
+export type WaterNeed = 'low' | 'medium' | 'high';
 export interface CropTraits {
   id: CropId; family: string; legume: boolean;
   kind: 'cash' | 'cover' | 'perennial';
   sowMonth: number; harvestMonth: number;          // harvestMonth < sowMonth means harvest in the next calendar year
   sensitive: { hazard: Hazard; months: number[]; threshold: number; lossShare: number }[]; // lossShare 0-1 when the hazard hits
-  waterNeed: 'low' | 'medium' | 'high';
-  yieldResponseFactor: number;                     // FAO Ky
+  waterNeed?: WaterNeed;                           // required unless kind is 'cover' (D29)
+  yieldResponseFactor?: number;                    // FAO Ky; optional for every kind, missing Ky = no income for that crop (D29)
   forage: boolean;
   residueCover: 'low' | 'medium' | 'high';
   sources: SourceRef[];                            // min 1
