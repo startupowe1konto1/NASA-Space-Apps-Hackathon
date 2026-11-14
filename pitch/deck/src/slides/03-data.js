@@ -161,7 +161,7 @@ export default {
   },
   enter(step, ctx) {
     const st = this.st;
-    ctx.scene.goTo('field', { instant: ctx.instant });
+    ctx.scene.goTo('data', { instant: ctx.instant });
     ctx.setWash(1, 1);
     st.step = step;
     if (step >= 1) {

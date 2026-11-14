@@ -11,14 +11,14 @@ const CSS = `
 .slide[data-slide="7"] .who div { white-space: nowrap; }
 .slide[data-slide="7"] .who .ai { margin-top: 16px; font-size: 20px; color: #d5dbe3; white-space: normal; }
 .slide[data-slide="7"] .panel { top: 104px; }
-.slide[data-slide="7"] .grp { margin: 0 0 22px; }
+.slide[data-slide="7"] .grp { margin: 0 0 14px; }
 .slide[data-slide="7"] .grp h3 { margin: 0 0 6px; font-size: 18px; }
-.slide[data-slide="7"] .ds { padding: 9px 0; border-top: 1px solid var(--hairline); }
+.slide[data-slide="7"] .ds { padding: 5px 0; border-top: 1px solid var(--hairline); }
 .slide[data-slide="7"] .ds:last-child { border-bottom: 1px solid var(--hairline); }
-.slide[data-slide="7"] .ds b { display: block; font-weight: 500; font-size: 21px; line-height: 1.3; }
-.slide[data-slide="7"] .ds i { display: block; font-style: normal; font-size: 19px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
-.slide[data-slide="7"] .ds.nasa b { color: var(--data); }
-.slide[data-slide="7"] .credits { margin-top: 4px; font-size: 18px; line-height: 1.45; color: #b4bdc9; }
+.slide[data-slide="7"] .ds b { display: block; font-weight: 500; font-size: 20px; line-height: 1.28; }
+.slide[data-slide="7"] .ds i { display: block; font-style: normal; font-size: 16px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
+.slide[data-slide="7"] .ds.nasa b { color: var(--text); }
+.slide[data-slide="7"] .credits { margin-top: 4px; font-size: 16px; line-height: 1.45; color: #b4bdc9; }
 `;
 
 // Short display forms, derived from the data text: drop a trailing parenthesis or clause.
