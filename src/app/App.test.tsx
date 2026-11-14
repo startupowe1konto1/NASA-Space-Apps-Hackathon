@@ -4,6 +4,13 @@ import { App } from './App';
 import { t } from './i18n';
 import { canContinue, useAppStore } from './store';
 
+// These tests check the step shell, so they run on the fixture analysis whatever engine providers.ts points at.
+vi.mock('./providers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./providers')>();
+  const { fixtureAnalyzeField } = await import('../fixtures');
+  return { ...actual, analyzeField: fixtureAnalyzeField };
+});
+
 beforeEach(() => {
   useAppStore.getState().reset();
 });
