@@ -24,7 +24,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Missing
 
-- Heat and frost thresholds per crop group: not in this table. Each crop row in `data/crops` carries its own sourced thresholds (task O4-A2), and the engine uses those.
+- Heat and frost per crop group: not in this table. Crop rows in `data/crops` carry their own sourced thresholds; `hazards.heat.generalThresholdC` (35 °C) and `hazards.frost.generalThresholdDays` (0) are crop-independent team rules of thumb for the field summary (D26).
 - Soil health gaps (the second O4-B0 pull request): listed under "Missing: soil health tables" below.
 
 ## Soil health tables (second O4-B0 pull request)
@@ -69,3 +69,17 @@ Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 row
 - RUSLE Handbook 703: the PDF on the ARS site opened, but it is a scan with no text layer, so the C values come from Handbook 537 (the earlier USLE handbook by the same agency).
 - Erosion rows for winter rapeseed, field pea, white mustard and phacelia: Handbook 537 has none. Table 5-C rows for 80–95 % residue cover are left out because the extracted text of those rows is not clear.
 - Pest-cycle break from a Polish source (rapeseed and sugar beet intervals): not opened. The Brassicaceae row comes from vegetable crucifer diseases in the northeastern United States.
+
+## Added after the review of PR #27 (O4-B0 1b)
+
+- `goals.soilIndicator.weights` (equal, 0.25 each) and `goals.ruleOfThumbRange.share` (0.15) move two numbers from the engine code into this table; both come from SPEC section 7.
+- Winter rapeseed has no erosion row of its own: `erosion.slr.smallGrain.conventional` is used as the nearest row, as its `appliesTo` says. The "Missing" line above means "no row of its own".
+- `humus.coef.red-clover.pl` is the main-crop value. Red clover appears only as an Iowa cover crop, and the engine reads Polish humus rows only, so the row is not used for it.
+
+### Also missing
+
+- A mapping from sand share to the Polish soil classes (light, medium, heavy) of the humus coefficients; the engine uses the medium class.
+- An erosion value for the months a cover crop is in the ground, other than the two meadow and rye-cover rows.
+- A mapping from calendar months to the crop stages of Handbook 537 Table 5; the engine averages the stage values.
+- Humus coefficients that apply to Iowa (NRCS Soil Conditioning Index not opened), so organic matter is left out for US fields.
+- `nitrogen.leachingRainMm`, `nitrogen.leachingMaxLoss`, `nitrogen.leachingBySand`: no source opened with numbers.

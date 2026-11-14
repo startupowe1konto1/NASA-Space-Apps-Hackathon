@@ -76,5 +76,25 @@
     "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
     "sourceLocator": "legend labels 'SI > 75 : Very high' ... 'SI > 0 : Very marginal'",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.heat.generalThresholdC",
+    "value": 35,
+    "unit": "°C, monthly maximum of hourly 2 m air temperature (NASA POWER T2M_MAX); a month above this counts as a heat month",
+    "appliesTo": "field summary and calendar for months without a crop-specific threshold; crops in data/crops carry their own thresholds, which win",
+    "sourceTitle": "team rule of thumb",
+    "sourceUrl": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+    "sourceLocator": "D26: one crop-independent value, team rule of thumb. Matches the crop thresholds already sourced in data/crops (maize, soybean, potato 35 °C; winter wheat 34 °C)",
+    "checkedBy": "O4, team rule"
+  },
+  {
+    "id": "hazards.frost.generalThresholdDays",
+    "value": 0,
+    "unit": "frost days per month (NASA POWER FROST_DAYS); a month above this counts as a frost month",
+    "appliesTo": "field summary and calendar for months without a crop-specific threshold; crops in data/crops carry their own thresholds, which win",
+    "sourceTitle": "team rule of thumb",
+    "sourceUrl": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+    "sourceLocator": "D26: one crop-independent value, team rule of thumb: any frost day in the month counts",
+    "checkedBy": "O4, team rule"
   }
 ]
