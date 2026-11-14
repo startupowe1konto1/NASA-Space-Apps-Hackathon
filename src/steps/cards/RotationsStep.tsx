@@ -21,14 +21,19 @@ export function RotationsStep() {
 
   if (analysis.status !== 'ready') {
     return (
-      <StateBoundary
-        state={analysis.status === 'error' ? 'error' : 'loading'}
-        source={analysis.status === 'error' ? analysis.source : t('steps.rotations.analysis')}
-        reason={analysis.status === 'error' ? analysis.reason : undefined}
-        onRetry={() => void runAnalysis()}
-      >
-        {null}
-      </StateBoundary>
+      <>
+        <StateBoundary
+          state={analysis.status === 'error' ? 'error' : 'loading'}
+          source={analysis.status === 'error' ? analysis.source : t('steps.rotations.analysis')}
+          reason={analysis.status === 'error' ? analysis.reason : undefined}
+          onRetry={() => void runAnalysis()}
+        >
+          {null}
+        </StateBoundary>
+        {analysis.status === 'loading' ? (
+          <p className="mt-2 text-base text-slate-700">{t('steps.rotations.loadingNote')}</p>
+        ) : null}
+      </>
     );
   }
 

@@ -6,7 +6,7 @@ import { useAppStore } from '../../app/store';
 import { useOnline } from '../../app/useOnline';
 import { StateBoundary } from '../../ui-kit/StateBoundary';
 import { useParcelTap } from './tap';
-import { getParcelById } from './uldk';
+import { ULDK_SOURCE, getParcelById } from './uldk';
 
 const BUTTON =
   'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60';
@@ -49,7 +49,7 @@ export function ParcelSearch() {
     }
   };
 
-  const source = t('parcels.source');
+  const source = ULDK_SOURCE;
   const loading = search.kind === 'loading' || tap.status === 'loading';
   const added = search.kind === 'found' ? search.teryt : tap.status === 'parcel' ? tap.teryt : null;
 
@@ -103,7 +103,9 @@ export function ParcelSearch() {
       ) : null}
       {tap.status === 'fallback' ? (
         <p role="status" className="text-base text-slate-700">
-          {t(tap.reason === 'error' ? 'parcels.tap.error' : 'parcels.tap.none')}
+          {tap.reason === 'error'
+            ? t('parcels.tap.error', { source: ULDK_SOURCE })
+            : t(tap.reason === 'offline' ? 'parcels.tap.offline' : 'parcels.tap.none')}
         </p>
       ) : null}
       {added && !loading ? (

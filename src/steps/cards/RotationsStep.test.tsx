@@ -88,6 +88,46 @@ describe('RotationCard', () => {
     expect(screen.getByText(t({ code: 'fx.twins.not-loaded' }))).toBeInTheDocument();
   });
 
+  it('shows similar regions with each case yield as a sourced number, and the reason when a yield is missing', () => {
+    const base = current(iowaAnalysis);
+    const dataset = iowaAnalysis.datasets[0]!.id;
+    const outcome = (value: number | null) => ({
+      value,
+      unit: 't/ha',
+      datasetIds: [dataset],
+      kind: 'observation' as const,
+      retrievedAt: '2026-11-14',
+      ...(value === null ? { missingReason: 'No yield was reported for those years.' } : {}),
+    });
+    const [crop] = base.years.map((y) => y.crop);
+    const r: RotationOption = {
+      ...base,
+      twins: {
+        status: 'ready',
+        data: {
+          caseCount: 2,
+          meanSimilarity: 81.4,
+          cases: [
+            { regionName: 'Region One', country: 'US', similarity: 90, crops: [crop!], outcome: outcome(11.2), years: '2015-2019' },
+            { regionName: 'Region Two', country: 'US', similarity: 72, crops: [crop!], outcome: outcome(null), years: '2016-2020' },
+          ],
+        },
+      },
+    };
+    render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} />);
+    const card = screen.getByRole('article');
+    expect(within(card).getByText(t('steps.rotations.twinsReady', { count: 2, similarity: 81 }))).toBeInTheDocument();
+    expect(card.textContent).not.toMatch(/similar fields/);
+    const table = within(card).getByRole('table', { name: t('steps.rotations.twinsTable') });
+    expect(within(table).getByText('Region One')).toBeInTheDocument();
+    expect(within(table).getByText('Region Two')).toBeInTheDocument();
+    expect(within(table).getAllByRole('button', { name: /observed/ }).length).toBeGreaterThan(0);
+    expect(within(table).getByText(/11\.2/)).toBeInTheDocument();
+    expect(within(table).getByText('No yield was reported for those years.')).toBeInTheDocument();
+    // The card keeps exactly its two lists.
+    expect(within(card).getAllByRole('list')).toHaveLength(2);
+  });
+
   it('under another goal, says where the card would rank on keeping the soil', () => {
     const r = iowaAnalysis.rotations.find((x) => x.rankByGoal.keepSoil !== x.rankByGoal.improveSoil)!;
     render(<RotationCard rotation={r} rank={r.rankByGoal.improveSoil!} goal="improveSoil" datasets={iowaAnalysis.datasets} />);
@@ -96,6 +136,12 @@ describe('RotationCard', () => {
 });
 
 describe('RotationsStep', () => {
+  it('tells the user that the soil data can take up to two minutes while the analysis loads', async () => {
+    useAppStore.setState({ step: 5, analysis: { status: 'loading' } });
+    render(<RotationsStep />);
+    await screen.findByText(t('steps.rotations.loadingNote'));
+  });
+
   it('renders four cards for both demo fields, the current one marked', async () => {
     for (const analysis of [iowaAnalysis, poznanAnalysis]) {
       readyWith(analysis);

@@ -13,8 +13,8 @@
   "steps.rotations.benefits": "Korzyści",
   "steps.rotations.benefitsNone": "Poza wynikami powyżej nie znaleźliśmy innych korzyści.",
   "steps.rotations.twins": "Pola podobne do twojego",
-  "steps.rotations.twinsNotLoaded": "Podobne pola nie są jeszcze częścią tej analizy.",
-  "steps.rotations.twinsReady": "Podobne pola: {count}, średnie podobieństwo {similarity}%.",
+  "steps.rotations.twinsNotLoaded": "Podobne regiony nie są jeszcze częścią tej analizy.",
+  "steps.rotations.twinsReady": "Podobne regiony: {count}, średnie podobieństwo {similarity}%.",
   "steps.rotations.gaps": "Czego nie wiemy",
   "steps.rotations.risks": "Sprawdź na miejscu",
   "steps.rotations.weakTitle": "Najpierw przeczytaj to",
@@ -69,5 +69,12 @@
   "steps.rotations.income.paymentsNone": "Ten płodozmian nie spełnia warunków żadnej ze sprawdzonych dopłat.",
   "steps.rotations.income.unconfirmed": "Stawka na tę kampanię nie jest jeszcze potwierdzona, więc nie wliczamy jej do dochodu.",
   "steps.rotations.income.campaign": "Ceny i stawki: {campaign}",
-  "steps.rotations.income.notLoaded": "Dochód nie jest jeszcze częścią tej analizy."
+  "steps.rotations.income.notLoaded": "Dochód nie jest jeszcze częścią tej analizy.",
+  "steps.rotations.twinsTable": "Plony w podobnych regionach",
+  "steps.rotations.twinsRegion": "Region",
+  "steps.rotations.twinsYears": "Lata",
+  "steps.rotations.twinsCrops": "Uprawy",
+  "steps.rotations.twinsSimilarity": "Podobieństwo",
+  "steps.rotations.twinsYield": "Plon",
+  "steps.rotations.loadingNote": "Dane o glebie pobieramy na żywo z SoilGrids, a to może potrwać do dwóch minut. Zostaw tę stronę otwartą."
 }

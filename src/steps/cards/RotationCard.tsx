@@ -143,12 +143,42 @@ export function RotationCard(props: {
 
       <Section title={t('steps.rotations.twins')}>
         {r.twins.status === 'ready' ? (
-          <p className="text-base text-slate-800">
-            {t('steps.rotations.twinsReady', {
-              count: r.twins.data.caseCount,
-              similarity: Math.round(r.twins.data.meanSimilarity),
-            })}
-          </p>
+          <div className="grid gap-2">
+            <p className="text-base text-slate-800">
+              {t('steps.rotations.twinsReady', {
+                count: r.twins.data.caseCount,
+                similarity: Math.round(r.twins.data.meanSimilarity),
+              })}
+            </p>
+            {/* A table, not a list: the card keeps exactly two lists (gaps, local risks). */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-base text-slate-800">
+                <caption className="sr-only">{t('steps.rotations.twinsTable')}</caption>
+                <thead>
+                  <tr className="border-b border-slate-300 text-sm text-slate-700">
+                    <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsRegion')}</th>
+                    <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsCrops')}</th>
+                    <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsYears')}</th>
+                    <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsSimilarity')}</th>
+                    <th scope="col" className="py-1 font-medium">{t('steps.rotations.twinsYield')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.twins.data.cases.map((c, i) => (
+                    <tr key={`${c.regionName}:${c.years}:${i}`} className="border-b border-slate-200 align-top">
+                      <th scope="row" className="py-1.5 pr-3 font-medium">{c.regionName}</th>
+                      <td className="py-1.5 pr-3">{c.crops.map((crop) => cropName(crop)).join(', ')}</td>
+                      <td className="py-1.5 pr-3">{c.years}</td>
+                      <td className="py-1.5 pr-3">{Math.round(c.similarity)}%</td>
+                      <td className="py-1.5">
+                        <SourcedNumber value={c.outcome} datasets={datasets} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <StateBoundary
             state={r.twins.status === 'error' ? 'error' : 'no-data'}
