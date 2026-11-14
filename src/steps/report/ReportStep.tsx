@@ -57,12 +57,13 @@ export function ReportStep() {
 
   return (
     <section aria-labelledby="report-title" className="grid gap-5">
-      <h2 id="report-title" className="text-2xl font-semibold text-slate-900">
+      {/* The step header already shows this title on screen; print hides the header, so the title prints from here. */}
+      <h2 id="report-title" className="hidden text-2xl font-semibold text-slate-900 print:block">
         {t('steps.report.title')}
       </h2>
 
       <p className="rounded-xl border-2 border-slate-700 bg-slate-50 px-4 py-3 text-base font-medium leading-snug text-slate-900">
-        {t('app.support')}
+        {t('steps.report.support')}
       </p>
 
       <dl className="rounded-2xl border-2 border-slate-200 bg-white px-4 py-2">
