@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { canContinue, useAppStore } from '../app/store';
 import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
+import { areaHa } from './area';
 import type { MapHandlers } from './leafletMap';
 
 // Leaflet does not render in jsdom; the wrapper is replaced and its handlers are captured.
@@ -13,6 +14,7 @@ const leaflet = vi.hoisted(() => ({
     flyTo: vi.fn(),
     retryTiles: vi.fn(),
     destroy: vi.fn(),
+    isEditing: vi.fn(() => false),
   },
 }));
 
@@ -104,5 +106,74 @@ describe('MapStep', () => {
   it('says so when there are no fields yet', async () => {
     render(<MapStep />);
     await screen.findByText('No fields yet.');
+  });
+
+  it('does not add a point field when the map is tapped while a draw, edit or delete mode is on', async () => {
+    render(<MapStep />);
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+    leaflet.controller.isEditing.mockReturnValue(true);
+
+    act(() => leaflet.handlers!.onClick(52.45, 17.1));
+
+    await screen.findByText('No fields yet.');
+    expect(useAppStore.getState().fields).toHaveLength(0);
+    leaflet.controller.isEditing.mockReturnValue(false);
+  });
+
+  it('adds a drawn outline as a new selected field with its area', async () => {
+    render(<MapStep />);
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+    const outline = demoFields.poznan.polygon;
+
+    act(() => leaflet.handlers!.onDrawn(outline));
+
+    const state = useAppStore.getState();
+    expect(state.fields).toHaveLength(1);
+    const drawn = state.fields[0]!;
+    expect(drawn.id).not.toBe(demoFields.poznan.id);
+    expect(drawn.country).toBe('PL');
+    expect(state.selectedFieldId).toBe(drawn.id);
+    await screen.findByText(`${drawn.name}, ${drawn.areaHa.toFixed(1)} ha`);
+    expect(drawn.areaHa).toBeCloseTo(areaHa(outline), 9);
+  });
+
+  it('updates a field when its outline is edited on the map', async () => {
+    useAppStore.setState({ fields: [demoFields.poznan], selectedFieldId: demoFields.poznan.id });
+    render(<MapStep />);
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+    // The Iowa rectangle is a different size, so the edited field must take its area.
+    const newOutline = demoFields.iowa.polygon;
+
+    act(() => leaflet.handlers!.onEdited(demoFields.poznan.id, newOutline));
+
+    const edited = useAppStore.getState().fields[0]!;
+    expect(edited.id).toBe(demoFields.poznan.id);
+    expect(edited.name).toBe(demoFields.poznan.name);
+    expect(edited.areaHa).toBeCloseTo(areaHa(newOutline), 9);
+    await screen.findByText(`${demoFields.poznan.name}, ${areaHa(newOutline).toFixed(1)} ha`);
+  });
+
+  it('removes a field deleted on the map', async () => {
+    useAppStore.setState({ fields: [demoFields.poznan], selectedFieldId: demoFields.poznan.id });
+    render(<MapStep />);
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+
+    act(() => leaflet.handlers!.onRemoved(demoFields.poznan.id));
+
+    await screen.findByText('No fields yet.');
+    expect(useAppStore.getState().fields).toHaveLength(0);
+  });
+
+  it('selects a field from the list with a radio, not a button', async () => {
+    const user = userEvent.setup();
+    useAppStore.setState({ fields: [demoFields.iowa, demoFields.poznan], selectedFieldId: demoFields.iowa.id });
+    render(<MapStep />);
+    const poznanRow = `${demoFields.poznan.name}, ${demoFields.poznan.areaHa.toFixed(1)} ha`;
+
+    await user.click(await screen.findByRole('radio', { name: poznanRow }));
+
+    await waitFor(() => expect(useAppStore.getState().selectedFieldId).toBe(demoFields.poznan.id));
+    // e2e finds the demo button by substring, so it must stay the only button carrying a field name.
+    expect(screen.getAllByRole('button', { name: /Iowa demo field/ })).toHaveLength(1);
   });
 });
