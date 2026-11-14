@@ -1,6 +1,6 @@
 // Totals per goal and the shown rotations (SPEC section 7 "Total and ranking by goal", section 8, DECISIONS D9, D20 a).
 // Pure functions: the scores come in, the ranks, the soil floor and the shown lists go out.
-import type { AsyncResult, GoalId, PriorityId, RotationOption, Score } from '../contracts';
+import type { AsyncResult, GoalId, IndicatorId, PriorityId, RotationOption, Score } from '../contracts';
 import type { EngineRules, GoalWeights } from './rules';
 
 type Years = RotationOption['years'];
@@ -14,6 +14,8 @@ export interface Scored {
   priorityScores: Partial<Record<PriorityId, Score>>;
   /** Income score when the income module is wired (O3-B7); absent until then. */
   income?: Score;
+  /** Soil health for ranking and the soil floor, compared with the current rotation (see rankSoil). */
+  rankSoil?: Score;
 }
 
 export interface Ranked extends Scored {
@@ -47,7 +49,7 @@ export function goalTotal(item: Scored, weights: GoalWeights, on: PriorityId[]):
     .map((p) => item.priorityScores[p])
     .filter((x): x is Score => x !== undefined);
   const parts: { w: number; s: Score }[] = [
-    { w: weights.soilHealth, s: item.soilHealth },
+    { w: weights.soilHealth, s: item.rankSoil ?? item.soilHealth },
     { w: weights.climateResilience, s: item.climateResilience },
   ];
   if (weights.income !== undefined) {
@@ -127,7 +129,8 @@ export function rankByGoal(
       income: hasIncome ? { status: 'ready', data: goalTotal(item, rules.weights.income, on) } : INCOME_NOT_WIRED,
     },
     rankByGoal: {},
-    belowSoilFloor: !!current && !item.isCurrent && item.soilHealth.value < current.soilHealth.value - rules.floorPoints,
+    belowSoilFloor:
+      !!current && !item.isCurrent && (item.rankSoil ?? item.soilHealth).value < (current.rankSoil ?? current.soilHealth).value - rules.floorPoints,
   }));
 
   const changes = new Map(ranked.map((r) => [r.id, current ? changedYears(r.years, current.years) : 0]));
@@ -161,4 +164,39 @@ export function rankByGoal(
     shownByGoal[goal] = order.filter((r) => r.isCurrent || picked.includes(r)).map((r) => r.id);
   }
   return { items: ranked, shownByGoal };
+}
+
+export interface SoilParts {
+  isCurrent: boolean;
+  coverOnly: boolean;
+  soilHealth: Score;
+  indicators: Partial<Record<IndicatorId, Score>>;
+}
+
+/**
+ * Soil health for ranking. Rotations can have different indicators scored (a crop without a sourced rule leaves an
+ * indicator out), so their own totals average different sets. For ranking, a rotation's soil is the current
+ * rotation's total plus the weighted mean of its differences on the indicators both have; `weightOf` gives the
+ * priority doubling. The card keeps its own soilHealth. `partial` = the shared set is smaller than either set.
+ */
+export function rankSoil(c: SoilParts, cur: SoilParts, weightOf: (id: IndicatorId) => number): { score: Score; shared: IndicatorId[]; partial: boolean } {
+  if (c.isCurrent || c.coverOnly || cur.coverOnly) return { score: c.soilHealth, shared: [], partial: false };
+  const own = Object.keys(c.indicators) as IndicatorId[];
+  const theirs = Object.keys(cur.indicators) as IndicatorId[];
+  const shared = theirs.filter((id) => c.indicators[id] !== undefined);
+  const partial = shared.length < own.length || shared.length < theirs.length;
+  if (shared.length === 0) return { score: { ...c.soilHealth, confidence: 'weak' }, shared, partial };
+  const ws = shared.reduce((a, id) => a + weightOf(id), 0);
+  const d = (k: 'value' | 'low' | 'high') => shared.reduce((a, id) => a + (weightOf(id) * (c.indicators[id]![k] - cur.indicators[id]![k])) / ws, 0);
+  const value = round1(clamp(cur.soilHealth.value + d('value')));
+  return {
+    score: {
+      ...c.soilHealth,
+      value,
+      low: Math.min(value, round1(clamp(cur.soilHealth.low + d('low')))),
+      high: Math.max(value, round1(clamp(cur.soilHealth.high + d('high')))),
+    },
+    shared,
+    partial,
+  };
 }

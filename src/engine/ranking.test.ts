@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Score } from '../contracts';
-import { changedYears, goalTotal, rankByGoal, type Scored } from './ranking';
+import { changedYears, goalTotal, rankByGoal, rankSoil, type Scored } from './ranking';
 import { engineRules, loadRules } from './rules';
 
 const rules = engineRules(loadRules({}));
@@ -103,5 +103,50 @@ describe('rankByGoal', () => {
     const r = rankByGoal([current, low], rules, []);
     expect(r.shownByGoal.keepSoil).toEqual(['maize/soybean']);
     expect(r.shownByGoal.improveSoil).toEqual(['maize/soybean', 'x']);
+  });
+});
+
+describe('rankSoil: soil compared with the current rotation over shared indicators', () => {
+  const sc = (value: number, low = value, high = value): Score => ({ value, low, high, confidence: 'moderate', basis: { code: 'test' } });
+  const cur = {
+    isCurrent: true,
+    coverOnly: false,
+    soilHealth: sc(40, 30, 50),
+    indicators: { nitrogen: sc(20, 10, 30), erosion: sc(20, 15, 25), pestBreak: sc(80, 70, 90) },
+  };
+  const cand = {
+    isCurrent: false,
+    coverOnly: false,
+    soilHealth: sc(70),
+    indicators: { nitrogen: sc(50, 40, 60), pestBreak: sc(90, 85, 95) },
+  };
+
+  it('is the current total plus the weighted mean of the shared deltas', () => {
+    const r = rankSoil(cand, cur, (id) => (id === 'nitrogen' ? 2 : 1));
+    // deltas: nitrogen +30 (weight 2), pest break +10 (weight 1) → (60 + 10) / 3
+    expect(r.score.value).toBeCloseTo(40 + 70 / 3, 1);
+    expect(r.score.low).toBeCloseTo(30 + (2 * 30 + 15) / 3, 1);
+    expect(r.score.high).toBeCloseTo(50 + (2 * 30 + 5) / 3, 1);
+    expect(r.shared).toEqual(['nitrogen', 'pestBreak']);
+    expect(r.partial).toBe(true);
+  });
+
+  it('keeps the own score for the current rotation and for the cover-only stand-in', () => {
+    expect(rankSoil(cur, cur, () => 1).score).toEqual(cur.soilHealth);
+    expect(rankSoil({ ...cand, coverOnly: true }, cur, () => 1).score).toEqual(cand.soilHealth);
+  });
+
+  it('is weak with no shared indicator', () => {
+    const r = rankSoil({ ...cand, indicators: { organicMatter: sc(60) } }, cur, () => 1);
+    expect(r.score.confidence).toBe('weak');
+    expect(r.score.value).toBe(70);
+  });
+
+  it('is used by goalTotal and the soil floor instead of soilHealth', () => {
+    const a = { ...item('a', [{ crop: 'oats' }], 90, 60), rankSoil: s(30) };
+    const r = rankByGoal([current, a], rules, []);
+    expect(r.items.find((x) => x.id === 'a')!.belowSoilFloor).toBe(true);
+    const t = r.items.find((x) => x.id === 'a')!.totals.keepSoil;
+    expect(t.status === 'ready' && t.data.value).toBeCloseTo((0.4 * 30 + 0.45 * 60) / 0.85, 1);
   });
 });
