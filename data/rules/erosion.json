@@ -218,7 +218,7 @@
     },
     "unit": "topographic factor LS (dimensionless, 1.0 = 72.6 ft unit plot at 9% slope); key = slope percent",
     "appliesTo": "slope weighting of the erosion indicator; the app does not know slope length, so the team uses the 75 ft column (closest to the unit plot) - a team choice, interpolate between keys",
-    "sourceTitle": "Wischmeier, W.H. and Smith, D.D. (1978). Predicting Rainfall Erosion Losses: A Guide to Conservation Planning. USDA Agriculture Handbook 537",
+    "sourceTitle": "team choice of the 75 ft slope-length column from Wischmeier, W.H. and Smith, D.D. (1978). Predicting Rainfall Erosion Losses: A Guide to Conservation Planning. USDA Agriculture Handbook 537",
     "sourceUrl": "https://www.ars.usda.gov/ARSUserFiles/60600505/RUSLE/AH_537%20Predicting%20Rainfall%20Soil%20Losses.pdf",
     "sourceLocator": "Table 3 'Values of the topographic factor, LS, for specific combinations of slope length and steepness', column 'Slope length 75 feet', p. 12",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"

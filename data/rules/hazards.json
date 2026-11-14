@@ -52,8 +52,8 @@
   {
     "id": "hazards.gaez.notSuitableBelowSI",
     "value": 10,
-    "unit": "GAEZ v4 crop suitability index (SI, 0-100)",
-    "appliesTo": "crops with SI at or below this value at the field (class 'Very marginal', 'Not suitable' or 'No cultivation') are excluded before scoring",
+    "unit": "GAEZ v4 crop suitability index (SI), scale 0-100; the check is \"at or below\"",
+    "appliesTo": "crops with SI at or below this value at the field (classes 'Very marginal', 'Not suitable', 'No cultivation') are excluded before scoring; the id keeps 'Below' because the engine reads it",
     "sourceTitle": "FAO GAEZ v4 res05 ImageServer legend, renderer 'Crop Suitability Index in Classes - All Land in Grid Cell'",
     "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
     "sourceLocator": "legend classes: 'SI > 10 : Marginal', 'SI > 0 : Very marginal', 'Not suitable'; SPEC section 7 excludes below 'Marginal'",
@@ -62,15 +62,16 @@
   {
     "id": "hazards.gaez.classes",
     "value": {
-      "Very high": 75,
-      "High": 63,
-      "Good": 50,
-      "Medium": 35,
-      "Moderate": 20,
-      "Marginal": 10,
-      "Very marginal": 0
+      "veryHigh": 75,
+      "high": 63,
+      "good": 50,
+      "medium": 35,
+      "moderate": 20,
+      "marginal": 10,
+      "veryMarginal": 0,
+      "notSuitable": 0
     },
-    "unit": "lower SI bound (exclusive) per GAEZ class",
+    "unit": "lower SI bound per GAEZ class, scale 0-100, exclusive ('SI > bound'); notSuitable means SI = 0. Labels: veryHigh 'Very high', high 'High', good 'Good', medium 'Medium', moderate 'Moderate', marginal 'Marginal', veryMarginal 'Very marginal', notSuitable 'Not suitable'",
     "appliesTo": "labels for GAEZ suitability on cards and in gaps",
     "sourceTitle": "FAO GAEZ v4 res05 ImageServer legend, renderer 'Crop Suitability Index in Classes - All Land in Grid Cell'",
     "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
@@ -89,12 +90,12 @@
   },
   {
     "id": "hazards.frost.generalThresholdDays",
-    "value": 0,
-    "unit": "frost days per month (NASA POWER FROST_DAYS); a month above this counts as a frost month",
+    "value": 10,
+    "unit": "frost days per month (NASA POWER FROST_DAYS); a month with more than this counts as a frost month",
     "appliesTo": "field summary and calendar for months without a crop-specific threshold; crops in data/crops carry their own thresholds, which win",
     "sourceTitle": "team rule of thumb",
     "sourceUrl": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-    "sourceLocator": "D26: one crop-independent value, team rule of thumb: any frost day in the month counts",
+    "sourceLocator": "D26 and #79 item 7: one crop-independent value, team rule of thumb. 0 marked every April in Iowa as a frost month (NASA POWER, Ames 1981-2025: April has frost days in 45 of 45 years). More than 10 frost days (a third of the month) separates frosty springs: April in 14 of 45 years at Ames and 6 of 45 at the Poznań field; March stays a frost month in most years at both. Crop rows in data/crops keep their own stage limits (R10), which win",
     "checkedBy": "O4, team rule"
   }
 ]
