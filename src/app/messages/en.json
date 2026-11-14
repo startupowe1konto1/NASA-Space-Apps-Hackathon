@@ -1,0 +1,14 @@
+{
+  "app.progress": "Progress",
+  "app.stepOf": "Step {n} of {total}",
+  "app.step.goal": "What matters most to you?",
+  "app.step.field": "Your field",
+  "app.step.crops": "What grew there",
+  "app.step.priorities": "Your priorities",
+  "app.step.rotations": "Rotations for this field",
+  "app.step.money": "Money",
+  "app.step.report": "Report for your advisor",
+  "app.back": "Back",
+  "app.next": "Next",
+  "app.support": "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks above against what you know about this field."
+}

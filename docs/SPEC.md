@@ -10,7 +10,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ## 2. What the brief asks and where it shows on screen
 
-| Brief requirement | Screen element | Module | In the minimum (T+8) |
+| Brief requirement | Screen element | Module | In the minimum (T+9) |
 |---|---|---|---|
 | Compare at least three rotations including the existing one | four rotation cards, the current one marked "your rotation" | `src/steps/cards` | yes |
 | Why suggested, evidence, benefits, information gaps, risks for local review | five fixed sections on every card; gaps and risks are required fields in the contract and sit in the card body | `src/engine`, `src/steps/cards` | yes |
@@ -23,7 +23,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ## 3. Scope
 
-### Minimum, due T+8 (Sat 19:10)
+### Minimum, due T+9 (Sat 20:10)
 
 1. Main goal: one tap on one of three icons. "Keep my soil" and "Improve my soil" work in the minimum; "Income" is visible and says "price data not loaded yet" until the money tables land.
 2. Find the field: address search, click on the map, two demo-field shortcuts (Iowa, Poznań). In Poland a click returns the cadastral parcel from ULDK; in the USA the farmer draws the outline.
@@ -51,7 +51,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ### Out of scope
 
-Offline mode, user accounts, saving fields on a server, yield forecasts, fertilizer or pesticide dosing, countries other than the USA and Poland for crop lists and payments. A field outside those two countries still gets the climate profile.
+Offline use (the app only detects that it is offline and says so), user accounts, saving fields on a server, yield forecasts, fertilizer or pesticide dosing, countries other than the USA and Poland for crop lists and payments. A field outside those two countries still gets the climate profile, with no rotations and the text "Crop lists exist for the USA and Poland only".
 
 ## 4. Stack
 
@@ -155,9 +155,10 @@ export interface Priorities { goal: GoalId; on: PriorityId[]; excludedCrops: Cro
 export type Hazard = 'drought' | 'heat' | 'frost';
 export interface MonthlyRisk { month: number; hazard: Hazard; probability: Sourced } // share of the 45 years, 0–1
 export interface ClimateProfile {                    // what the ProfileProvider returns (NASA POWER, later SMAP)
-  monthly: { year: number; month: number; rootWetness: Sourced; rainMm: Sourced; tMaxC: Sourced; frostDays: Sourced; evapotranspirationMm: Sourced }[];
+  source: { datasetIds: string[]; kind: ValueKind; retrievedAt: string };   // applies to every value in monthly
+  monthly: { year: number; month: number; rootWetness: number | null; rainMm: number | null; tMaxC: number | null; frostDays: number | null; evapotranspirationMm: number | null }[]; // raw series for the engine; null = missing
   monthlyRisk: MonthlyRisk[];                       // 12 months x 3 hazards
-  yearly: { year: number; growingSeasonWetness: Sourced; hotDays: Sourced; frostDays: Sourced; rainMm: Sourced }[];
+  yearly: { year: number; growingSeasonWetness: Sourced; maxTempC: Sourced; frostDays: Sourced; rainMm: Sourced }[];
   droughtYears: number[];
   trends: { variable: string; direction: 'up' | 'down' | 'none'; perDecade: Sourced; significant: boolean }[];
 }
@@ -204,7 +205,7 @@ export interface RotationOption {
   rankByGoal: Partial<Record<GoalId, number>>;  // 1 = best; the current rotation is ranked with the others
   belowSoilFloor: boolean;                      // soil health more than 5 points under the current rotation's
   soilHealth: Score;
-  indicators: Record<IndicatorId, Score>;
+  indicators: Partial<Record<IndicatorId, Score>>; // an indicator without a sourced rule is absent and named in gaps
   climateResilience: Score;
   priorityScores: Partial<Record<PriorityId, Score>>;
   income: AsyncResult<Score>;                   // 'no-data' until the money tables cover every crop of the rotation
@@ -233,8 +234,8 @@ export interface MoneyEstimate {
 
 export interface Analysis {
   field: Field; profile: FieldProfile;
-  rotations: RotationOption[];                  // union of the rotations shown under any goal, plus the current one
-  shownByGoal: Partial<Record<GoalId, string[]>>; // rotation ids: 3 best + current for each goal that has data
+  rotations: RotationOption[];                  // every rotation shown under any goal; empty for a field outside the USA and Poland
+  shownByGoal: Partial<Record<GoalId, string[]>>; // rotation ids per goal that has data: the current rotation plus the three best others, best first
   datasets: Dataset[];                          // everything used, for the sources panel and References
   generatedAt: string;
 }
@@ -242,9 +243,9 @@ export interface Analysis {
 // ---------- async and errors ----------
 export type AsyncResult<T> =
   | { status: 'ready'; data: T }
-  | { status: 'no-data'; reason: Message }
+  | { status: 'no-data'; reason: Message }             // the module is wired and has nothing for this field or rotation
   | { status: 'error'; source: string; reason: Message }
-  | { status: 'not-loaded' };
+  | { status: 'not-loaded' };                           // the module is not wired yet, or was not asked
 
 // ---------- providers (implemented by lanes, wired in src/app/providers.ts) ----------
 export interface AnalyzeInput { field: Field; cropHistory: CropYear[]; priorities: Priorities }
@@ -274,7 +275,7 @@ Rules that follow from the contract:
 
 ## 7. Scores, ranking and uncertainty
 
-All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `npm run validate:data` fails when a row has no source. The numbers below the framework level are filled by O3 from the source documents, not from memory, and the mentor reviews the table (Sat 15:00 and Sun 10:30).
+All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `npm run validate:data` fails when a row has no source. The numbers below the framework level are filled by O4 from the source documents, not from memory (D16), and a mentor reviews the table as soon as one is free.
 
 ### Soil health (scored for every rotation under every goal)
 
@@ -282,7 +283,7 @@ All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ i
 |---|---|---|---|
 | Nitrogen | nitrogen the rotation fixes and keeps for the next crop | share of years with a legume or legume cover crop, times a credit per crop, reduced by the leaching risk: the field's NASA rain record in the months the calendar shows bare soil, and soil texture | Iowa State University Extension nitrogen credit guidance; IUNG-PIB fertilisation recommendations |
 | Organic matter | whether the rotation builds or runs down soil organic matter | humus balance: sum of per-crop reproduction and degradation coefficients, adjusted for soil texture and for the field's temperature and wetness class from NASA POWER (warm and moist soils break organic matter down faster) | IUNG-PIB coefficients (Poland); NRCS Soil Conditioning Index (USA) |
-| Erosion | soil exposed when erosive rain falls | bare and low-cover months from the calendar, weighted by the field's monthly heavy-rain record and slope class | RUSLE cover-management factor (USDA Agriculture Handbook 703) |
+| Erosion | soil exposed when erosive rain falls | bare and low-cover months from the calendar, weighted by the field's monthly rain record (NASA POWER) and slope class | RUSLE cover-management factor (USDA Agriculture Handbook 703) |
 | Pest-cycle break | whether crop families return too soon | minimum return interval per crop family; penalty per violation | NRCS Conservation Practice Standard 328; SARE "Crop Rotation on Organic Farms" |
 
 Soil health = weighted mean of the four indicators. Start with equal weights; a farmer priority for nitrogen, erosion or organic matter doubles that indicator's weight.
@@ -345,13 +346,13 @@ The weights are a starting proposal. They live in `data/rules/goals.json`, the m
 1. The current rotation: the repeating cycle found in the crop history, or the history as entered if no cycle repeats.
 2. One-step changes to the current rotation: add a cover crop after the earliest-harvested crop, add a small grain, add a legume, replace one year.
 3. Rotations of two to five years enumerated from the crop list.
-4. Filters: excluded crops; sowing month must come after the previous harvest month (from the calendars, so maize followed by winter rapeseed is dropped); crop family return intervals as hard limits only where the source says "never".
+4. Filters: excluded crops; sowing must not come before the previous harvest month (from the calendars, so maize followed by winter rapeseed is dropped, while winter wheat sown in the month maize is harvested stays); crop family return intervals as hard limits only where the source says "never".
 
-The engine scores all candidates and returns four.
+The engine scores all candidates. For each goal it shows the current rotation plus the three best others: four cards, or fewer when fewer than three others pass the soil floor.
 
 ### Calendar strip
 
-One row of months per rotation year. Each month cell shows the cover state by colour (crop, cover crop, residue, bare) and up to three small hazard marks when the crop in the ground is sensitive that month and the hazard occurred in more than a set share of the 45 years at this field. Tapping a mark shows the number ("drought in 11 of 45 years in July") with its source label. The strip for the current rotation sits above the strips of the alternatives so bare months can be compared by eye. Bare periods are our calculation from crop calendars; the label says so.
+One row of months per rotation year. Each month cell shows the cover state by colour (crop, cover crop, residue, bare) and up to three small hazard marks when the crop in the ground is sensitive that month and the hazard, measured against that crop's own thresholds, occurred in more than a set share of the 45 years at this field (the share is a row in `data/rules/hazards.json`). Tapping a mark shows the number ("drought in 11 of 45 years in July") with its source label. The strip for the current rotation sits above the strips of the alternatives so bare months can be compared by eye. Bare periods are our calculation from crop calendars; the label says so.
 
 ## 9. Field twins (parallel track)
 
@@ -361,7 +362,7 @@ Places with similar climate and soil, what is grown there and how it did. Twins 
 - Outcomes: crop shares and yields per region (USDA NASS QuickStats; Eurostat). NDVI from NASA satellites is a later option.
 - Similarity: Euclidean distance on z-scored features, shown as 0–100. The ten nearest regions that grow at least one crop of the rotation are the cases.
 - States: `not-loaded` (track not merged yet), `no-data` ("no similar places with this crop in our case base"), `error`, `ready`.
-- O4 decides the exact region list in the first task and writes the count into the file's metadata. If the case base is not ready at T+8, the cards ship with the `no-data` text and the pitch does not mention twins.
+- O4 decides the exact region list in the first task and writes the count into the file's metadata. If the case base is not ready at T+9, the cards ship with the `no-data` text and the pitch does not mention twins.
 
 ## 10. Data transparency
 
@@ -404,8 +405,8 @@ Each person runs two streams at once. Streams never share a file, so two subagen
 |---|---|---|
 | **O1** merger, reviewer, monitoring | `src/contracts/`, `src/app/`, `src/ui-kit/`, `src/fixtures/`, root config, `.github/`, `api/` routing, deploy | `e2e/`, `docs/`, review and merge of all PRs, hourly e2e on `main` |
 | **O2** frontend | `src/map/` (search, parcels, boundary editing) | `src/steps/` (goal, crops, priorities, cards, calendar, money, report, glossary) |
-| **O3** engine | `src/profile/` (POWER and SMAP clients, field profile) | `src/engine/` (candidates, scoring, goals, calendar, `analyzeField`), `data/rules/` |
-| **O4** data and evidence | `scripts/`, `data/precomputed/`, `data/crops/`, `src/context-data/`, `api/cropscape.ts`, then `src/money/`, `data/money/` | `src/twins/`, `data/twins/` |
+| **O3** engine | `src/profile/` (POWER and SMAP clients, field profile) | `src/engine/` (candidates, scoring, goals, calendar, `analyzeField`) |
+| **O4** data and evidence | `scripts/`, `data/precomputed/`, `data/crops/`, `src/context-data/`, `api/cropscape.ts`, then `src/money/`, `data/money/` | `data/rules/` first (D16), then `src/twins/`, `data/twins/` |
 
 Anything outside your folders is a separate `[contract]` PR reviewed by O1. Pitch and presentation get an owner after the skeleton is on `main`.
 
@@ -428,14 +429,14 @@ Demo of at most seven slides or a 30-second video, English, a References list ge
 
 | Risk | Answer |
 |---|---|
-| The minimum grew with PR #19 and #20 (calendar, ranges, source labels, glossary) and we are about 100 minutes behind the schedule | provenance and state components come with the skeleton so lanes get them for free; the team decides at T+7 whether "minimum done" moves from T+8 to T+9 |
+| The minimum grew with PR #19 and #20 (calendar, ranges, source labels, glossary) and we are about 100 minutes behind the schedule | provenance and state components come with the skeleton so lanes get them for free; "minimum done" moved from T+8 to T+9, Sat 20:10 (D17) |
 | Rule values are ours to defend | one source per row, enforced by CI; mentor review; `weak` and "rule of thumb" shown on screen |
 | POWER is about 50 km, so two fields in one cell get the same climate | the source chip says so; soil, slope and crop history are what make fields differ |
 | Leaflet-Geoman cut tool and EPSG:2180 are unverified together | split and merge is a parallel track; click and draw are enough for the minimum |
 | The income goal turns the tool into a price or subsidy comparison | income is replayed over the field's 45 NASA years, not read from a price list; there is no ranking by payments alone; soil floor; soil health and climate shown first on every card; default goal is "Keep my soil" |
 | Prices and payment rates for 2026 are partly unconfirmed (ARiMR eco-schemes, NRCS Iowa rates) | each rate is `Sourced` and dated; an unconfirmed rate is left out of the sum and named in the gaps; income then rests on margin only |
 | The yield-loss replay looks like a forecast | confidence capped at `moderate`; the card says "past years at today's prices, not a forecast"; factors sourced from FAO |
-| Twins case base may not finish | `no-data` state is designed in; twins are left out of the pitch if missing at T+8 |
+| Twins case base may not finish | `no-data` state is designed in; twins are left out of the pitch if missing at T+9 |
 | Hosting was never tested (the T+1 gate was skipped) | O1 deploys the empty skeleton to Vercel before lanes start |
 
 ## 18. Open decisions for `docs/DECISIONS.md`
@@ -445,5 +446,5 @@ Demo of at most seven slides or a 30-second video, English, a References list ge
 3. D9: the ranking depends on the farmer's main goal (keep soil, improve soil, income). This replaces the HANDOFF rule "money must not reorder the ranking by default" with: the default goal is soil, money ranks only when the farmer chooses income, income is margin replayed over the field's 45 NASA years plus confirmed payments, there is no ranking by payments alone, and the soil floor applies. Weights in section 7 need the team's yes.
 4. Exact coordinates of the two demo fields (O4 picks arable fields and records them).
 5. Who owns the Vercel account and whether the repo owner connects it.
-6. Whether "minimum done" stays at T+8 (19:10) or moves to T+9.
+6. Decided (D17): "minimum done" is at T+9 (Sat 20:10).
 7. Project name, at the end.
