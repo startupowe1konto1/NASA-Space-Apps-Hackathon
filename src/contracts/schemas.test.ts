@@ -80,6 +80,25 @@ describe('moneyFile economics periods', () => {
   it('rejects an empty period', () => {
     expect(moneyFile.safeParse(file([{ ...row, pricePeriod: '' }])).success).toBe(false);
   });
+
+  // #79, #107 follow-up: the periods are required by the contract itself, and the old single `year` is gone.
+  it('rejects a sold crop row without one of its three periods', () => {
+    for (const key of ['yieldPeriod', 'pricePeriod', 'costsPeriod'] as const) {
+      const { [key]: _dropped, ...without } = row;
+      expect(moneyFile.safeParse(file([without])).success, key).toBe(false);
+    }
+  });
+
+  it('drops the old single year from a parsed row', () => {
+    const parsed = moneyFile.parse(file([{ ...row, year: 2026 }]));
+    expect(parsed.economics[0]).not.toHaveProperty('year');
+  });
+
+  it('rejects a cover-crop row without its costs period', () => {
+    const cover = { crop: 'cereal-rye', kind: 'cover', directCostsPerHa: 70, sources: [ref] };
+    expect(moneyFile.safeParse(file([cover])).success).toBe(false);
+    expect(moneyFile.safeParse(file([{ ...cover, costsPeriod: '2026 survey' }])).success).toBe(true);
+  });
 });
 
 describe('moneyFile cover-crop rows (#98 item 5, D34)', () => {
