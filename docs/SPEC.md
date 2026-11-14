@@ -51,7 +51,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ### Out of scope
 
-Offline mode, user accounts, saving fields on a server, yield forecasts, fertilizer or pesticide dosing, countries other than the USA and Poland for crop lists and payments. A field outside those two countries still gets the climate profile.
+Offline use (the app only detects that it is offline and says so), user accounts, saving fields on a server, yield forecasts, fertilizer or pesticide dosing, countries other than the USA and Poland for crop lists and payments. A field outside those two countries still gets the climate profile, with no rotations and the text "Crop lists exist for the USA and Poland only".
 
 ## 4. Stack
 
@@ -155,9 +155,10 @@ export interface Priorities { goal: GoalId; on: PriorityId[]; excludedCrops: Cro
 export type Hazard = 'drought' | 'heat' | 'frost';
 export interface MonthlyRisk { month: number; hazard: Hazard; probability: Sourced } // share of the 45 years, 0–1
 export interface ClimateProfile {                    // what the ProfileProvider returns (NASA POWER, later SMAP)
-  monthly: { year: number; month: number; rootWetness: Sourced; rainMm: Sourced; tMaxC: Sourced; frostDays: Sourced; evapotranspirationMm: Sourced }[];
+  source: { datasetIds: string[]; kind: ValueKind; retrievedAt: string };   // applies to every value in monthly
+  monthly: { year: number; month: number; rootWetness: number | null; rainMm: number | null; tMaxC: number | null; frostDays: number | null; evapotranspirationMm: number | null }[]; // raw series for the engine; null = missing
   monthlyRisk: MonthlyRisk[];                       // 12 months x 3 hazards
-  yearly: { year: number; growingSeasonWetness: Sourced; hotDays: Sourced; frostDays: Sourced; rainMm: Sourced }[];
+  yearly: { year: number; growingSeasonWetness: Sourced; maxTempC: Sourced; frostDays: Sourced; rainMm: Sourced }[];
   droughtYears: number[];
   trends: { variable: string; direction: 'up' | 'down' | 'none'; perDecade: Sourced; significant: boolean }[];
 }
@@ -204,7 +205,7 @@ export interface RotationOption {
   rankByGoal: Partial<Record<GoalId, number>>;  // 1 = best; the current rotation is ranked with the others
   belowSoilFloor: boolean;                      // soil health more than 5 points under the current rotation's
   soilHealth: Score;
-  indicators: Record<IndicatorId, Score>;
+  indicators: Partial<Record<IndicatorId, Score>>; // an indicator without a sourced rule is absent and named in gaps
   climateResilience: Score;
   priorityScores: Partial<Record<PriorityId, Score>>;
   income: AsyncResult<Score>;                   // 'no-data' until the money tables cover every crop of the rotation
@@ -233,8 +234,8 @@ export interface MoneyEstimate {
 
 export interface Analysis {
   field: Field; profile: FieldProfile;
-  rotations: RotationOption[];                  // union of the rotations shown under any goal, plus the current one
-  shownByGoal: Partial<Record<GoalId, string[]>>; // rotation ids: 3 best + current for each goal that has data
+  rotations: RotationOption[];                  // every rotation shown under any goal; empty for a field outside the USA and Poland
+  shownByGoal: Partial<Record<GoalId, string[]>>; // rotation ids per goal that has data: the current rotation plus the three best others, best first
   datasets: Dataset[];                          // everything used, for the sources panel and References
   generatedAt: string;
 }
@@ -242,9 +243,9 @@ export interface Analysis {
 // ---------- async and errors ----------
 export type AsyncResult<T> =
   | { status: 'ready'; data: T }
-  | { status: 'no-data'; reason: Message }
+  | { status: 'no-data'; reason: Message }             // the module is wired and has nothing for this field or rotation
   | { status: 'error'; source: string; reason: Message }
-  | { status: 'not-loaded' };
+  | { status: 'not-loaded' };                           // the module is not wired yet, or was not asked
 
 // ---------- providers (implemented by lanes, wired in src/app/providers.ts) ----------
 export interface AnalyzeInput { field: Field; cropHistory: CropYear[]; priorities: Priorities }
@@ -282,7 +283,7 @@ All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ i
 |---|---|---|---|
 | Nitrogen | nitrogen the rotation fixes and keeps for the next crop | share of years with a legume or legume cover crop, times a credit per crop, reduced by the leaching risk: the field's NASA rain record in the months the calendar shows bare soil, and soil texture | Iowa State University Extension nitrogen credit guidance; IUNG-PIB fertilisation recommendations |
 | Organic matter | whether the rotation builds or runs down soil organic matter | humus balance: sum of per-crop reproduction and degradation coefficients, adjusted for soil texture and for the field's temperature and wetness class from NASA POWER (warm and moist soils break organic matter down faster) | IUNG-PIB coefficients (Poland); NRCS Soil Conditioning Index (USA) |
-| Erosion | soil exposed when erosive rain falls | bare and low-cover months from the calendar, weighted by the field's monthly heavy-rain record and slope class | RUSLE cover-management factor (USDA Agriculture Handbook 703) |
+| Erosion | soil exposed when erosive rain falls | bare and low-cover months from the calendar, weighted by the field's monthly rain record (NASA POWER) and slope class | RUSLE cover-management factor (USDA Agriculture Handbook 703) |
 | Pest-cycle break | whether crop families return too soon | minimum return interval per crop family; penalty per violation | NRCS Conservation Practice Standard 328; SARE "Crop Rotation on Organic Farms" |
 
 Soil health = weighted mean of the four indicators. Start with equal weights; a farmer priority for nitrogen, erosion or organic matter doubles that indicator's weight.
@@ -345,13 +346,13 @@ The weights are a starting proposal. They live in `data/rules/goals.json`, the m
 1. The current rotation: the repeating cycle found in the crop history, or the history as entered if no cycle repeats.
 2. One-step changes to the current rotation: add a cover crop after the earliest-harvested crop, add a small grain, add a legume, replace one year.
 3. Rotations of two to five years enumerated from the crop list.
-4. Filters: excluded crops; sowing month must come after the previous harvest month (from the calendars, so maize followed by winter rapeseed is dropped); crop family return intervals as hard limits only where the source says "never".
+4. Filters: excluded crops; sowing must not come before the previous harvest month (from the calendars, so maize followed by winter rapeseed is dropped, while winter wheat sown in the month maize is harvested stays); crop family return intervals as hard limits only where the source says "never".
 
-The engine scores all candidates and returns four.
+The engine scores all candidates. For each goal it shows the current rotation plus the three best others: four cards, or fewer when fewer than three others pass the soil floor.
 
 ### Calendar strip
 
-One row of months per rotation year. Each month cell shows the cover state by colour (crop, cover crop, residue, bare) and up to three small hazard marks when the crop in the ground is sensitive that month and the hazard occurred in more than a set share of the 45 years at this field. Tapping a mark shows the number ("drought in 11 of 45 years in July") with its source label. The strip for the current rotation sits above the strips of the alternatives so bare months can be compared by eye. Bare periods are our calculation from crop calendars; the label says so.
+One row of months per rotation year. Each month cell shows the cover state by colour (crop, cover crop, residue, bare) and up to three small hazard marks when the crop in the ground is sensitive that month and the hazard, measured against that crop's own thresholds, occurred in more than a set share of the 45 years at this field (the share is a row in `data/rules/hazards.json`). Tapping a mark shows the number ("drought in 11 of 45 years in July") with its source label. The strip for the current rotation sits above the strips of the alternatives so bare months can be compared by eye. Bare periods are our calculation from crop calendars; the label says so.
 
 ## 9. Field twins (parallel track)
 
