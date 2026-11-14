@@ -72,6 +72,36 @@ describe('step shell on fixtures', () => {
   });
 });
 
+describe('glossary link', () => {
+  it('opens the glossary from the header and goes back to the same step', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Step 2 of 7');
+
+    const link = screen.getByRole('button', { name: 'Glossary' });
+    await user.click(link);
+    expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toHaveFocus();
+    expect(await screen.findByText('evapotranspiration')).toBeInTheDocument();
+    expect(link).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Back to step 2' }));
+    expect(await screen.findByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(screen.queryByText('Words used in this tool')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Step 2 of 7');
+    expect(link).toHaveFocus();
+  });
+
+  it('opens with the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    screen.getByRole('button', { name: 'Glossary' }).focus();
+    await user.keyboard('{Enter}');
+    expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toBeInTheDocument();
+  });
+});
+
 describe('canContinue', () => {
   it('needs a field on step 2 and two crop years on step 3', () => {
     const s = useAppStore.getState();
