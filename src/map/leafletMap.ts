@@ -89,7 +89,13 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
           fillOpacity: selected ? 0.25 : 0.1,
           bubblingMouseEvents: false, // a tap on a field selects it instead of adding a new one
         })
-          .on('click', () => {
+          .on('click', (e: L.LeafletMouseEvent) => {
+            // While drawing, a tap on a field is a corner of the new outline. The field stops the click from reaching
+            // the map, so hand it on: Geoman adds the corner there. Selecting the field would fly the map away mid-draw.
+            if (map.pm.globalDrawModeEnabled()) {
+              map.fire('click', e);
+              return;
+            }
             // In delete mode the same tap removes the field; selecting it first would only flicker.
             if (!map.pm.globalRemovalModeEnabled()) handlers.onSelectField(field.id);
           })
