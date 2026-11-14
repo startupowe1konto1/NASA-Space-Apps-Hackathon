@@ -2,6 +2,7 @@
 // Pure functions: the scores come in, the ranks, the soil floor and the shown lists go out.
 import type { AsyncResult, GoalId, IndicatorId, PriorityId, RotationOption, Score } from '../contracts';
 import type { EngineRules, GoalWeights } from './rules';
+import { INDICATOR_LABEL } from './messages';
 
 type Years = RotationOption['years'];
 
@@ -207,6 +208,8 @@ export function rankSoil(c: SoilParts, cur: SoilParts, weightOf: (id: IndicatorI
   return {
     score: {
       ...c.soilHealth,
+      // not the mean of this rotation's own indicators any more, so the basis says how the number was made (#124 review)
+      ...(partial ? { basis: { code: 'soil.basis.compared', params: { shared: shared.map((id) => INDICATOR_LABEL[id]).join(', ') } } } : {}),
       value,
       low: Math.min(value, round1(clamp(cur.soilHealth.low + d('low')))),
       high: Math.max(value, round1(clamp(cur.soilHealth.high + d('high')))),

@@ -7,8 +7,9 @@ import { GoalStep } from '../steps/goal/GoalStep';
 import { MoneyStep } from '../steps/money/MoneyStep';
 import { PrioritiesStep } from '../steps/priorities/PrioritiesStep';
 import { ReportStep } from '../steps/report/ReportStep';
+import { restoreFromHash } from '../steps/report/shareLink';
 import { PROJECT_NAME } from './brand';
-import { t } from './i18n';
+import { LANGS, setLang, t, useLang } from './i18n';
 import { StateBoundary } from '../ui-kit';
 import { STEP_COUNT, canContinue, useAppStore } from './store';
 import { useOnline } from './useOnline';
@@ -29,6 +30,8 @@ export function App() {
   const current = steps[state.step - 1] ?? steps[0]!;
   const Step = current.component;
   const online = useOnline();
+  // Subscribing here re-renders the whole tree when the language changes; t() reads the language itself.
+  const lang = useLang((s) => s.lang);
   // The glossary covers the step instead of being a step, so the farmer comes back to where they were.
   const [glossaryOpen, setGlossaryOpen] = useState(false);
   const glossaryButton = useRef<HTMLButtonElement>(null);
@@ -37,6 +40,20 @@ export function App() {
     setGlossaryOpen(false);
     glossaryButton.current?.focus();
   }
+
+  // A shared report link (#s=...) restores the farmer's input and opens the report (O2-B7), on load and when a link
+  // is pasted into an open tab. The code is then cleared from the address, so the field's location does not stay in
+  // the browser history and a reload does not overwrite later edits.
+  useEffect(() => {
+    const restore = () => {
+      if (restoreFromHash(window.location.hash, useAppStore.getState())) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+    restore();
+    window.addEventListener('hashchange', restore);
+    return () => window.removeEventListener('hashchange', restore);
+  }, []);
 
   useEffect(() => {
     if (!glossaryOpen) return;
@@ -49,18 +66,37 @@ export function App() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
-      <header className="border-b border-slate-200 px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
+      <header className="border-b border-slate-200 px-4 py-3 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+
           <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p>
-          <button
-            ref={glossaryButton}
-            type="button"
-            aria-expanded={glossaryOpen}
-            className="-my-2 min-h-11 rounded px-3 text-base font-medium text-emerald-800 underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
-            onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
-          >
-            {t('app.glossary')}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              ref={glossaryButton}
+              type="button"
+              aria-expanded={glossaryOpen}
+              className="-my-2 min-h-11 rounded px-3 text-base font-medium text-emerald-800 underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+              onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
+            >
+              {t('app.glossary')}
+            </button>
+            <div role="group" aria-label={t('app.language')} className="-my-2 flex rounded border border-slate-300">
+              {LANGS.map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  lang={code}
+                  aria-pressed={lang === code}
+                  className={`min-h-11 min-w-11 px-2 text-sm font-medium first:rounded-l last:rounded-r focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
+                    lang === code ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700'
+                  }`}
+                  onClick={() => setLang(code)}
+                >
+                  {t(`app.lang.${code}`)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <ol className="mt-2 flex gap-1" aria-label={t('app.progress')}>
           {steps.map((s, i) => (
@@ -92,7 +128,7 @@ export function App() {
       </main>
 
       {glossaryOpen ? null : (
-        <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3">
+        <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3 print:hidden">
           <button
             type="button"
             className="min-h-11 rounded border border-slate-300 px-4 disabled:opacity-40"

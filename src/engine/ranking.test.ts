@@ -187,6 +187,12 @@ describe('rankSoil: soil compared with the current rotation over shared indicato
     expect(r.partial).toBe(true);
   });
 
+  // #124 review: the ranked score is not the weighted mean of the rotation's own indicators, so it says how it was made.
+  it('gives a partial comparison its own basis naming the shared indicators', () => {
+    const r = rankSoil(cand, cur, () => 1);
+    expect(r.score.basis).toEqual({ code: 'soil.basis.compared', params: { shared: 'nitrogen, pest break' } });
+  });
+
   it('keeps the own score for the current rotation and for the cover-only stand-in', () => {
     expect(rankSoil(cur, cur, () => 1).score).toEqual(cur.soilHealth);
     expect(rankSoil({ ...cand, coverOnly: true }, cur, () => 1).score).toEqual(cand.soilHealth);

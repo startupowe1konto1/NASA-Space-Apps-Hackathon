@@ -274,9 +274,9 @@
         "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
       },
       {
-        "title": "Bueckert, Pea yield formation in warming temperatures: phenological mechanisms, University of Saskatchewan research project (project page by Saskatchewan Pulse Growers)",
+        "title": "Bueckert, Pea yield formation in warming temperatures: phenological mechanisms (University of Saskatchewan research project page, published by Saskatchewan Pulse Growers, a producer group)",
         "url": "https://saskpulse.com/research/listing/pea-yield-formation-in-warming-temperatures-phenological-mechanisms/",
-        "locator": "\"Project Description\": \"A few days of heat above 29°C in the field causes flower and young pod abortion and lowers yield\"; heat threshold 29 °C compared with the monthly maximum of NASA POWER T2M_MAX in the flowering month (June, from the COBORU start of flowering 31.05 and 10.06); lossShare 0.2 is the team rule of thumb (no loss share given). Excerpt: data/samples/research/agronomy/hf-saskpulse-pea-heat.txt"
+        "locator": "\"Project Description\": \"A few days of heat above 29°C in the field causes flower and young pod abortion and lowers yield.\" Heat row: June (flowering and pod set), threshold 29 °C on NASA POWER daily T2M_MAX; since D43 (#113) a month counts as a heat month only with at least hazards.heat.minDays = 3 days above the threshold, which matches \"a few days\". At the Poznań field 6 of 45 Junes (1981-2025) have 3 or more such days (1996, 2000, 2016, 2019, 2021, 2022; NASA POWER daily, excerpt data/samples/power/daily-t2mmax-june-1981-2025-poznan.json). This is a project page, not the paper; lossShare 0.2 is a team rule of thumb. Excerpt: data/samples/research/agronomy/hf-saskpulse-pea-heat.txt"
       },
       {
         "title": "FAO Land and Water, Crop information: Pea (based on FAO Irrigation and Drainage Paper 33)",

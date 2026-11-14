@@ -1,0 +1,11 @@
+{
+  "search.title": "Find an address or place",
+  "search.label": "Address or place",
+  "search.hint": "A Polish address is looked up in GUGiK, anything else in OpenStreetMap. The map moves there; tap the map to add the field.",
+  "search.button": "Search",
+  "search.results": "Places found",
+  "search.none": "No place matches this text. Add the town or the postcode, or check the spelling.",
+  "search.moved": "Map moved to {label}.",
+  "search.error.format": "{source} sent an answer that could not be read.",
+  "search.error.http": "{source} answered with HTTP {status}."
+}

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SourceError, type Analysis, type CropYear, type Message, type Priorities, type Providers } from '../contracts';
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
+import { fixtureCrops } from '../fixtures/crops';
 import { MONEY_SOURCE, analyzeField, incomeMessage, createAnalyzeField, emptyReason } from './analyzeField';
 import { incomeEstimate } from './income';
 import { engineRules, loadRules, shippedRules } from './rules';
@@ -12,6 +13,7 @@ import moneyPl from '../../data/money/pl.json';
 import moneyUs from '../../data/money/us-ia.json';
 
 const shippedDrought = engineRules(shippedRules).droughtPercentile;
+const shippedHeatMinDays = engineRules(shippedRules).heatMinDays;
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
 const iowaHistory: CropYear[] = [2019, 2020, 2021, 2022, 2023, 2024, 2025].map((year, i) => ({
@@ -92,6 +94,19 @@ describe('analyzeField with fixture providers', () => {
     expect(a.profile.slopePct.value).toBeNull();
     expect(analysisSchema.safeParse(a).success).toBe(true);
     expect(a.rotations[0]!.gaps.some((g) => g.code === 'gap.soil-missing')).toBe(true);
+  });
+
+  // #98 item 13: the live provider falls back to SoilGrids for a US point without an SSURGO map unit, so the reason
+  // names the source that failed (from the SourceError), not the one the country would suggest.
+  it('names the soil source from the SourceError when the soil provider fails', async () => {
+    const providers: Providers = {
+      ...fixtureProviders,
+      context: { ...fixtureProviders.context, getSoil: () => Promise.reject(new SourceError('SoilGrids', 'SoilGrids gave no answer within 60 s')) },
+    };
+    const a = await run('iowa', providers);
+    expect(a.profile.soil.sandPct.missingReason).toMatch(/^SoilGrids did not answer/);
+    expect(a.profile.soil.sandPct.datasetIds).toEqual(['isric-soilgrids']);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
   });
 
   it('removes a crop that GAEZ marks not suitable and names it in the gaps', async () => {
@@ -217,20 +232,51 @@ describe('analyzeField with fixture providers', () => {
     expect(emptyReason(await analyzeField(none, fixtureProviders), none)?.code).toBe('empty.no-history');
   });
 
-  it('ranks soil over the indicators a rotation shares with the current one, and says so', async () => {
+  // #105 item 7 and the #124 review: the soil total on a card is the number the goals rank on, and a farmer can rebuild
+  // it from what the cards show. A card scored on the same indicators as the current rotation shows the mean of its
+  // own indicators. A card scored on fewer or other indicators shows the current total plus the mean difference on the
+  // indicators both have, and a gap says so and names them.
+  it('shows the soil total the goals rank on, and says how to rebuild it when the indicator sets differ', async () => {
     const withRules = createAnalyzeField({ rules: shippedRules });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const current = a.rotations.find((r) => r.isCurrent)!;
-    const currentSet = Object.keys(current.indicators);
-    for (const r of a.rotations.filter((x) => !x.isCurrent)) {
-      const own = Object.keys(r.indicators);
-      const partial = currentSet.some((id) => !own.includes(id)) || own.some((id) => !currentSet.includes(id));
-      expect(r.gaps.some((g) => g.code === 'gap.soil-compared-shared')).toBe(partial);
+    const mean = (xs: number[]) => xs.reduce((x, y) => x + y, 0) / xs.length;
+    const curIds = Object.keys(current.indicators) as (keyof typeof current.indicators)[];
+    for (const r of a.rotations) {
+      const own = Object.keys(r.indicators) as (keyof typeof r.indicators)[];
+      const same = own.length === curIds.length && own.every((id) => curIds.includes(id));
+      const gap = r.gaps.some((g) => g.code === 'gap.soil-compared-shared');
+      expect(gap).toBe(!same);
+      if (same) expect(r.soilHealth.value).toBeCloseTo(mean(own.map((id) => r.indicators[id]!.value)), 0);
+      else {
+        const shared = own.filter((id) => curIds.includes(id));
+        const diff = mean(shared.map((id) => r.indicators[id]!.value - current.indicators[id]!.value));
+        expect(r.soilHealth.value).toBeCloseTo(current.soilHealth.value + diff, 0);
+      }
     }
+    expect(a.rotations.some((r) => r.gaps.some((g) => g.code === 'gap.soil-compared-shared'))).toBe(true);
     const missing = [...codes(a)].filter((c) => !(c in en) && !c.startsWith('fx.'));
     expect(missing).toEqual([]);
-    expect(current.soilHealth.basis.code === 'soil.basis.total' || current.soilHealth.basis.code === 'soil.basis.total-complete').toBe(true);
-    if (current.soilHealth.basis.code === 'soil.basis.total') expect(String(current.soilHealth.basis.params?.missing)).not.toMatch(/organicMatter|pestBreak/);
+  });
+
+  // #124 review: erosion is the NASA-driven soil indicator (POWER rain, NASADEM slope); it must stay in the Iowa totals.
+  it('keeps erosion in the soil total of every Iowa card', async () => {
+    const withRules = createAnalyzeField({ rules: shippedRules });
+    const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+    const scored = a.rotations.filter((r) => Object.keys(r.indicators).length > 0);
+    expect(scored.length).toBeGreaterThan(1);
+    for (const r of scored) expect(r.indicators.erosion).toBeDefined();
+  });
+
+  // #124 review: the cover-crop rotations are what keepSoil showed on main for Iowa; the erosion change must not drop them.
+  it('shows a rotation with each Iowa cover crop among the keep-soil cards', async () => {
+    const withRules = createAnalyzeField({ rules: shippedRules });
+    const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+    const coverIds = new Set(fixtureCrops.US.filter((c) => c.kind === 'cover').map((c) => c.id));
+    const keep = new Set(a.shownByGoal.keepSoil ?? []);
+    const withCover = a.rotations.filter((r) => keep.has(r.id) && !r.isCurrent && r.years.some((y) => y.coverCrop && coverIds.has(y.coverCrop)));
+    const shownCovers = new Set(withCover.flatMap((r) => r.years.map((y) => y.coverCrop).filter((x): x is string => !!x)));
+    expect([...coverIds].filter((id) => !shownCovers.has(id))).toEqual([]);
   });
 
   // #105 item 6: water is scored when the water need rows exist, otherwise it is named as not scored.
@@ -387,7 +433,7 @@ describe('analyzeField with a money provider (income, O3-B7)', () => {
           continue;
         }
         const expected = incomeEstimate(
-          r.years, crops, climate, econ.data, pay.status === 'ready' ? pay.data : [], table.currency as 'USD' | 'PLN', table.campaign, shippedDrought,
+          r.years, crops, climate, econ.data, pay.status === 'ready' ? pay.data : [], table.currency as 'USD' | 'PLN', table.campaign, shippedDrought, shippedHeatMinDays,
         );
         if (expected.status !== 'ready') {
           expect(expected.status).toBe('no-data');

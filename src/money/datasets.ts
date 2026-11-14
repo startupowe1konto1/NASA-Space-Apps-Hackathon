@@ -23,6 +23,11 @@ export const datasets: Dataset[] = [
     period: '2026 budget (A1-20 revised January 2026)', kind: 'model',
   },
   {
+    id: 'isu-agdm-a3-10', name: '2026 Iowa Farm Custom Rate Survey (Ag Decision Maker A3-10)', provider: 'Iowa State University Extension',
+    url: 'https://www.extension.iastate.edu/agdm/crops/pdf/a3-10.pdf', nasa: false, resolution: 'Iowa, average rate reported by custom operators',
+    period: '2026 survey (A3-10 PDF of March 2026)', kind: 'model',
+  },
+  {
     id: 'nrcs-ia-fy2026-booklet', name: 'Iowa Financial Assistance Program Scenario Booklet FY2026 (practices 340 and 328)', provider: 'USDA NRCS Iowa',
     url: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet_April%2028%202026.pdf', nasa: false,
     resolution: 'Iowa', period: 'fiscal year 2026 (Oct 2025 to Sep 2026), booklet of 28 Apr 2026',
@@ -41,12 +46,7 @@ export const datasets: Dataset[] = [
   {
     id: 'gus-skup-i-ceny-2025', name: 'GUS procurement prices of agricultural products in 2025', provider: 'Statistics Poland (GUS)',
     url: 'https://publikacje.new.stat.gov.pl/portal-publikacje/skup-i-ceny-produktow-rolnych-w-2025-r', nasa: false,
-    resolution: 'voivodeship (sugar beet), Poland (field pea)', period: '2025 yearly average', kind: 'observation',
-  },
-  {
-    id: 'gus-ceny-produktow-rolnych', name: 'GUS agricultural product prices, September 2026', provider: 'Statistics Poland (GUS)',
-    url: 'https://stat.gov.pl/obszary-tematyczne/ceny-handel/ceny/', nasa: false, resolution: 'voivodeship', period: 'September 2026',
-    kind: 'observation',
+    resolution: 'voivodeship (sugar beet, table potato), Poland (field pea)', period: '2025 yearly average', kind: 'observation',
   },
   {
     id: 'wodr-poznan-kalkulacje', name: 'WODR Poznań crop budgets (kalkulacje rolnicze), February 2026', provider: 'Wielkopolski Ośrodek Doradztwa Rolniczego',
@@ -84,10 +84,10 @@ export function roleOf(locator: string): MoneyRole | undefined {
 const SOURCE_PREFIXES: { prefix: string; id: string; role?: MoneyRole }[] = [
   { prefix: 'https://quickstats.nass.usda.gov/', role: 'yield', id: 'usda-nass-quickstats-yields' },
   { prefix: 'https://quickstats.nass.usda.gov/', role: 'price', id: 'usda-nass-quickstats-prices' },
+  { prefix: 'https://www.extension.iastate.edu/agdm/crops/pdf/a3-10', id: 'isu-agdm-a3-10' },
   { prefix: 'https://www.extension.iastate.edu/agdm/', id: 'isu-agdm-a1-20' },
   { prefix: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet', id: 'nrcs-ia-fy2026-booklet' },
   { prefix: 'https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/', id: 'gus-produkcja-upraw' },
-  { prefix: 'https://stat.gov.pl/', id: 'gus-ceny-produktow-rolnych' },
   { prefix: 'https://zsrir.minrol.gov.pl/', id: 'mrirw-zsrir' },
   { prefix: 'https://publikacje.new.stat.gov.pl/', id: 'gus-skup-i-ceny-2025' },
   { prefix: 'https://www.wodr.poznan.pl/', id: 'wodr-poznan-kalkulacje' },

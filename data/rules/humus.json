@@ -99,7 +99,7 @@
     },
     "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy, blackEarth (czarne ziemie); negative = degradation, positive = reproduction. The slide prints the unit column as '1ha'; tonnes is how the Code of Good Agricultural Practice states these coefficients, a mentor should confirm",
     "appliesTo": "humus balance, one crop-year of oats grown as a main crop (group 'Zboża, oleiste'); Polish coefficients, for a field outside Poland they are a borrowed value",
-    "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
+    "sourceTitle": "borrowed from IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 4 (PDF page 4), table row 'Zboża, oleiste': light -0.49, medium -0.53, heavy -0.56, black earth -0.38",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"

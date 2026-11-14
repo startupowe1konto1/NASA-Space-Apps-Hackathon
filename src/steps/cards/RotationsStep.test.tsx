@@ -154,6 +154,15 @@ describe('RotationsStep', () => {
     expect(within(summary).getByText(/Highest heat risk/)).toBeInTheDocument();
   });
 
+  it('the range note does not call the soil-health range a range of past years (#76)', async () => {
+    readyWith(iowaAnalysis);
+    render(<RotationsStep />);
+    const [card] = await screen.findAllByRole('article');
+    const note = within(card!).getByText(/where a source gives a single value/);
+    expect(note.textContent).toMatch(/climate resilience/);
+    expect(note.textContent).toMatch(/soil health/);
+  });
+
   it('a field outside the USA and Poland shows the summary and no cards', async () => {
     readyWith({ ...iowaAnalysis, rotations: [], shownByGoal: {} });
     render(<RotationsStep />);

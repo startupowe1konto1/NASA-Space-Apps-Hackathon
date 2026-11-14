@@ -58,5 +58,16 @@
   "steps.rotations.goalTotalNotLoaded": "This part of the analysis is not wired yet.",
   "steps.rotations.sectionEmpty": "Nothing listed here for this rotation.",
   "steps.rotations.summary.droughtNote": "A drought year means the {rootZone} was among the driest fifth of growing seasons on record at this field, by NASA POWER's {wetness}. Over the whole record that is close to 1 year in 5 by definition, so the count for recent seasons is what tells you whether droughts are getting more common. Both are a {model}, not a measurement on your field.",
-  "steps.rotations.rangeNote": "The range under each score is a {range}: most past years fall inside it."
+  "steps.rotations.rangeNote": "Under climate resilience, the range is a {range}: most past years fall inside it. Under soil health, it runs from the low to the high values the sources give, or 15% either side where a source gives a single value.",
+  "steps.rotations.income.title": "Income",
+  "steps.rotations.income.notForecast": "Past years replayed at today's prices, not a forecast.",
+  "steps.rotations.income.marginLead": "Your {margin} per hectare, before payments:",
+  "steps.rotations.income.average": "Average year",
+  "steps.rotations.income.bad": "Bad year (1 year in 10 was worse)",
+  "steps.rotations.income.good": "Good year (1 year in 10 was better)",
+  "steps.rotations.income.payments": "Payments",
+  "steps.rotations.income.paymentsNone": "This rotation qualifies for none of the payments we checked.",
+  "steps.rotations.income.unconfirmed": "Rate not confirmed for this campaign, so it is not counted in the income.",
+  "steps.rotations.income.campaign": "Prices and rates: {campaign}",
+  "steps.rotations.income.notLoaded": "Income is not part of this analysis yet."
 }

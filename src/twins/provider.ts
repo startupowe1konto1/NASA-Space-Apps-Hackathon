@@ -3,7 +3,8 @@
 //
 // - Similarity is on NASA POWER features: the region's climatology (case base) against the field's own monthly record.
 // - Regions with identical features sit in one NASA POWER grid cell; they count as one case, named after the first,
-//   and their yields are averaged (#79 items 9, 13).
+//   and their yields are averaged by crop area (#79 items 9, 13). German NUTS 2 regions of one Land share the Land's
+//   Eurostat figures, so they count as one case too (#79, review of #106).
 // - The region the field sits in is left out: it is its own climate, not a twin (#79 item 14).
 // - The outcome is the yield of the first rotation crop the region grows (SPEC 9 "how it did", #79 item 15).
 // - The 385 KB case base is loaded on first use (#79 item 16).
@@ -73,8 +74,15 @@ interface Prepared { file: CasesFile; stats: ZStats }
 
 export function createTwinsProvider(load: () => Promise<CasesFile>): TwinsProvider {
   let prepared: Promise<Prepared> | undefined;
+  // a failed load is not kept: the next call tries again (#79, review of #106)
   const prepare = () =>
-    (prepared ??= load().then((file) => ({ file, stats: zStats(file.regions.map(numericFeatures)) })));
+    (prepared ??= load().then(
+      (file) => ({ file, stats: zStats(file.regions.map(numericFeatures)) }),
+      (error: unknown) => {
+        prepared = undefined;
+        throw error;
+      },
+    ));
 
   return {
     async getTwins(field: Field, profile: FieldProfile, rotation: RotationOption['years']): Promise<AsyncResult<TwinEvidence>> {
@@ -83,17 +91,23 @@ export function createTwinsProvider(load: () => Promise<CasesFile>): TwinsProvid
       const ownId = ownRegionId(file.regions, field);
       const wanted = [...new Set(rotation.flatMap((y) => (y.coverCrop ? [y.crop, y.coverCrop] : [y.crop])))];
 
-      // regions with an outcome for at least one crop of the rotation, grouped by identical features (one grid cell)
+      // regions with an outcome for at least one crop of the rotation, grouped so that one piece of evidence counts once:
+      // German NUTS 2 regions by their Land (Eurostat has the Land's figures only), other regions by identical
+      // NASA POWER features (one grid cell). A group's similarity is that of its most similar region.
       const groups = new Map<string, { regions: CaseRegion[]; score: number }>();
       for (const region of file.regions) {
         if (region.id === ownId || !region.outcome) continue;
         const outcome = region.outcome;
         const growsOne = wanted.some((crop) => caseNamesOf(crop).some((n) => (outcome.crops[n]?.sharePct ?? 0) > 0));
         if (!growsOne) continue;
-        const key = featureKey(region);
+        const key = outcome.outcomeRegion ? `land:${outcome.outcomeRegion.code}` : featureKey(region);
+        const score = similarity(own, numericFeatures(region), stats);
         const group = groups.get(key);
-        if (group) group.regions.push(region);
-        else groups.set(key, { regions: [region], score: similarity(own, numericFeatures(region), stats) });
+        if (!group) groups.set(key, { regions: [region], score });
+        else if (score > group.score) {
+          group.regions.unshift(region); // the most similar region leads the group
+          group.score = score;
+        } else group.regions.push(region);
       }
       const ranked = [...groups.values()].sort((a, b) => b.score - a.score).slice(0, MAX_CASES);
       if (ranked.length === 0) return { status: 'no-data', reason: { code: 'twins.no-cases' } };
@@ -101,18 +115,32 @@ export function createTwinsProvider(load: () => Promise<CasesFile>): TwinsProvid
       const cases: TwinEvidence['cases'] = ranked.map(({ regions, score }) => {
         const first = regions[0]!;
         const outcome = first.outcome!;
-        // the case-base rows of a rotation crop in the regions of this cell
+        // the case-base rows of a rotation crop in the regions of this group, with the crop's area as weight
         const rowsOf = (crop: CropId) => regions.flatMap((r) =>
-          caseNamesOf(crop).flatMap((n) => (r.outcome && (r.outcome.crops[n]?.sharePct ?? 0) > 0 ? [r.outcome.crops[n]!] : [])));
+          caseNamesOf(crop).flatMap((n) => {
+            const row = r.outcome?.crops[n];
+            if (!row || row.sharePct <= 0) return [];
+            return [{ row, areaHa: r.outcome?.areaHa === undefined ? 1 : (row.sharePct / 100) * r.outcome.areaHa }];
+          }));
         const grown = wanted.filter((crop) => rowsOf(crop).length > 0);
         const lead = grown[0]!;
-        const yields = rowsOf(lead).map((c) => c.yieldTPerHa).filter((v): v is number => v !== null);
-        const meanYield = yields.length === 0 ? null : Math.round((yields.reduce((a, b) => a + b, 0) / yields.length) * 100) / 100;
+        // area-weighted mean over the group (a Land's regions all carry the Land's figure, so it stays that figure)
+        const withYield = rowsOf(lead).filter((x) => x.row.yieldTPerHa !== null);
+        const area = withYield.reduce((sum, x) => sum + x.areaHa, 0);
+        const meanYield = withYield.length === 0 || area <= 0
+          ? null
+          : Math.round((withYield.reduce((sum, x) => sum + x.row.yieldTPerHa! * x.areaHa, 0) / area) * 100) / 100;
         const land = outcome.outcomeRegion;
         const others = regions.length - 1;
-        const name = land ? `${first.name} (figures for ${land.name})` : first.name;
+        const regionName = land
+          ? others > 0
+            ? `${land.name} (${regions.length} NUTS 2 regions; Eurostat figures for the Land)`
+            : `${first.name} (figures for ${land.name})`
+          : others > 0
+            ? `${first.name} (+${others} more in the same NASA POWER grid cell)`
+            : first.name;
         return {
-          regionName: others > 0 ? `${name} (+${others} more in the same NASA POWER grid cell)` : name,
+          regionName,
           country: first.country,
           similarity: Math.round(score),
           crops: grown,

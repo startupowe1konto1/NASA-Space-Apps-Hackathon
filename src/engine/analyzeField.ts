@@ -88,11 +88,18 @@ function missing(datasetId: string, source: string, error: unknown, unit?: strin
   };
 }
 
+/** Dataset ids of the soil sources a SourceError can name (src/context-data: SOILGRIDS_SOURCE, SSURGO_SOURCE). */
+const SOIL_DATASETS: Record<string, string> = { SoilGrids: 'isric-soilgrids', 'USDA soil survey (SSURGO)': 'usda-ssurgo' };
+
 async function loadSoil(field: Field, providers: Providers): Promise<Soil> {
   try {
     return await providers.context.getSoil(field);
   } catch (e) {
-    const [id, source] = field.country === 'US' ? ['usda-ssurgo', 'USDA soil survey'] : ['isric-soilgrids', 'SoilGrids'];
+    // The live provider falls back from SSURGO to SoilGrids for a US point without a map unit, so a SourceError names
+    // the source that failed; the country only decides when the error does not say (#98 item 13).
+    const fallback: [string, string] = field.country === 'US' ? ['usda-ssurgo', 'USDA soil survey'] : ['isric-soilgrids', 'SoilGrids'];
+    const named = e instanceof SourceError ? SOIL_DATASETS[e.source] : undefined;
+    const [id, source] = named && e instanceof SourceError ? [named, e.source] : fallback;
     return {
       sandPct: missing(id, source, e, '%'),
       clayPct: missing(id, source, e, '%'),
@@ -388,7 +395,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       } catch (e) {
         paymentGaps.push({ code: 'gap.payments-error', params: { source: sourceOf(e) } });
       }
-      const income = incomeEstimate(years, crops, climate, economics.data, payments, labels.currency, labels.campaign, rules.droughtPercentile);
+      const income = incomeEstimate(years, crops, climate, economics.data, payments, labels.currency, labels.campaign, rules.droughtPercentile, rules.heatMinDays);
       if (income.status !== 'ready') {
         const status = income.status === 'not-loaded' ? (INCOME_NOT_WIRED as NotReady<Score>) : income.status === 'no-data' ? { ...income, reason: incomeMessage(income.reason) } : income;
         return { money: status, status, gaps: [...('reason' in status ? [status.reason] : []), ...paymentGaps] };
@@ -475,7 +482,10 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           totals: r.totals,
           rankByGoal: r.rankByGoal,
           belowSoilFloor: r.belowSoilFloor,
-          soilHealth: r.soilHealth,
+          // #124 review: the card shows the soil total the goals ranked on. Where this rotation's indicators differ from the
+          // current one's, that is the current total plus the mean difference on the shared ones (rankSoil), and the
+          // gap 'gap.soil-compared-shared' says how to rebuild it.
+          soilHealth: sharedOf.has(r.id) ? (r.rankSoil ?? r.soilHealth) : r.soilHealth,
           indicators: c.soil.indicators,
           climateResilience: r.climateResilience,
           priorityScores: r.priorityScores,
