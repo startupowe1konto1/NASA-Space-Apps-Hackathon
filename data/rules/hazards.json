@@ -3,7 +3,7 @@
     "id": "hazards.drought.percentile",
     "value": 20,
     "unit": "percentile of the field's own monthly root-zone wetness (NASA POWER GWETROOT), all years of the record",
-    "appliesTo": "drought check for every crop in its sensitive months; a month at or below this percentile counts as drought",
+    "appliesTo": "drought check for every crop in its sensitive months; a month below this percentile counts as drought",
     "sourceTitle": "U.S. Drought Monitor, Drought Classification",
     "sourceUrl": "https://droughtmonitor.unl.edu/About/AbouttheData/DroughtClassification.aspx",
     "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00",
