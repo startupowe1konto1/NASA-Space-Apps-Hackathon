@@ -26,10 +26,12 @@ const EUROPE_BOX = { s: 36, w: -20, n: 66, e: 50 };
 // Rest views of the ground scene (1 unit = 1 km). The field sits left of centre so the table has the right-hand side.
 const VIEW = {
   field: { pos: new THREE.Vector3(1.3, 1.3, 1.62), look: new THREE.Vector3(0.24, 0.36, -0.2), dim: 0.36, grid: 0.13 },
+  // Slide 4: the lower half of the screen is a panel, so the field moves up and right.
+  engine: { pos: new THREE.Vector3(0.94, 2.06, 3.24), look: new THREE.Vector3(-0.12, 0.36, 1.42), dim: 0.3, grid: 0.1 },
   // About 1.9 km per pixel: every twin place and the field fit in the strip between the text block and the table.
   europe: { pos: new THREE.Vector3(-182, 3578, 758), look: new THREE.Vector3(-182, 0, 114), dim: 1.25, grid: 0 },
 };
-export const VIEWS = ['orbit', 'field', 'europe'];
+export const VIEWS = ['orbit', 'field', 'engine', 'europe'];
 
 const cssColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -55,7 +57,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
   const frameHooks = new Set();
   api.onFrame = (fn) => { frameHooks.add(fn); return () => frameHooks.delete(fn); };
 
-  if (new URLSearchParams(location.search).has('debug')) window.__scene = api;
+  if (new URLSearchParams(location.search).has('debug')) { window.__scene = api; api.VIEW = VIEW; }
   if (!webgl) return withoutWebGL(api, stage);
 
   const KM_LAT = 111.32, KM_LON = 111.32 * Math.cos(THREE.MathUtils.degToRad(FIELD.lat));
