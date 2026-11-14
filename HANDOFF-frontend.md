@@ -1,4 +1,6 @@
-# Handoff v2: frontend changes after the Sat 14 Nov team call
+# Handoff v2.1: frontend changes after the Sat 14 Nov team call
+
+v2.1 (Sat 23:10 CET): owners per step, and the user's answers on the Iowa outline and the share link.
 
 v1 (#155, Sat 22:30) was written from the Fathom transcript of the team call. This v2 (Sat 22:40 CET) adds the user's decisions, written after the call, step by step; where they differ from the transcript, the decisions win. The transcript is `context/meetings/2026-11-14-fathom-transcript.md` (merged in #160, which replaced #150). Times in brackets, like (1:49), point to it.
 
@@ -24,6 +26,8 @@ This file covers the app UI only; the pitch part of the call is left out. `HANDO
 | 6 Money | 6 Money, needs a working preview |
 | 7 Report | removed |
 
+Owners (the user, Sat 23:10): O1 builds the start page, steps 1–4 and the removal of step 7, following `docs/superpowers/plans/2026-11-14-o1-steps-0-4.md`. O3 and O4 build steps 5 and 6.
+
 The swap, the start page and the removal of step 7 all change the step list, so do them in one PR. It touches:
 
 - the `steps` array (`src/app/App.tsx:18`), `STEP_COUNT` in `src/app/store.ts`, the `app.step.*` labels and the progress bar;
@@ -43,7 +47,7 @@ User: remove the two demo tiles, Iowa and Poznań (`src/map/MapStep.tsx:118–12
 
 - Keep `demoFields` in `src/fixtures`: tests read their values from it. `e2e/demo-fields.spec.ts` and `e2e/helpers.ts` press the demo buttons, so switch them to the search box in the same PR.
 - Today a search hit only moves the map (`MapStep.tsx:127`, `showPlace`); a field is added only on the map itself (a tap, the parcel layer or drawing). `addFieldAt` in `src/map/parcels/tap.ts` returns the ULDK parcel outline in Poland and a 4 ha square anywhere else. First change: call `addFieldAt(lat, lon)` for the search hit, show the outline, and let the farmer accept it.
-- Iowa is the gap. None of the allowed sources (SPEC §15) gives US field boundaries, so the Iowa search hit gets a 4 ha square, not the field's edges. See open question 1.
+- Iowa: none of the allowed sources (SPEC §15) gives US field boundaries. The user's answer: tracing the field by hand is fine, but in the animation the search must fit the field by itself. So a search hit (or a tap) within 1 km of the Iowa demo field takes the demo field's stored outline; anywhere else in the US it is still the 4 ha square to redraw.
 
 ### Step 2, goal (was step 1)
 
@@ -89,18 +93,15 @@ Two separate fixes:
 
 ### Step 6, money
 
-User: the step stays, and the backend has to be fixed so that it shows a preview. Today `src/steps/money/MoneyStep.tsx` is the skeleton placeholder with the out-of-date text "Prices and payment rates are not loaded yet". The O1 analysis in `HANDOFF.md` v8 (#154) found that each rotation already carries its money data (`RotationOption.money`, `income`), so a first version can reuse `IncomeSection` without a contract change. Costs and revenue per crop are not in the contract yet. On the call Mateusz said step 6 is his (16:01), but at 22:25 nothing was on GitHub. Settle the owner with the user before anyone starts, so it is not built twice.
+User: the step stays, and the backend has to be fixed so that it shows a preview. Today `src/steps/money/MoneyStep.tsx` is the skeleton placeholder with the out-of-date text "Prices and payment rates are not loaded yet". The O1 analysis in `HANDOFF.md` v8 (#154) found that each rotation already carries its money data (`RotationOption.money`, `income`), so a first version can reuse `IncomeSection` without a contract change. Costs and revenue per crop are not in the contract yet. The user gave steps 5 and 6 to O3 and O4 (Sat 23:10); they agree between them who takes which.
 
 ### Step 7, report
 
-User: remove it. Take it out of the step list in the same PR as the new flow. The share link is built on this step (`ReportStep.tsx:44`, "copy link") and opens step 7 when it is followed (`shareLink.ts:98`); see open question 3.
+User: remove it, and the share link with it (Sat 23:10). O1 does this in the same PR as the new flow; `src/steps/report/` goes away, and an old `#s=` link just opens the start page.
 
-## Open questions for the user
+## Open question for the user
 
-1. The Iowa field outline for the animation. (a) Trace the field by hand with the drawing tool while recording; this works today. (b) Build an outline from USDA CropScape, an allowed source: take the crop-class pixels around the search point and trace the patch they form. That is a rough, 30 m outline, and it needs the CropScape proxy, which needs hosting (`HANDOFF.md`). (c) A real field-boundary source, which needs a human's approval first (SPEC §15).
-2. "Weak evidence" in Iowa: should O3 use the borrowed Polish humus coefficients for US fields, or should Iowa stay at `weak` with only the UI change?
-3. With step 7 gone, keep the "copy link" button (on step 5 or 6) and point the link at step 5, or drop the share link? Check first whether the pitch QR code needs it.
-4. Who builds step 6 (see above).
+"Weak evidence" in Iowa: should O3 use the borrowed Polish humus coefficients for US fields, or should Iowa stay at `weak` with only the UI change?
 
 From the call, but not in the user's decisions, so nobody builds them unless the user asks: a country or region choice (1:49), a typed-in soil quality (12:28–13:18; the app already reads SSURGO in the US and SoilGrids elsewhere, and it does not forecast yields), more comparison places, and a "not available yet" message right after the search for places without data (2:37; today it shows only on step 5, `empty.outside-coverage`).
 
@@ -108,10 +109,12 @@ From the call, but not in the user's decisions, so nobody builds them unless the
 
 The deadline is Sun 15 Nov, 11:59 CET.
 
-1. Step 5: fold the sections and the sources, remove the goal switcher, drop the weak-evidence banner. No open question blocks it.
-2. Step 4: the text layout.
-3. The new flow in one PR: start page, field and goal swapped, step 7 removed, SPEC §12 and DECISIONS updated, e2e updated.
-4. Step 1: drop the demo tiles, add the field on a search hit, switch e2e to the search box. After open question 1 for Iowa.
-5. Step 6, once its owner is settled.
+O1, in this order (the plan has the tests):
+
+1. O1-F1: the new flow in one PR: start page, field and goal swapped, step 7 and the share link removed, SPEC §12 and DECISIONS updated, e2e updated.
+2. O1-F2: step 1: drop the demo tiles, add the field on a search hit (the Iowa demo outline near the demo field), switch e2e to the search box.
+3. O1-F3: step 4: the text layout.
+
+O3 and O4: step 5 (fold the sections and the sources, remove the goal switcher, drop the weak-evidence banner) and step 6. Step 5 touches `RotationsStep.tsx` and `RotationCard.tsx`, which O1-F1 does not, so the two can run at the same time; rebase after O1-F1 merges, because the step numbers change.
 
 Each item is its own PR with the gate (`git fetch && git rebase origin/main && npm run typecheck && npm run test && npm run build && npm run validate:data`). Every screen keeps its loading, offline, no-data and error states. English UI text goes through the anti-ai-writing skill, and every new key gets its Polish line in `pl.json` (the i18n parity test checks the ids). Check each change on localhost with both demo places, both languages and a phone-width window.
