@@ -1,27 +1,20 @@
-# Handoff v6: O1 (integrator) at Sat 20:20, for a fresh session
+# Handoff v7: O1 (integrator) at Sat 22:30, for a fresh session
 
-Written Sat 14 Nov 2026, 19:46 CET and updated at 20:20 by the O1 session. `main` is at `189e5ed` (#138). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
+Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:30 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
 
 ## Start here
 
-1. Read `CLAUDE.md`, `docs/PLAN.md`, `docs/DECISIONS.md` (D1–D46), then this file.
-2. Get the time with `TZ=Europe/Warsaw date`. The user writes Polish; repo files, UI and submission are English.
-3. Recreate the hourly e2e on `main` (it lives only in the session that made it): a cron at :13 that makes a detached worktree `../ws-o1-e2e` at `origin/main`, runs `npm ci --silent`, `npx vitest run`, `npx playwright test` (port 5171, system Chrome; skip if the port is busy), removes the worktree, reports one line, and posts on issue #1 after two red runs in a row.
+1. Read `CLAUDE.md`, `docs/PLAN.md`, `docs/DECISIONS.md` (D1–D51; D49 is held for O2's #142), then this file.
+2. Get the time with `TZ=Europe/Warsaw date` (in Git Bash on Windows that prints GMT; `TZ=CET-1 date` gives Warsaw time). The user writes Polish; repo files, UI and submission are English.
+3. Recreate the hourly e2e on `main` (it lives only in the session that made it): a cron at :13 that makes a detached worktree `../ws-o1-e2e` at `origin/main`, runs `npm ci --silent`, `npx vitest run` and the Playwright tests, removes the worktree, reports one line, and posts on issue #1 after two red runs in a row. Run Playwright on its own port (5179) with a config next to `playwright.config.ts` that spreads it and overrides `use.baseURL` and `webServer` (`npm run dev -- --port 5179 --strictPort`), so the O1 dev server on 5171 keeps running. Skip e2e if 5179 is busy.
 
-## First task for the new session: take over and fix the water priority (#135, #137, #119)
+## Done: the water priority (Sat 21:40–22:30)
 
-The user asked O1 to fix these itself in a new session. The lanes do not touch them now. Take over on O1 branches with the original commits (authorship kept), close the originals as replaced, delete their branches. Reviews with exact findings are the latest O1 comments on each PR.
-
-1. **#135 (O4, `data/rules/water.json`, 14 rows: 11 per crop, 3 per class 417/579/925 mm).** This is the file to keep. Missing: a saved excerpt of FAO Irrigation and Drainage Paper 24, Table 20 (rye 300–450 mm, rapeseed 300–600 mm) under `data/samples/rules/`, cited by the rye, winter-rapeseed and low-class rows; also put Paper 24 in the low-class `sourceUrl`. Open the PDF, copy the lines, never from memory. Merge first.
-2. **#137 (O3 for O4).** Drop its water part (`data/rules/water.json`, `data/samples/rules/fao-tm3-table14.txt`, the FAO row in `data/rules/SOURCES.md`); keep only the red clover N credit `nitrogen.credit.red-clover.us-ia` = 50 (ISU 2021, quotes p. 7 and p. 9 in `isu-rye-red-clover-2021.txt`). Effect: Iowa keep-soil cards change (red-clover rotations replace cereal-rye ones). Tell the user before merging; it changes the demo.
-3. **#119 (O3, water score in `src/engine/priorityScores.ts`, `rules.ts`, `analyzeField.ts`).**
-   - Critical: the value is the pooled share of covered years but low/high are per-year percentiles, so value > high (Poznań 4.5 [0–0], Iowa 1.1 [0–0]) and the `analysis` schema fails with water on (`schemas.ts:47`). Clamp the range to contain the value (as `resilience.ts` does) and add a test that parses the analysis schema with water on.
-   - `waterNeedOf` in `rules.ts`: read `water.needMm.<cropId>` first, fall back to the class row (alfalfa is held to 925 mm today).
-   - `rules.test.ts:62` fails once `water.json` is on main: build it on rules with `water.needMm.*` stripped.
-   - Evidence `ruleIds` (`analyzeField.ts:330`): only the rows the card used.
-   - **Method question for the user, ask before finishing:** the rule "season rain ≥ max(need, ET)" is almost never met at Poznań (rain about 400–510 mm, ET 480–600 mm), so water scores 4–9 on every card and does not separate rotations. Options: compare rain with the crop need only, or score the shortfall in mm (smaller shortfall = better). Record the answer as a D-line.
-   - Gate after each step: integration worktree, typecheck, vitest, build, validate:data, e2e. Then check the Iowa and Poznań cards with water on (values, order) and report them to the user.
-4. Merge order: #135 → #119 → #137 (red clover after the user's OK).
+#135, #119 and #137 were taken over by O1, merged as #146, #147 and #148, and closed as replaced. Their lane branches are deleted.
+- #146: `data/rules/water.json` plus `data/samples/rules/fao-paper24-table20.txt`. The FAO PDF is a scan; the excerpt is its OCR text from `pdftotext -raw`, where each line is one table row. The low-class row keeps one `sourceUrl` and names Paper 24 in its locator, like other rows with two sources.
+- #147: O3's water score with its review fix (range contains the value, crop row before class row, evidence names the rows used). D50: the user kept "season rain ≥ max(need, evapotranspiration)". With per-crop rows the Poznań demo (Keep my soil, water on) ranks field pea → rye → winter rapeseed first, water 63.9; potato rotations score 0.
+- #148: red clover N credit (D51). Iowa "Keep my soil" keeps its top three; "Improve my soil" options 2 and 3 become red clover rotations.
+- The card shows no water score of its own, only the water evidence (mean season rain and evapotranspiration). The score moves cards through the total.
 
 ## Second task: the glossary in Polish (user request, Sat 21:31)
 
@@ -50,13 +43,16 @@ Under `?lang=pl` the glossary page ("Słowniczek") and every `<Term>` pop-up sti
 - **Drought and heat** (#113): drought against the same calendar month (D42), heat as at least 3 hot days from NASA POWER daily `T2M_MAX` (D43). Issue #105 items 1–3 are closed; items 5–8 are in #124 and #119.
 - **Done in this session:** #92 ULDK parcels, #116 address search, #106/#97/#125 twins, #130 (O1 took over #96/#102: the advisor report and share link, now validated against the contract). The hourly e2e is green.
 
-## Open PRs at 20:20
+## Open PRs at 22:30
 
 | PR | Owner | State |
 |---|---|---|
-| #135, #137, #119: water priority and data | O4, O3 | taken over by O1, see the first task above |
+| #141: #76 review follow-ups (Nominatim attribution, twin yields, SoilGrids wait, ULDK offline, parcel id) | O2 | ready, needs an O1 review |
+| #142: [contract] D49, allow `integracja02.gugik.gov.pl` for the KIEG parcel layer | O2 | ready, needs an O1 review; a new host, so check it against SPEC §15 (GUGiK is listed) |
+| #140: handoff v3 for O2 | O2 | ready, needs an O1 review |
+| #143: O2-A5 parcel layer (KIEG), split and merge | O2 | draft, after #142 |
 
-Merged since 19:46: #124 (erosion, comparable soil totals), #114 (EN/PL switch), #115 (Polish text) and #138 (O1's Polish text fixes), D47 and D48 (#136).
+Merged since 20:20: #144 (handoff v6.1), #146, #147 and #148 (water priority, see above).
 
 ## Deferred feature (start when the usage limit resets)
 
