@@ -60,7 +60,7 @@
         {
           "title": "USDA NASS Quick Stats: OATS - YIELD, MEASURED IN BU / ACRE, Iowa, state (survey)",
           "url": "https://quickstats.nass.usda.gov/results/E36EBCF7-51E6-3EBD-9FFA-64E1D30FC097",
-          "locator": "yield: Iowa state yield (Story County has a published oat yield only for 2023), bu/acre, 32 lb/bu: mean of 2021-2025 yields 77, 82, 80, 82, 92 = 82.6; converted with 1 acre = 0.40468564 ha, 1 lb = 0.45359237 kg; conversion checked against USDA NASS, Crop Production 2025 Summary (January 2026), https://esmis.nal.usda.gov/sites/default/release-files/795725/cropan26.pdf, pp. 95 and 97: US 2025 oats 73.8 bu/acre = 2.65 t/ha"
+          "locator": "yield: Iowa state yield (within 2021-2025 Story County has a published oat yield only for 2023), bu/acre, 32 lb/bu: mean of 2021-2025 yields 77, 82, 80, 82, 92 = 82.6; converted with 1 acre = 0.40468564 ha, 1 lb = 0.45359237 kg; conversion checked against USDA NASS, Crop Production 2025 Summary (January 2026), https://esmis.nal.usda.gov/sites/default/release-files/795725/cropan26.pdf, pp. 95 and 97: US 2025 oats 73.8 bu/acre = 2.65 t/ha"
         },
         {
           "title": "USDA NASS Quick Stats: OATS - PRICE RECEIVED, MEASURED IN $ / BU, Iowa, marketing year (survey)",
