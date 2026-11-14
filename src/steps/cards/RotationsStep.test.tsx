@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { t } from '../../app/i18n';
+import { liveSoilData } from '../../app/providers';
 import { useAppStore } from '../../app/store';
 import { cropName } from '../shared/cropName';
 import { term } from '../glossary/useTerm';
@@ -121,7 +122,10 @@ describe('RotationCard', () => {
     const table = within(card).getByRole('table', { name: t('steps.rotations.twinsTable') });
     expect(within(table).getByText('Region One')).toBeInTheDocument();
     expect(within(table).getByText('Region Two')).toBeInTheDocument();
-    expect(within(table).getAllByRole('button', { name: /observed/ }).length).toBeGreaterThan(0);
+    expect(within(table).getAllByRole('button', { name: new RegExp(t('ui.kind.observation')) }).length).toBeGreaterThan(0);
+    // #141 review: the similarity is a number from the analysis, so it is a Sourced value (our calculation), not bare text.
+    const similarityCell = within(table).getByText(/^90%?$/).closest('td')!;
+    expect(within(similarityCell).getByRole('button', { name: new RegExp(t('ui.kind.derived')) })).toBeInTheDocument();
     expect(within(table).getByText(/11\.2/)).toBeInTheDocument();
     expect(within(table).getByText('No yield was reported for those years.')).toBeInTheDocument();
     // The card keeps exactly its two lists.
@@ -136,10 +140,14 @@ describe('RotationCard', () => {
 });
 
 describe('RotationsStep', () => {
-  it('tells the user that the soil data can take up to two minutes while the analysis loads', async () => {
+  // #141 review: soil data is precomputed today (providers.context), so the "comes live from SoilGrids, up to two
+  // minutes" note would name a source the app does not call. It shows only once liveSoilData is true.
+  it('does not say soil data comes live from SoilGrids while the soil data is precomputed', async () => {
+    expect(liveSoilData).toBe(false);
     useAppStore.setState({ step: 5, analysis: { status: 'loading' } });
     render(<RotationsStep />);
-    await screen.findByText(t('steps.rotations.loadingNote'));
+    await screen.findByText(t('ui.state.loading', { source: t('steps.rotations.analysis') }));
+    expect(screen.queryByText(t('steps.rotations.loadingNote'))).not.toBeInTheDocument();
   });
 
   it('renders four cards for both demo fields, the current one marked', async () => {

@@ -169,7 +169,20 @@ export function RotationCard(props: {
                       <th scope="row" className="py-1.5 pr-3 font-medium">{c.regionName}</th>
                       <td className="py-1.5 pr-3">{c.crops.map((crop) => cropName(crop)).join(', ')}</td>
                       <td className="py-1.5 pr-3">{c.years}</td>
-                      <td className="py-1.5 pr-3">{Math.round(c.similarity)}%</td>
+                      <td className="py-1.5 pr-3">
+                        {/* Our calculation: the case's NASA POWER features against the field's (src/twins/similarity.ts). */}
+                        <SourcedNumber
+                          value={{
+                            value: Math.round(c.similarity),
+                            unit: '%',
+                            kind: 'derived',
+                            datasetIds: c.outcome.datasetIds.filter((id) => id.startsWith('nasa-power')),
+                            retrievedAt: c.outcome.retrievedAt,
+                          }}
+                          datasets={datasets}
+                          decimals={0}
+                        />
+                      </td>
                       <td className="py-1.5">
                         <SourcedNumber value={c.outcome} datasets={datasets} />
                       </td>

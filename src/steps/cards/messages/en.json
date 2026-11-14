@@ -12,7 +12,7 @@
   "steps.rotations.evidence": "Evidence",
   "steps.rotations.benefits": "Benefits",
   "steps.rotations.benefitsNone": "No extra benefits found beyond the scores above.",
-  "steps.rotations.twins": "Fields like yours",
+  "steps.rotations.twins": "Regions like yours",
   "steps.rotations.twinsNotLoaded": "Similar regions are not part of this analysis yet.",
   "steps.rotations.twinsReady": "{count} similar regions, {similarity}% alike on average.",
   "steps.rotations.gaps": "What we do not know",
@@ -74,7 +74,7 @@
   "steps.rotations.twinsRegion": "Region",
   "steps.rotations.twinsYears": "Years",
   "steps.rotations.twinsCrops": "Crops",
-  "steps.rotations.twinsSimilarity": "Alike",
+  "steps.rotations.twinsSimilarity": "Similarity",
   "steps.rotations.twinsYield": "Yield",
   "steps.rotations.loadingNote": "Soil data comes live from SoilGrids and can take up to two minutes to arrive. Keep this page open."
 }

@@ -49,7 +49,6 @@ export function ParcelSearch() {
     }
   };
 
-  const source = ULDK_SOURCE;
   const loading = search.kind === 'loading' || tap.status === 'loading';
   const added = search.kind === 'found' ? search.teryt : tap.status === 'parcel' ? tap.teryt : null;
 
@@ -87,7 +86,7 @@ export function ParcelSearch() {
 
       {!online ? <StateBoundary state="offline">{null}</StateBoundary> : null}
       {loading ? (
-        <StateBoundary state="loading" source={source}>
+        <StateBoundary state="loading" source={ULDK_SOURCE}>
           {null}
         </StateBoundary>
       ) : null}
@@ -97,7 +96,7 @@ export function ParcelSearch() {
         </StateBoundary>
       ) : null}
       {search.kind === 'error' ? (
-        <StateBoundary state="error" source={source} reason={search.reason} onRetry={() => void find()}>
+        <StateBoundary state="error" source={ULDK_SOURCE} reason={search.reason} onRetry={() => void find()}>
           {null}
         </StateBoundary>
       ) : null}
