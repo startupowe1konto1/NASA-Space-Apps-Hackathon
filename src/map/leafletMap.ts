@@ -49,11 +49,12 @@ const START_ZOOM = 2;
 const PLACE_ZOOM = 16; // close enough to see field edges and tap the right one
 // KIEG, the national land register map from GUGiK, as a WMS image overlay in Web Mercator, so the map keeps its
 // OpenStreetMap projection. The host is integracja02 (D49): integracja.gugik.gov.pl hands requests to two servers, and
-// one of them fails every other EPSG:3857 request with a projection error (4 of 8 in a test), integracja02 did not.
-// The service draws nothing above a scale of about 1:25 000, so tiles are only asked for from zoom 14.
+// one of them (integracja01) fails EPSG:3857 requests with a projection error, integracja02 did not.
+// Its capabilities draw parcel borders (`dz-*`) only up to 1:5 000 and numbers (`nr-*`) up to 1:3 000; a zoom-16 tile
+// came back blank (#143 review). So tiles are only asked for from zoom 17, and numbers show from about zoom 18.
 const KIEG_URL = 'https://integracja02.gugik.gov.pl/cgi-bin/KrajowaIntegracjaEwidencjiGruntow';
 const KIEG_ATTRIBUTION = '&copy; <a href="https://integracja.gugik.gov.pl">GUGiK</a> KIEG';
-const PARCEL_MIN_ZOOM = 14;
+const PARCEL_MIN_ZOOM = 17;
 
 const toLatLngs = (field: Field): L.LatLngTuple[][] =>
   field.polygon.coordinates.map((ring) => ring.map(([lon = 0, lat = 0]) => [lat, lon] as L.LatLngTuple));

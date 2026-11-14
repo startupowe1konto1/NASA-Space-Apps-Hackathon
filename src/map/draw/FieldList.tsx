@@ -111,7 +111,7 @@ function FieldRow({ field, selected, groupName, joinable, ticked, onToggleJoin }
               type="checkbox"
               checked={ticked}
               onChange={onToggleJoin}
-              aria-label={`${t('edit.join.pick')}: ${field.name}`}
+              aria-label={t('edit.join.pickField', { name: field.name })}
               className="h-6 w-6 shrink-0 accent-emerald-700"
             />
             <span aria-hidden="true">{t('edit.join.pick')}</span>

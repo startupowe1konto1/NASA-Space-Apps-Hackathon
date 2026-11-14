@@ -20,13 +20,14 @@
   "edit.cut.fail.has-holes": "This field has a hole in it and cannot be cut.",
   "edit.cut.fail.no-field": "Select a field to cut first.",
   "edit.join.pick": "Select to join",
+  "edit.join.pickField": "Select {name} to join",
   "edit.join.button": "Join the two selected fields",
   "edit.join.hint": "Select two fields that share a border to join them.",
   "edit.join.done": "Joined into {name}.",
   "edit.join.fail.not-adjacent": "These fields do not share a border with the same corners, so they cannot be joined. Neighbouring parcels from the land register can.",
   "edit.join.fail.no-field": "One of the fields is gone.",
   "edit.layer.label": "Show land register parcels (Poland)",
-  "edit.layer.hint": "Parcel borders and numbers appear from zoom level 14, so zoom in on the field.",
+  "edit.layer.hint": "Parcel borders appear from zoom level 17 and their numbers from about 18, so zoom in on the field.",
   "edit.layer.source": "GUGiK KIEG parcel map",
   "edit.layer.error": "The parcel layer did not load. The map and your fields still work."
 }

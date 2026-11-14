@@ -20,13 +20,14 @@
   "edit.cut.fail.has-holes": "To pole ma dziurę w środku i nie da się go przeciąć.",
   "edit.cut.fail.no-field": "Najpierw wybierz pole do przecięcia.",
   "edit.join.pick": "Zaznacz do połączenia",
+  "edit.join.pickField": "Zaznacz {name} do połączenia",
   "edit.join.button": "Połącz dwa zaznaczone pola",
   "edit.join.hint": "Zaznacz dwa pola, które mają wspólną granicę, żeby je połączyć.",
   "edit.join.done": "Połączono w pole {name}.",
   "edit.join.fail.not-adjacent": "Te pola nie mają wspólnej granicy z takimi samymi narożnikami, więc nie da się ich połączyć. Sąsiednie działki z ewidencji gruntów się nadają.",
   "edit.join.fail.no-field": "Nie znaleziono jednego z pól.",
   "edit.layer.label": "Pokaż działki z ewidencji gruntów (Polska)",
-  "edit.layer.hint": "Granice i numery działek pojawiają się od poziomu przybliżenia 14, więc przybliż mapę do pola.",
+  "edit.layer.hint": "Granice działek pojawiają się od poziomu przybliżenia 17, a ich numery od około 18, więc przybliż mapę do pola.",
   "edit.layer.source": "Mapa działek GUGiK (KIEG)",
   "edit.layer.error": "Warstwa działek się nie wczytała. Mapa i twoje pola działają dalej."
 }

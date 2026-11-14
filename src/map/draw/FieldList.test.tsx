@@ -148,6 +148,14 @@ describe('FieldList joining', () => {
     return cut.fields;
   };
 
+  // #143 review: the checkbox name is one message with {name}, so Polish can order the words its own way.
+  it('names each join checkbox with one message that holds the field name', () => {
+    const [a, b] = halves();
+    useAppStore.setState({ fields: [a!, b!], selectedFieldId: a!.id });
+    render(<FieldList />);
+    expect(screen.getByRole('checkbox', { name: t('edit.join.pickField', { name: a!.name }) })).toBeInTheDocument();
+  });
+
   it('offers no joining with a single field', () => {
     useAppStore.setState({ fields: [iowa] });
     render(<FieldList />);

@@ -2,6 +2,8 @@
 import L from 'leaflet';
 import { demoFields } from '../fixtures';
 import { createLeafletMap, type MapController, type MapHandlers } from './leafletMap';
+import en from './parcels/messages/en.json';
+import pl from './parcels/messages/pl.json';
 
 let container: HTMLDivElement;
 let handlers: { [K in keyof MapHandlers]: ReturnType<typeof vi.fn> };
@@ -230,6 +232,15 @@ describe('the parcel map layer', () => {
   it('is sent to integracja02, the GUGiK host that D49 allows and that answers every Web Mercator request', () => {
     controller.setParcelLayer(true);
     expect(new URL((wmsLayers()[0] as unknown as { _url: string })._url).hostname).toBe('integracja02.gugik.gov.pl');
+  });
+
+  // #143 review: KIEG draws parcel borders only up to 1:5 000 (numbers 1:3 000) in its capabilities; a zoom-16 tile at the
+  // Poznań demo field came back blank. Asking from zoom 14 left the farmer with a ticked box and an empty map.
+  it('asks for tiles only from zoom 17, where KIEG draws parcel borders, and the hint says the same', () => {
+    controller.setParcelLayer(true);
+    expect(wmsLayers()[0]!.options.minZoom).toBe(17);
+    expect(en['edit.layer.hint']).toContain('17');
+    expect(pl['edit.layer.hint']).toContain('17');
   });
 
   it('reports a tile that did not load', () => {
