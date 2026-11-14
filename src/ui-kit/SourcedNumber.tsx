@@ -65,6 +65,7 @@ export function SourcedNumber(props: { value: Sourced<number | string>; datasets
         type="button"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
+        aria-label={t('ui.source.chip', { kind: t(`ui.kind.${sourced.kind}`) })}
         onClick={() => setOpen((was) => !was)}
         className="group inline-flex min-h-[44px] items-center focus:outline-none"
       >
