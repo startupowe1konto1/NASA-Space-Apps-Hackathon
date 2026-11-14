@@ -191,9 +191,9 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 
 ## 12. Open, needs a person
 
-- Confirm the parcel on the orthophoto (section 6).
-- Team member names as they should appear on slide 1 and 7.
-- The project name (D13). The deck reads it from one constant.
-- Where the PDF is hosted so the link is public (the repo is private, D32).
+- ~~Confirm the parcel on the orthophoto (section 6).~~ Confirmed by the pitch owner, Sun 00:30.
+- ~~Team member names as they should appear on slide 1 and 7.~~ In `src/constants.js`.
+- The project name (D13). The deck reads it from `PROJECT_NAME` in `src/constants.js`.
+- ~~Where the PDF is hosted.~~ In the repo, `pitch/out/deck.pdf`; public when the repo is made public.
 - Every soil score carries `weak` confidence. That is the engine's rule, not a fault: a rule without a low and high value costs one level, and an indicator that cannot be computed (erosion has no row for these crops) costs another. It changes only if O4 adds those rule rows. Be ready to say this in the questions.
 - `rank` is a rotation's position among every candidate the engine scored (the current rotation is 99th for the soil goal). The deck may say so only if the total number of candidates is added to the export; it is not there today.

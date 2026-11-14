@@ -33,6 +33,8 @@ P3 to P7 can run at the same time once P1 and P2 are merged into the branch: eac
 2. Send the team member names as they should be printed.
 3. Say where the PDF will be hosted (a public Google Drive link is enough).
 
+**Answered Sun 15 Nov, 00:30:** (1) the parcel looks arable on the orthophoto, keep `302116_5.0015.28/1`; (2) members: Mikołaj Konieczny, Mateusz Wojciechowski, Oskar Pelzer, Wojciech Rudnicki; (3) the PDF stays in the repo at `pitch/out/deck.pdf` and becomes public when the repo does, so the TruffleHog scan (P12 line 7) must pass before that. Team, members, project name and app URL are in `pitch/deck/src/constants.js`, which only the lead edits. Work happens on `o2/contract-pitch-deck`, not `o2/pitch-deck`.
+
 ### P1 · Scaffold and port the prototype (Sonnet, 60 min)
 
 - **Files:** `pitch/deck/index.html`, `src/stage.js`, `src/scene.js`, `src/tokens.css`, `src/slides/*.js` as empty modules with the interface below, `README.md`.
