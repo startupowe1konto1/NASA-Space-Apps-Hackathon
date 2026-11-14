@@ -58,11 +58,13 @@ export const cropTraits = z.object({
   sensitive: z.array(
     z.object({ hazard, months: z.array(month).min(1), threshold: z.number(), lossShare: z.number().min(0).max(1) }),
   ),
-  waterNeed: z.enum(['low', 'medium', 'high']),
-  yieldResponseFactor: z.number().positive(),
+  waterNeed: z.enum(['low', 'medium', 'high']).optional(),
+  yieldResponseFactor: z.number().positive().optional(),
   forage: z.boolean(),
   residueCover: z.enum(['low', 'medium', 'high']),
   sources: z.array(sourceRef).min(1),
+}).refine((c) => c.kind === 'cover' || (c.waterNeed !== undefined && c.yieldResponseFactor !== undefined), {
+  message: 'waterNeed and yieldResponseFactor are required unless kind is cover',
 });
 
 /** One row of data/rules/*.json. */
