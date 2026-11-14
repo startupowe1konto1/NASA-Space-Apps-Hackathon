@@ -69,15 +69,39 @@ describe('RotationCard', () => {
     expect(within(screen.getByRole('article')).getAllByRole('button', { name: /observed|model estimate|our calculation/ }).length).toBeGreaterThan(0);
   });
 
-  it('puts the weak-evidence badge and the first gap at the top of a weak card', () => {
-    const weak = iowaAnalysis.rotations.find((r) => r.climateResilience.confidence === 'weak')!;
+  it('a weak card has no banner above the title: the badge sits with the score and the reason leads the gaps (HANDOFF-frontend step 5)', () => {
+    const weak = iowaAnalysis.rotations.find((r) => r.climateResilience.confidence === 'weak' && r.gaps.length > 0)!;
     render(<RotationCard rotation={weak} rank={2} goal="keepSoil" datasets={iowaAnalysis.datasets} />);
     const card = screen.getByRole('article');
-    const alert = within(card).getByTestId('weak-evidence');
-    expect(alert).toHaveTextContent('Weak evidence');
-    expect(alert).toHaveTextContent(t(weak.gaps[0]!));
+    expect(within(card).queryByTestId('weak-evidence')).toBeNull();
+    expect(within(card).queryByText(t('steps.rotations.weakTitle'))).toBeNull();
+    expect(within(card).getAllByText(t('ui.confidence.weak')).length).toBeGreaterThan(0);
+    const gaps = within(card).getByRole('list', { name: t('steps.rotations.gaps') });
+    expect(within(gaps).getAllByRole('listitem')[0]).toHaveTextContent(t(weak.gaps[0]!));
     const text = card.textContent ?? '';
-    expect(text.indexOf(alert.textContent!)).toBeLessThan(text.indexOf('Soil health'));
+    expect(text.indexOf(t('steps.rotations.soilHealth'))).toBeGreaterThan(text.indexOf(within(card).getByRole('heading', { level: 2 }).textContent!));
+  });
+
+  it('folds the reasons after the first, the evidence, the benefits, the regions, the income and the range note; gaps and risks stay open', async () => {
+    const user = userEvent.setup();
+    const r = iowaAnalysis.rotations.find((x) => x.why.length > 1 && x.evidence.length > 0)!;
+    render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} moneyAvailable />);
+    const card = screen.getByRole('article');
+
+    expect(within(card).getByText(t(r.why[0]!))).toBeVisible();
+    expect(within(card).getByText(t(r.why[1]!))).not.toBeVisible();
+    expect(within(card).getByText(t(r.evidence[0]!.message))).not.toBeVisible();
+    expect(within(card).getByText(/where a source gives a single value/)).not.toBeVisible();
+    expect(within(card).getByText(t('steps.rotations.income.notForecast'))).not.toBeVisible();
+
+    for (const m of r.gaps) expect(within(card).getByText(t(m))).toBeVisible();
+    for (const m of r.localReviewRisks) expect(within(card).getByText(t(m))).toBeVisible();
+    expect(within(card).getByText(SUPPORT)).toBeVisible();
+
+    await user.click(within(card).getByText(t('steps.rotations.evidence')));
+    expect(within(card).getByText(t(r.evidence[0]!.message))).toBeVisible();
+    await user.click(within(card).getByText(t('steps.rotations.whyMore', { count: r.why.length - 1 })));
+    expect(within(card).getByText(t(r.why[1]!))).toBeVisible();
   });
 
   it('shows the reason when similar fields are not loaded', () => {
@@ -160,22 +184,15 @@ describe('RotationsStep', () => {
     }
   });
 
-  it('orders the cards by the goal and reorders them on a switch without running the analysis again', async () => {
-    const user = userEvent.setup();
-    readyWith(iowaAnalysis);
-    const run = vi.spyOn(useAppStore.getState(), 'runAnalysis');
+  it('orders the cards by the goal chosen on the goal step and offers no goal switch here (HANDOFF-frontend step 5)', async () => {
+    readyWith(iowaAnalysis, 'improveSoil');
     render(<RotationsStep />);
     await screen.findAllByRole('article');
-    const keepOrder = iowaAnalysis.shownByGoal.keepSoil!;
-    const improveOrder = iowaAnalysis.shownByGoal.improveSoil!;
     const titleOf = (id: string) => screen.getByTestId(`card-${id}`).querySelector('h2')!.textContent;
-
-    expect(cardTitles()).toEqual(keepOrder.map(titleOf));
-    await user.click(screen.getByRole('radio', { name: /Improve my soil/ }));
-    expect(useAppStore.getState().goal).toBe('improveSoil');
-    expect(cardTitles()).toEqual(improveOrder.map(titleOf));
-    expect(run).not.toHaveBeenCalled();
-    expect(useAppStore.getState().analysis.status).toBe('ready');
+    expect(cardTitles()).toEqual(iowaAnalysis.shownByGoal.improveSoil!.map(titleOf));
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    expect(screen.getByText(t('steps.rotations.intro'))).toBeVisible();
+    expect(t('steps.rotations.intro')).not.toMatch(/Tap a goal/);
   });
 
   it('falls back to keeping the soil when the income goal has no data, and says so', async () => {
@@ -225,7 +242,8 @@ describe('RotationsStep', () => {
     expect(screen.getByRole('region', { name: /This field/ })).toBeInTheDocument();
   });
 
-  it('lists the data sources, NASA first', async () => {
+  it('lists the data sources, NASA first, folded until opened', async () => {
+    const user = userEvent.setup();
     readyWith(iowaAnalysis);
     render(<RotationsStep />);
     const panel = await screen.findByRole('region', { name: /Data sources/ });
@@ -233,6 +251,9 @@ describe('RotationsStep', () => {
     const nasaFlags = items.map((li) => li.getAttribute('data-nasa') === 'true');
     expect(nasaFlags[0]).toBe(true);
     expect(nasaFlags.indexOf(false)).toBeGreaterThan(nasaFlags.lastIndexOf(true));
+    expect(items[0]).not.toBeVisible();
+    await user.click(within(panel).getByText(t('steps.rotations.sources.title')));
+    expect(items[0]).toBeVisible();
   });
 
   it('shows a source error with a retry instead of an empty screen', async () => {
