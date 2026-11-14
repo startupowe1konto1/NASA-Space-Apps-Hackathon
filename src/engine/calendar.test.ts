@@ -129,6 +129,13 @@ describe('buildCalendar', () => {
     expect(none.months.some((c) => c.cover === 'cover-crop')).toBe(false);
   });
 
+  it('a cover sown under the crop that ends by its harvest never covers the soil after it', () => {
+    const main = testCrop({ id: 'main', sowMonth: 5, harvestMonth: 10 });
+    const early = testCrop({ id: 'early-cover', kind: 'cover', sowMonth: 8, harvestMonth: 10 });
+    const { months } = buildCalendar([{ crop: 'main', coverCrop: 'early-cover' }], [main, early]);
+    expect(months.some((c) => c.cover === 'cover-crop')).toBe(false);
+  });
+
   it('an empty rotation gives an empty calendar', () => {
     expect(buildCalendar([], us)).toEqual({ months: [], bareMonths: 0 });
   });
