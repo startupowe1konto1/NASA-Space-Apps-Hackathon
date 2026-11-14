@@ -1,3 +1,4 @@
+import type { CropTraits, WaterNeed } from './index';
 import { cropTraits, score, sourced } from './schemas';
 
 const base = { datasetIds: ['nasa-power-monthly'], kind: 'model', retrievedAt: '2026-11-14' };
@@ -47,5 +48,14 @@ describe('cropTraits', () => {
   it('accepts any crop kind without a yield response factor (D29: a missing Ky gives no-data income)', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low' }).success).toBe(true);
     expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(true);
+  });
+});
+
+describe('WaterNeed', () => {
+  it('is the type of CropTraits.waterNeed, so engine maps can key on it', () => {
+    const need: NonNullable<CropTraits['waterNeed']> = 'medium';
+    const asType: WaterNeed = need;
+    const byNeed: Record<WaterNeed, number> = { low: 1, medium: 2, high: 3 };
+    expect(byNeed[asType]).toBe(2);
   });
 });
