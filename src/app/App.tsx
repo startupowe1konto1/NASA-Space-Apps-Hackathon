@@ -6,29 +6,27 @@ import { GlossaryPage } from '../steps/glossary/GlossaryPage';
 import { GoalStep } from '../steps/goal/GoalStep';
 import { MoneyStep } from '../steps/money/MoneyStep';
 import { PrioritiesStep } from '../steps/priorities/PrioritiesStep';
-import { ReportStep } from '../steps/report/ReportStep';
-import { restoreFromHash } from '../steps/report/shareLink';
 import { PROJECT_NAME } from './brand';
+import { IntroPage } from './IntroPage';
 import { LANGS, setLang, t, useLang } from './i18n';
 import { StateBoundary } from '../ui-kit';
-import { STEP_COUNT, canContinue, useAppStore } from './store';
+import { STEP_COUNT, STEP_KEYS, canContinue, useAppStore, type StepKey } from './store';
 import { useOnline } from './useOnline';
 
-// One component per step (SPEC section 12). O2 replaces the placeholders file by file; the paths stay.
-const steps: { key: string; component: ComponentType }[] = [
-  { key: 'goal', component: GoalStep },
-  { key: 'field', component: MapStep },
-  { key: 'crops', component: CropsStep },
-  { key: 'priorities', component: PrioritiesStep },
-  { key: 'rotations', component: RotationsStep },
-  { key: 'money', component: MoneyStep },
-  { key: 'report', component: ReportStep },
-];
+// One component per step (SPEC section 12); the order lives in STEP_KEYS. Step 0 is the start page.
+const STEP_COMPONENTS: Record<StepKey, ComponentType> = {
+  field: MapStep,
+  goal: GoalStep,
+  crops: CropsStep,
+  priorities: PrioritiesStep,
+  rotations: RotationsStep,
+  money: MoneyStep,
+};
 
 export function App() {
   const state = useAppStore();
-  const current = steps[state.step - 1] ?? steps[0]!;
-  const Step = current.component;
+  const key: StepKey | undefined = STEP_KEYS[state.step - 1];
+  const Step = key ? STEP_COMPONENTS[key] : null;
   const online = useOnline();
   // Subscribing here re-renders the whole tree when the language changes; t() reads the language itself.
   const lang = useLang((s) => s.lang);
@@ -40,20 +38,6 @@ export function App() {
     setGlossaryOpen(false);
     glossaryButton.current?.focus();
   }
-
-  // A shared report link (#s=...) restores the farmer's input and opens the report (O2-B7), on load and when a link
-  // is pasted into an open tab. The code is then cleared from the address, so the field's location does not stay in
-  // the browser history and a reload does not overwrite later edits.
-  useEffect(() => {
-    const restore = () => {
-      if (restoreFromHash(window.location.hash, useAppStore.getState())) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-    };
-    restore();
-    window.addEventListener('hashchange', restore);
-    return () => window.removeEventListener('hashchange', restore);
-  }, []);
 
   useEffect(() => {
     if (!glossaryOpen) return;
@@ -69,7 +53,8 @@ export function App() {
       <header className="border-b border-slate-200 px-4 py-3 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 
-          <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p>
+          {/* The start page shows the name as its own heading. */}
+          {Step ? <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p> : null}
           <div className="ml-auto flex items-center gap-2">
             <button
               ref={glossaryButton}
@@ -98,20 +83,24 @@ export function App() {
             </div>
           </div>
         </div>
-        <ol className="mt-2 flex gap-1" aria-label={t('app.progress')}>
-          {steps.map((s, i) => (
-            <li
-              key={s.key}
-              aria-current={i + 1 === state.step ? 'step' : undefined}
-              className={`h-2 flex-1 rounded ${i + 1 <= state.step ? 'bg-emerald-600' : 'bg-slate-200'}`}
-            >
-              <span className="sr-only">{t(`app.step.${s.key}`)}</span>
-            </li>
-          ))}
-        </ol>
-        <h1 className="mt-3 text-xl font-semibold">
-          {t('app.stepOf', { n: state.step, total: STEP_COUNT })}: {t(`app.step.${current.key}`)}
-        </h1>
+        {key ? (
+          <>
+            <ol className="mt-2 flex gap-1" aria-label={t('app.progress')}>
+              {STEP_KEYS.map((k, i) => (
+                <li
+                  key={k}
+                  aria-current={i + 1 === state.step ? 'step' : undefined}
+                  className={`h-2 flex-1 rounded ${i + 1 <= state.step ? 'bg-emerald-600' : 'bg-slate-200'}`}
+                >
+                  <span className="sr-only">{t(`app.step.${k}`)}</span>
+                </li>
+              ))}
+            </ol>
+            <h1 className="mt-3 text-xl font-semibold">
+              {t('app.stepOf', { n: state.step, total: STEP_COUNT })}: {t(`app.step.${key}`)}
+            </h1>
+          </>
+        ) : null}
       </header>
 
       <main className="flex-1 px-4 py-4">
@@ -119,7 +108,9 @@ export function App() {
         {/* Hidden, not unmounted, while the glossary is open, so the step keeps its local state (the map view). */}
         <div hidden={glossaryOpen}>
           {/* The analysis needs NASA POWER, so step 5 waits for a connection instead of starting a request that will fail. */}
-          {current.key === 'rotations' && !online && state.analysis.status !== 'ready' ? (
+          {!Step ? (
+            <IntroPage onStart={() => state.goToStep(1)} />
+          ) : key === 'rotations' && !online && state.analysis.status !== 'ready' ? (
             <StateBoundary state="offline">{null}</StateBoundary>
           ) : (
             <Step />
@@ -127,12 +118,11 @@ export function App() {
         </div>
       </main>
 
-      {glossaryOpen ? null : (
+      {glossaryOpen || !Step ? null : (
         <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3 print:hidden">
           <button
             type="button"
             className="min-h-11 rounded border border-slate-300 px-4 disabled:opacity-40"
-            disabled={state.step === 1}
             onClick={() => state.goToStep(state.step - 1)}
           >
             {t('app.back')}

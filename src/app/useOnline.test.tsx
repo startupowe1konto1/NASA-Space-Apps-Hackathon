@@ -47,8 +47,9 @@ describe('step 5 offline', () => {
   it('shows "No connection" and does not start the analysis while offline', async () => {
     const user = userEvent.setup();
     render(<App />);
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+    await user.click(screen.getByRole('button', { name: 'Start' }));
     await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(await screen.findByRole('button', { name: 'Yes, use these crops' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));

@@ -33,6 +33,11 @@ describe('GlossaryPage', () => {
     expect(onBack).toHaveBeenCalledOnce();
   });
 
+  it('names the start page, not "step 0", when opened from it', async () => {
+    render(<GlossaryPage backToStep={0} onBack={vi.fn()} />);
+    expect(await screen.findByRole('button', { name: 'Back to the start' })).toBeInTheDocument();
+  });
+
   it('has no back button when nothing to go back to', async () => {
     render(<GlossaryPage />);
     await screen.findByText('Words used in this tool');
