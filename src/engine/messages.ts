@@ -25,6 +25,9 @@ export const CARD_MESSAGE_CODES = [
   'why.rank.improveSoil',
   'why.rank.income',
   'why.current',
+  'why.history.farmer',
+  'why.history.cropscape',
+  'evidence.history-cropscape',
   'why.cover-crop',
   'why.legume',
   'why.fewer-bare',
@@ -117,6 +120,8 @@ export interface CardInput {
   /** Dataset id for our crop calendars (bare months). */
   calendarDatasetId: string;
   retrievedAt: string;
+  /** For the current rotation: where its crop history came from. */
+  history?: { source: 'farmer' | 'provider'; years: number[]; cropscape: boolean };
 }
 
 export interface CardMessages {
@@ -146,6 +151,10 @@ export function cardMessages(c: CardInput): CardMessages {
     if (rank !== undefined) why.push(m(`why.rank.${goal}`, { rank, count: c.candidateCount }));
   }
   if (c.isCurrent) why.push(m('why.current'));
+  if (c.history && c.history.years.length > 0) {
+    const span = { from: Math.min(...c.history.years), to: Math.max(...c.history.years) };
+    why.push(m(c.history.cropscape ? 'why.history.cropscape' : 'why.history.farmer', span));
+  }
   const covered = c.years.find((y) => y.coverCrop !== undefined && !c.current.some((z) => z.coverCrop === y.coverCrop));
   if (covered?.coverCrop) why.push(m('why.cover-crop', { cover: cropLabel(covered.coverCrop), crop: cropLabel(covered.crop) }));
   const legume = c.years.find((y) => traits(y.crop).legume);
@@ -221,6 +230,15 @@ export function cardMessages(c: CardInput): CardMessages {
     ruleIds: [],
   });
   evidence.push(...c.soil.evidence);
+  if (c.history?.cropscape) {
+    evidence.push({
+      message: m('evidence.history-cropscape', { count: c.history.years.length }),
+      values: [
+        { value: c.history.years.length, unit: 'years of crop history', datasetIds: ['usda-cropscape'], kind: 'model', retrievedAt: c.retrievedAt },
+      ],
+      ruleIds: [],
+    });
+  }
 
   // ---- gaps: weak confidence reasons first
   if (c.soil.coverOnly) gaps.push(m('gap.weak.soil-cover-only'));

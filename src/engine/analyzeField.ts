@@ -158,6 +158,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
 
     // 3. outside the USA and Poland: profile only
     if (field.country === 'OTHER') return empty();
+    const country = field.country;
 
     // 4. crops and the GAEZ gate
     const crops = await providers.context.getCrops(field.country);
@@ -179,13 +180,26 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
 
     // 5. current rotation and candidates. The contract needs exactly one current rotation per analysis, so
     // without a crop history there are no cards (the crops step asks for the last years first).
-    const current = currentRotation(cropHistory);
+    // Without a history from the farmer, try the provider's (CropScape for Iowa). A failure there is not fatal.
+    let history = cropHistory;
+    let historySource: 'farmer' | 'provider' = 'farmer';
+    if (history.length === 0) {
+      try {
+        const fromProvider = await providers.context.getCropHistory(field);
+        if (fromProvider.status === 'ready' && fromProvider.data.length > 0) {
+          history = fromProvider.data;
+          historySource = 'provider';
+        }
+      } catch {
+        // no history: handled below
+      }
+    }
+    const current = currentRotation(history);
     if (current.length === 0) return empty();
     const usesRemoved = (years: Years) => years.some((y) => removed.has(y.crop) || (y.coverCrop !== undefined && removed.has(y.coverCrop)));
     const list = generateCandidates(current, crops, priorities).filter((years, i) => i === 0 || !usesRemoved(years));
 
     // 6. scores per candidate
-    const soilRules = toSoilRules(loaded, field.country, crops);
     const on = priorities.on;
     const candidates: Candidate[] = [];
     list.forEach((years, i) => {
@@ -193,7 +207,13 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       try {
         const { months, bareMonths } = buildCalendar(years, crops);
         const climateResilience = resilienceScore(years, crops, climate);
-        const soilOut = soilStep(years, crops, profile, soilRules, on, rules.doublingFactor, bareMonths);
+        const soilRules = toSoilRules(loaded, country, crops, years, profile);
+        const soilOut = soilStep(years, crops, profile, soilRules.rules, on, rules.doublingFactor, bareMonths);
+        // name the rows in data/rules that each derived rule came from
+        soilOut.evidence = soilOut.evidence.map((e) => ({
+          ...e,
+          ruleIds: [...new Set(e.ruleIds.flatMap((id) => soilRules.sourceIds[id] ?? [id]))],
+        }));
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
         candidates.push({
@@ -260,6 +280,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           ruleIds: { drought: rules.ids.drought, markShare: rules.ids.markShare },
           calendarDatasetId: CROP_CALENDARS_ID,
           retrievedAt,
+          history: r.isCurrent ? { source: historySource, years: history.map((h) => h.year), cropscape: history.some((h) => h.source === 'cropscape') } : undefined,
         });
         let twins: AsyncResult<TwinEvidence>;
         try {

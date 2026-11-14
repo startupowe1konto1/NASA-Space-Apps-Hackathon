@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { SourceError, type Analysis, type CropYear, type Message, type Priorities, type Providers } from '../contracts';
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
-import { analyzeField } from './analyzeField';
+import { analyzeField, createAnalyzeField } from './analyzeField';
+import { loadRules } from './rules';
+import { O4_ROWS } from './testdata/o4Rules';
 import en from './messages/en.json';
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
@@ -120,9 +122,42 @@ describe('analyzeField with fixture providers', () => {
     expect(analysisSchema.safeParse(a).success).toBe(true);
   });
 
-  it('with no crop history there is no current rotation, so no cards (the contract needs exactly one current)', async () => {
+  it('with no crop history from the farmer it uses the provider history (CropScape for Iowa)', async () => {
+    const a = await run('iowa', fixtureProviders, []);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    expect(current.why.some((w) => w.code === 'why.history.cropscape')).toBe(true);
+    expect(a.datasets.map((d) => d.id)).toContain('usda-cropscape');
+  });
+
+  it('with no crop history anywhere there is no current rotation, so no cards (the contract needs exactly one current)', async () => {
     const a = await run('poznan', fixtureProviders, []);
     expect(a.rotations).toEqual([]);
     expect(analysisSchema.safeParse(a).success).toBe(true);
+  });
+
+  it('a crop history provider that throws is not fatal', async () => {
+    const providers: Providers = { ...fixtureProviders, context: { ...fixtureProviders.context, getCropHistory: () => Promise.reject(new Error('down')) } };
+    const a = await run('iowa', providers, []);
+    expect(a.rotations).toEqual([]);
+  });
+
+  it('with the O4 rule tables, soil indicators are scored and evidence names the O4 rows', async () => {
+    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+    for (const field of ['iowa', 'poznan'] as const) {
+      const a = await withRules({ field: demoFields[field], cropHistory: field === 'iowa' ? iowaHistory : poznanHistory, priorities }, fixtureProviders);
+      const parsed = analysisSchema.safeParse(a);
+      expect(parsed.success, parsed.success ? '' : parsed.error.message).toBe(true);
+      const missing = [...codes(a)].filter((c) => !(c in en) && !c.startsWith('fx.'));
+      expect(missing).toEqual([]);
+      expect(a.shownByGoal.keepSoil!.length).toBeGreaterThan(0);
+    }
+    const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    expect(Object.keys(current.indicators).sort()).toEqual(['erosion', 'nitrogen', 'pestBreak']);
+    expect(current.soilHealth.basis.code).toBe('soil.basis.total');
+    const ruleIds = current.evidence.flatMap((e) => e.ruleIds);
+    expect(ruleIds).toContain('nitrogen.credit.soybean.us-ia');
+    expect(ruleIds.some((id) => id.startsWith('nitrogen.credit.soybean') && !id.endsWith('us-ia'))).toBe(false);
   });
 });

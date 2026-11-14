@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { FALLBACK_RULES, engineRules, loadRules } from './rules';
+import { iowaClimate, iowaSlope } from '../fixtures/analysis.iowa';
+import { poznanClimate, poznanSlope } from '../fixtures/analysis.poznan';
+import { fixtureCrops } from '../fixtures/crops';
+import { FALLBACK_RULES, engineRules, loadRules, toSoilRules } from './rules';
+import { soilHealth } from './soilHealth';
+import { O4_ROWS } from './testdata/o4Rules';
 
 const row = (id: string, value: unknown) => ({
   id,
@@ -46,5 +51,59 @@ describe('loadRules', () => {
 
   it('throws on a row without a source', () => {
     expect(() => loadRules({ '../../data/rules/x.json': [{ id: 'x', value: 1 }] })).toThrow(/x.json/);
+  });
+});
+
+describe('toSoilRules on O4 rows (PR #27)', () => {
+  const loaded = loadRules({ '../../data/rules/o4.json': O4_ROWS });
+  const iowa = { monthly: iowaClimate.monthly, slopePct: iowaSlope };
+  const find = (list: { id: string; value: unknown }[], id: string) => list.find((r) => r.id === id)?.value;
+
+  it('converts Iowa nitrogen credits from lb N/acre to kg N/ha with a mid value', () => {
+    const { rules, sourceIds } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }, { crop: 'soybean' }], iowa);
+    expect(find(rules.nitrogen, 'nitrogen.credit.soybean')).toEqual({ low: 50.445, mid: 58.853, high: 67.26 });
+    expect(sourceIds['nitrogen.credit.soybean']).toEqual(['nitrogen.credit.soybean.us-ia']);
+    expect(find(rules.nitrogen, 'nitrogen.credit.field-pea')).toBeUndefined(); // Polish row, not for Iowa
+  });
+
+  it('uses the medium soil class for Polish humus coefficients and none for Iowa', () => {
+    const pl = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'maize' }, { crop: 'winter-wheat' }], { monthly: poznanClimate.monthly, slopePct: poznanSlope });
+    expect(find(pl.rules.humus, 'humus.coef.maize')).toBe(-1.15);
+    expect(toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa).rules.humus).toEqual([]);
+  });
+
+  it('builds C factors per cover state, the slope table and a bare-fallow zero point', () => {
+    const { rules, sourceIds } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean' }], iowa);
+    expect(find(rules.erosion, 'erosion.cFactor.bare')).toBe(1);
+    const maize = (64 + 56 + 43 + 32 + 25 + 21) / 6;
+    const soy = (60 + 52 + 38 + 20 + 17) / 5;
+    expect(find(rules.erosion, 'erosion.cFactor.crop')).toBeCloseTo((maize + soy) / 200, 3);
+    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeCloseTo((37 + 46) / 200, 3);
+    expect(find(rules.erosion, 'erosion.cFactor.cover-crop')).toBeCloseTo((11 * 4 + 9 + 7) / 6 / 100, 3);
+    expect(typeof find(rules.erosion, 'erosion.zeroScoreIndex')).toBe('number');
+    expect(sourceIds['erosion.zeroScoreIndex']).toContain('erosion.slr.bare');
+  });
+
+  it('leaves erosion C factors out for a cover crop without a row', () => {
+    const { rules } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
+      monthly: poznanClimate.monthly,
+      slopePct: poznanSlope,
+    });
+    expect(find(rules.erosion, 'erosion.cFactor.cover-crop')).toBeUndefined();
+  });
+
+  it('gives each family a minimum return from its crop rows, else the any-family row', () => {
+    const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa);
+    expect(find(rules.pestBreak, 'pestBreak.minReturn.Poaceae')).toEqual({ low: 2, mid: 2, high: 3 });
+    expect(find(rules.pestBreak, 'pestBreak.minReturn.Fabaceae')).toEqual({ low: 3, mid: 3, high: 3 });
+  });
+
+  it('lets soilHealth score nitrogen, erosion and pest break for the Iowa current rotation', () => {
+    const years = [{ crop: 'maize' }, { crop: 'soybean' }];
+    const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, years, iowa);
+    const profile = { ...iowaClimate, soil: { sandPct: iowaSlope, clayPct: iowaSlope, organicCarbon: iowaSlope, ph: iowaSlope }, slopePct: iowaSlope };
+    const r = soilHealth(years, fixtureCrops.US, profile, rules, { goal: 'keepSoil', on: [], excludedCrops: [] });
+    expect(Object.keys(r.indicators).sort()).toEqual(['erosion', 'nitrogen', 'pestBreak']);
+    expect(r.missing).toEqual(['organicMatter']);
   });
 });
