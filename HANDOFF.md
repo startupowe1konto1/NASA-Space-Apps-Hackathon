@@ -12,12 +12,11 @@ Everything below comes from the challenge Details and Resources tabs (read witho
 2. **By 12:10.** Agree the idea rejection criteria (proposal at the bottom). One person creates an Earthdata login (https://urs.earthdata.nasa.gov/) and keeps the credentials in `.env` only. Trend Detective, Dancing with the SARs and Field Shift all need it.
 3. **12:30 → 13:10.** Compare the research results against the criteria. Cut to two, then pick one challenge and one idea from the "Ideas" lists. Name the project. Choose a region or area of interest only after the idea is picked, and only if the idea needs one.
 4. **13:10.** Record the decision in `docs/DECISIONS.md`, then run prompt P2: rewrite this file as the full handoff, write `docs/SPEC.md` and `docs/PLAN.md`.
-5. **Ask the Local Lead** which deadline counts (see "Event facts"). Write the answer in `context/rules.md` and `docs/DECISIONS.md`.
 
 ## Event facts found at T0
 
 - Local event schedule ([event page, Schedule tab](https://www.spaceappschallenge.org/2026/local-events/poznan/?tab=schedule)): Sun 13:30 is the "Firm Deadline" to submit on the global portal and hand pitch slides to the info desk. Live pitches start at 14:30: 3 minutes plus 2 minutes of questions in front of the jury. Awards at 18:00.
-- The repo (CLAUDE.md, HACKATHON.md §1, context/rules.md, DECISIONS D4) says Sun 23:59. Our plan freezes the repo at T+23 (Sun 10:10), so we make 13:30 either way, but the 12.8 h buffer in §5 does not exist if 13:30 is the deadline.
+- Our deadline is **Sun 11:59** (DECISIONS D5, set by O1), earlier than the 13:30 on the local schedule. Freeze and submit at T+23 (Sun 10:10); there is no buffer after T+24.
 - Mentors: Sat 15:00 (session 1), Sun 10:30 (pitch coaching). Local Lead: Rahaf Zorba (contact on the event page). Venue: +Jeden, ul. Za Bramką 1.
 - A 3-minute pitch rewards a project that shows real data on screen within the first 30 seconds.
 
