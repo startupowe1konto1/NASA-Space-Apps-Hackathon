@@ -82,7 +82,7 @@
   "risk.perennial-establishment": "The {crop} needs a good first year to establish. Check seedbed, soil pH and how you will harvest or sell it.",
   "risk.bare-months": "The soil is bare {bare} of {total} months. Check fields with slopes or poor drainage for runoff in those months.",
 
-  "income.basis.replay": "What this rotation would have earned on this field over {years} past years at today's prices. Good and bad years follow this field's weather record; the average year yields the recent average harvest. Not a forecast.",
+  "income.basis.replay": "What this rotation would have earned on this field over {years} past years at today's prices. Good and bad years follow this field's weather record, and the average year matches the recent average harvest. Not a forecast.",
   "income.no-price": "No sourced price, yield or direct costs for {crop}, so income is not estimated for this rotation.",
   "income.no-yield-response": "No yield response factor for {crop}, so its yield in dry years cannot be replayed.",
   "income.no-climate-years": "The climate record has no year in which every crop of this rotation could be checked, so income is not estimated.",

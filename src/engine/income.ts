@@ -34,8 +34,8 @@ import { percentile, recordYears, yearlyHitsDetailed } from './resilience';
 
 /** Every Message code this module emits. The English text for each belongs in src/engine/messages/en.json. */
 export const INCOME_MESSAGE_CODES = [
-  // "What this rotation would have earned ... over {years} past years at today's prices. ... the average year yields the
-  // recent average harvest. Not a forecast."
+  // "What this rotation would have earned ... over {years} past years at today's prices. ... the average year
+  // matches the recent average harvest. Not a forecast."
   'income.basis.replay',
   // "No sourced price, yield or direct costs for {crop}, so income is not estimated for this rotation."
   'income.no-price',
