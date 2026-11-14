@@ -240,7 +240,7 @@ export function cardMessages(c: CardInput): CardMessages {
   evidence.push({
     message: m('evidence.resilience', { value: c.resilience.value, ...yearsParams }),
     values: [
-      derived(c.resilience.value, '% of crop-years without damage', [...c.climate.source.datasetIds], {
+      derived(c.resilience.value, '% of crop-years with no hazard in sensitive months', [...c.climate.source.datasetIds], {
         low: c.resilience.low,
         high: c.resilience.high,
         basis: '10th to 90th percentile year of the record',

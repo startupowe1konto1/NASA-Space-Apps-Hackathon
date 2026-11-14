@@ -1,6 +1,6 @@
 {
-  "resilience.basis.years": "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}). The range runs from the 10th to the 90th percentile year.",
-  "resilience.basis.missing-months": "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}). {count} of the {needed} months the crops need are missing from the record and were left out.",
+  "resilience.basis.years": "Share of crop-years at this field with no drought, heat or frost in the crop's sensitive months, {years} years ({from}–{to}). The range runs from the 10th to the 90th percentile year.",
+  "resilience.basis.missing-months": "Share of crop-years at this field with no drought, heat or frost in the crop's sensitive months, {years} years ({from}–{to}). {count} of the {needed} months the crops need are missing from the record and were left out.",
 
   "soil.basis.rule-range": "The range comes from the low and high values given in the source rules.",
   "soil.basis.rule-of-thumb": "The source gives a single value, so the range is 15% either side, a rule of thumb.",
@@ -33,7 +33,7 @@
   "why.cover-crop": "A {cover} cover crop after the {crop} keeps living roots in the soil after harvest.",
   "why.legume": "The {crop} is a legume. It fixes nitrogen that the next crop can use.",
   "why.fewer-bare": "The soil is bare about {bare} months a year instead of {currentBare} with your current rotation.",
-  "why.more-resilient": "{value}% of crop-years came through without drought, heat or frost damage on this field's record, against {current}% for your current rotation.",
+  "why.more-resilient": "{value}% of crop-years on this field's record had no drought, heat or frost in the crops' sensitive months, against {current}% for your current rotation.",
   "why.small-change": "It changes only one year of what you grow now.",
   "why.more-families": "{families} crop families instead of {currentFamilies} give pests and diseases a longer break.",
 
@@ -42,8 +42,8 @@
   "benefit.fewer-hazard-years": "Fewer crop-years hit by drought, heat or frost over the {years} years on record: {value}% came through, against {current}% now.",
   "benefit.family-break": "{families} crop families in the cycle break pest and disease cycles.",
 
-  "evidence.resilience": "{value}% of crop-years came through without drought, heat or frost damage at this field, {years} years ({from}–{to}) of NASA POWER data, a model estimate.",
-  "evidence.hazard-month": "In {hit} of {years} years at this field, {hazard} hit the {crop} in {month}.",
+  "evidence.resilience": "{value}% of crop-years at this field had no drought, heat or frost in the crop's sensitive months, {years} years ({from}–{to}) of NASA POWER data, a model estimate.",
+  "evidence.hazard-month": "In {hit} of {years} years at this field, {month} crossed the {hazard} threshold while the {crop} was sensitive to it.",
   "evidence.water": "In the growing seasons checked, this field got {rain} mm of rain on average and lost {et} mm to evapotranspiration (NASA POWER, model estimates).",
   "evidence.cover-months": "In each {total}-month cycle the crop calendar shows {bare} bare months and {living} months with a living crop or cover crop. Our calculation from crop calendars.",
 

@@ -109,6 +109,16 @@ describe('analyzeField with fixture providers', () => {
     expect(analysisSchema.safeParse(a).success).toBe(true);
   });
 
+  // #105 minor: a missing value keeps the kind of the source it stands for. SoilGrids is a model, SSURGO a survey.
+  it('labels a missing soil value with the kind of the source that failed', async () => {
+    const failing = (source: string): Providers => ({
+      ...fixtureProviders,
+      context: { ...fixtureProviders.context, getSoil: () => Promise.reject(new SourceError(source, 'no answer')) },
+    });
+    expect((await run('iowa', failing('SoilGrids'))).profile.soil.sandPct.kind).toBe('model');
+    expect((await run('iowa', failing('USDA soil survey (SSURGO)'))).profile.soil.sandPct.kind).toBe('observation');
+  });
+
   it('removes a crop that GAEZ marks not suitable and names it in the gaps', async () => {
     const providers: Providers = {
       ...fixtureProviders,

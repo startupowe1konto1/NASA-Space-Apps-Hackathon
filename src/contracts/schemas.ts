@@ -93,15 +93,19 @@ export const moneyFile = z.object({
       pricePerT: z.number().positive().nullable().optional(),
       directCostsPerHa: z.number().min(0),
       // Each value has its own period (issue #79 item 4): yields are a mean over past years, prices a marketing year
-      // or a week, costs a budget year. Optional until data/money fills them (src/money/data.test.ts then requires them).
-      yieldPeriod: z.string().min(1).optional(), // e.g. '2021–2025 mean'
-      pricePeriod: z.string().min(1).optional(), // e.g. '2025 marketing year', '2–8 Nov 2026'
-      costsPeriod: z.string().min(1).optional(), // e.g. '2026 budget'
-      year: z.number().int().optional(), // deprecated: one year per row could not say which value it dated
+      // or a week, costs a budget year. The old single `year` per row could not say which value it dated, so it is gone.
+      // A cover crop is not sold, so it has no yield or price period (D34).
+      yieldPeriod: z.string().min(1).optional(), // e.g. '2021–2025 mean'; required unless kind is cover
+      pricePeriod: z.string().min(1).optional(), // e.g. '2025 marketing year', '2–8 Nov 2026'; required unless kind is cover
+      costsPeriod: z.string().min(1), // e.g. '2026 budget'
       sources: z.array(sourceRef).min(1),
-    }).refine((r) => r.kind === 'cover' || (typeof r.referenceYieldTPerHa === 'number' && typeof r.pricePerT === 'number'), {
-      message: 'referenceYieldTPerHa and pricePerT are required unless kind is cover',
-    }),
+    })
+      .refine((r) => r.kind === 'cover' || (typeof r.referenceYieldTPerHa === 'number' && typeof r.pricePerT === 'number'), {
+        message: 'referenceYieldTPerHa and pricePerT are required unless kind is cover',
+      })
+      .refine((r) => r.kind === 'cover' || (r.yieldPeriod !== undefined && r.pricePeriod !== undefined), {
+        message: 'yieldPeriod and pricePeriod are required unless kind is cover',
+      }),
   ),
   payments: z.array(
     z.object({
