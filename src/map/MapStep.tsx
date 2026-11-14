@@ -26,7 +26,8 @@ export function MapStep() {
   const [tilesFailed, setTilesFailed] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
   const [cutting, setCutting] = useState(false);
-  const [editNote, setEditNote] = useState<string | null>(null);
+  // The note is about the fields as they were when it was written; any later change to the list hides it.
+  const [editNote, setEditNote] = useState<{ text: string; fields: Field[] } | null>(null);
   const [parcelsOn, setParcelsOn] = useState(false);
   const [parcelsFailed, setParcelsFailed] = useState(false);
 
@@ -57,9 +58,10 @@ export function MapStep() {
           const { selectedFieldId: id, fields } = useAppStore.getState();
           const parent = fields.find((f) => f.id === id);
           const outcome = parent ? cutField(parent.id, line) : ({ ok: false, reason: 'no-field' } as const);
-          if (!parent || !outcome.ok) return setEditNote(t(`edit.cut.fail.${outcome.ok ? 'no-field' : outcome.reason}`));
+          const note = (text: string) => setEditNote({ text, fields: useAppStore.getState().fields });
+          if (!parent || !outcome.ok) return note(t(`edit.cut.fail.${outcome.ok ? 'no-field' : outcome.reason}`));
           const [a, b] = outcome.fields;
-          setEditNote(t('edit.cut.done', { name: parent.name, a: a.name, b: b.name }));
+          note(t('edit.cut.done', { name: parent.name, a: a.name, b: b.name }));
         },
         onCutMode: (active) => {
           setCutting(active);
@@ -170,7 +172,7 @@ export function MapStep() {
         </div>
         {parcelsOn ? <p className="mt-1 text-sm text-slate-600">{t('edit.layer.hint')}</p> : null}
         <div role="status" className="mt-2 text-base text-slate-900">
-          {cutting ? t('edit.cut.hint') : editNote}
+          {cutting ? t('edit.cut.hint') : editNote?.fields === fields ? editNote.text : null}
         </div>
       </div>
 

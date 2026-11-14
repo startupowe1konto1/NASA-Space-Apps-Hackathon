@@ -17,7 +17,8 @@ export function FieldList() {
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
   const groupName = useId();
   const [ticked, setTicked] = useState<string[]>([]);
-  const [note, setNote] = useState<string | null>(null);
+  // The note is about the fields as they were when it was written; any later change to the list hides it.
+  const [note, setNote] = useState<{ text: string; fields: Field[] } | null>(null);
   // A field deleted or replaced elsewhere drops out of the ticked ones.
   const pair = ticked.filter((id) => fields.some((f) => f.id === id));
   const canJoin = fields.length >= 2;
@@ -26,7 +27,8 @@ export function FieldList() {
     const [a, b] = pair;
     if (pair.length !== 2 || !a || !b) return;
     const outcome = joinFields(a, b);
-    setNote(outcome.ok ? t('edit.join.done', { name: outcome.field.name }) : t(`edit.join.fail.${outcome.reason}`));
+    const text = outcome.ok ? t('edit.join.done', { name: outcome.field.name }) : t(`edit.join.fail.${outcome.reason}`);
+    setNote({ text, fields: useAppStore.getState().fields });
     if (outcome.ok) setTicked([]);
   };
 
@@ -61,7 +63,7 @@ export function FieldList() {
         </div>
       ) : null}
       <div role="status" className="mt-2 text-base text-slate-900">
-        {note}
+        {note?.fields === fields ? note.text : null}
       </div>
     </section>
   );

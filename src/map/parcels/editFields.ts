@@ -14,7 +14,7 @@ const sameHistory = (a: CropYear[], b: CropYear[]) => JSON.stringify(a) === JSON
  * history and the first one is selected. On a failed cut nothing changes.
  */
 export function cutField(id: string, line: [Position, Position]): CutOutcome {
-  const { fields, cropHistory, removeField, addField, setCropHistory } = useAppStore.getState();
+  const { fields, cropHistory, removeField, addField, setCropHistory, selectField } = useAppStore.getState();
   const field = fields.find((f) => f.id === id);
   if (!field) return { ok: false, reason: 'no-field' };
   const result = splitField(field, line, fields);
@@ -22,8 +22,9 @@ export function cutField(id: string, line: [Position, Position]): CutOutcome {
   const [first, second] = result.fields;
   const history = cropHistory[id];
   removeField(id);
+  addField(first);
   addField(second);
-  addField(first); // the last one added is selected
+  selectField(first.id);
   if (history) {
     setCropHistory(first.id, history);
     setCropHistory(second.id, history);

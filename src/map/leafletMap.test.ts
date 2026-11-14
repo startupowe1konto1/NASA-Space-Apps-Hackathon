@@ -227,9 +227,9 @@ describe('the parcel map layer', () => {
     expect(wmsLayers()).toHaveLength(0);
   });
 
-  it('is sent to the GUGiK integration service named in the spec', () => {
+  it('is sent to integracja02, the GUGiK host that D49 allows and that answers every Web Mercator request', () => {
     controller.setParcelLayer(true);
-    expect(new URL((wmsLayers()[0] as unknown as { _url: string })._url).hostname).toBe('integracja.gugik.gov.pl');
+    expect(new URL((wmsLayers()[0] as unknown as { _url: string })._url).hostname).toBe('integracja02.gugik.gov.pl');
   });
 
   it('reports a tile that did not load', () => {

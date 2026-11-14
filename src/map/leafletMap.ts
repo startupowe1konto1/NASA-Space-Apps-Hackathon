@@ -47,10 +47,11 @@ const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">Op
 const START_VIEW: L.LatLngTuple = [46, -40]; // between the USA and Poland
 const START_ZOOM = 2;
 const PLACE_ZOOM = 16; // close enough to see field edges and tap the right one
-// KIEG, the national land register map from GUGiK (host on the SPEC section 15 list; it redirects to integracja02, D49).
-// A WMS image overlay in Web Mercator, so the map keeps its OpenStreetMap projection. The service draws nothing
-// above a scale of about 1:25 000, so tiles are only asked for from zoom 14.
-const KIEG_URL = 'https://integracja.gugik.gov.pl/cgi-bin/KrajowaIntegracjaEwidencjiGruntow';
+// KIEG, the national land register map from GUGiK, as a WMS image overlay in Web Mercator, so the map keeps its
+// OpenStreetMap projection. The host is integracja02 (D49): integracja.gugik.gov.pl hands requests to two servers, and
+// one of them fails every other EPSG:3857 request with a projection error (4 of 8 in a test), integracja02 did not.
+// The service draws nothing above a scale of about 1:25 000, so tiles are only asked for from zoom 14.
+const KIEG_URL = 'https://integracja02.gugik.gov.pl/cgi-bin/KrajowaIntegracjaEwidencjiGruntow';
 const KIEG_ATTRIBUTION = '&copy; <a href="https://integracja.gugik.gov.pl">GUGiK</a> KIEG';
 const PARCEL_MIN_ZOOM = 14;
 
