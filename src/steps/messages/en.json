@@ -4,14 +4,6 @@
   "steps.crops.placeholder": "The crop picker comes with task O2-B2. Until then, use this example history.",
   "steps.crops.confirm": "Yes, use these crops",
   "steps.crops.saved": "Saved {n} years of crops.",
-  "steps.rotations.analysis": "the analysis",
-  "steps.rotations.goalNoData": "Price data is not loaded yet, so the rotations are ranked on keeping the soil.",
-  "steps.rotations.current": "Your rotation",
-  "steps.rotations.soilHealth": "Soil health",
-  "steps.rotations.climate": "Climate resilience",
-  "steps.rotations.gaps": "What we do not know",
-  "steps.rotations.risks": "Check locally",
-  "steps.rotations.sources": "{n} data sources are registered. The sources panel comes with task O2-B3.",
   "steps.money.notLoaded": "Prices and payment rates are not loaded yet.",
   "steps.report.placeholder": "Report for {field}, goal: {goal}. The printable report comes with task O2-B7."
 }

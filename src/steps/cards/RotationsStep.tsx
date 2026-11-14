@@ -1,14 +1,17 @@
-// Placeholder from the skeleton (O1-S1). O2 replaces it with the real cards in task O2-B3; keep the path and the export name.
-// It already shows the contract in use: goal-based order, gaps, risks, source chips and the support sentence.
+// Step 5: the field summary, a goal switcher, the current rotation plus the three best others, and the sources.
 import { useEffect } from 'react';
-import { datasets } from '../../app/datasets';
 import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
-import { ScoreBar, StateBoundary } from '../../ui-kit';
+import { StateBoundary } from '../../ui-kit';
+import { FieldSummary } from './FieldSummary';
+import { GoalSwitcher } from './GoalSwitcher';
+import { RotationCard } from './RotationCard';
+import { SourcesPanel } from './SourcesPanel';
 
 export function RotationsStep() {
   const analysis = useAppStore((s) => s.analysis);
   const goal = useAppStore((s) => s.goal);
+  const setGoal = useAppStore((s) => s.setGoal);
   const runAnalysis = useAppStore((s) => s.runAnalysis);
 
   useEffect(() => {
@@ -29,40 +32,42 @@ export function RotationsStep() {
   }
 
   const { data } = analysis;
-  const shown = data.shownByGoal[goal] ?? data.shownByGoal.keepSoil ?? [];
-  const rotations = shown.flatMap((id) => data.rotations.filter((r) => r.id === id));
+  const ranking = data.shownByGoal[goal] ? goal : 'keepSoil';
+  const ids = data.shownByGoal[ranking] ?? [];
+  const rotations = ids.flatMap((id) => data.rotations.filter((r) => r.id === id));
 
   return (
-    <div className="grid gap-4">
-      {data.shownByGoal[goal] === undefined ? <p role="status">{t('steps.rotations.goalNoData')}</p> : null}
-      {rotations.map((r) => (
-        <article key={r.id} className="rounded border border-slate-300 p-4">
-          <h2 className="text-lg font-semibold">
-            {r.years.map((y) => (y.coverCrop ? `${y.crop} + ${y.coverCrop}` : y.crop)).join(' → ')}
-          </h2>
-          {r.isCurrent ? <p className="text-sm font-medium text-emerald-800">{t('steps.rotations.current')}</p> : null}
-          <ScoreBar label={t('steps.rotations.soilHealth')} score={r.soilHealth} basisText={t(r.soilHealth.basis)} />
-          <ScoreBar
-            label={t('steps.rotations.climate')}
-            score={r.climateResilience}
-            basisText={t(r.climateResilience.basis)}
-          />
-          <h3 className="mt-3 font-medium">{t('steps.rotations.gaps')}</h3>
-          <ul className="list-disc pl-5">
-            {r.gaps.map((m) => (
-              <li key={m.code}>{t(m)}</li>
-            ))}
-          </ul>
-          <h3 className="mt-3 font-medium">{t('steps.rotations.risks')}</h3>
-          <ul className="list-disc pl-5">
-            {r.localReviewRisks.map((m) => (
-              <li key={m.code}>{t(m)}</li>
-            ))}
-          </ul>
-          <p className="mt-3 text-sm text-slate-700">{t('app.support')}</p>
-        </article>
-      ))}
-      <p className="text-sm text-slate-600">{t('steps.rotations.sources', { n: datasets.length })}</p>
+    <div className="grid gap-5">
+      <FieldSummary analysis={data} />
+
+      {data.rotations.length === 0 ? (
+        <StateBoundary state="no-data" reason={t('steps.rotations.noCrops')}>
+          {null}
+        </StateBoundary>
+      ) : (
+        <>
+          <div className="grid gap-2">
+            <p className="text-base text-slate-700">{t('steps.rotations.intro')}</p>
+            <GoalSwitcher goal={goal} onChange={setGoal} />
+            {ranking !== goal ? (
+              <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-base text-amber-900">
+                {t('steps.rotations.goalNoData')}
+              </p>
+            ) : null}
+          </div>
+          {rotations.map((r) => (
+            <RotationCard
+              key={r.id}
+              rotation={r}
+              goal={ranking}
+              rank={r.rankByGoal[ranking] ?? ids.indexOf(r.id) + 1}
+              datasets={data.datasets}
+            />
+          ))}
+        </>
+      )}
+
+      <SourcesPanel datasets={data.datasets} />
     </div>
   );
 }
