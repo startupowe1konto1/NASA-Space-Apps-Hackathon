@@ -49,7 +49,12 @@ export function App() {
   }, [glossaryOpen]);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
+    // The result steps (rotations side by side, money) get a wider page; the question steps stay narrow and easy to read.
+    <div
+      className={`mx-auto flex min-h-screen flex-col bg-white text-slate-900 ${
+        key === 'rotations' || key === 'money' ? 'max-w-6xl' : 'max-w-3xl'
+      }`}
+    >
       <header className="border-b border-slate-200 px-4 py-3 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
 
