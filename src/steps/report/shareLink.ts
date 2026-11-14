@@ -37,6 +37,7 @@ export function encodeShare(state: ShareState): string {
 const lonLat = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]);
 const shareField = z.strictObject({
   ...field.shape,
+  parcelIds: z.array(z.string().min(1)).optional(),
   polygon: z.strictObject({ type: z.literal('Polygon'), coordinates: z.array(z.array(lonLat).min(4)).min(1) }),
   centroid: z.strictObject(field.shape.centroid.shape),
 });

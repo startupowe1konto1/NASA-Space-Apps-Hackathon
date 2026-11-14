@@ -158,7 +158,7 @@ describe('RotationsStep', () => {
     readyWith(iowaAnalysis);
     render(<RotationsStep />);
     const [card] = await screen.findAllByRole('article');
-    const note = within(card!).getByText(/low to the high values the sources give/);
+    const note = within(card!).getByText(/where a source gives a single value/);
     expect(note.textContent).toMatch(/climate resilience/);
     expect(note.textContent).toMatch(/soil health/);
   });

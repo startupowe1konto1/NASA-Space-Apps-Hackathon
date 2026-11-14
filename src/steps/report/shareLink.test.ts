@@ -69,12 +69,20 @@ describe('share link', () => {
       expect(decodeShare(raw({ priorities: { ...state().priorities, evil: 1 } }))).toBeNull();
     });
 
-    it('a code longer than 64 KB, before decoding it', () => {
-      expect(decodeShare('A'.repeat(64 * 1024 + 1))).toBeNull();
+    it('a valid code longer than 64 KB, before decoding it', () => {
+      const long = encodeShare({ ...state(), field: { ...demoFields.poznan, name: 'x'.repeat(50 * 1024) } });
+      expect(long.length).toBeGreaterThan(64 * 1024);
+      expect(decodeShare(long)).toBeNull();
+    });
+
+    it('empty parcel ids', () => {
+      expect(decodeShare(withField({ parcelIds: ['', ''] }))).toBeNull();
     });
 
     it('a __proto__ key does not pollute Object.prototype', () => {
-      const code = btoa('{"v":1,"__proto__":{"polluted":true}}');
+      const valid = new TextDecoder().decode(Uint8Array.from(atob(encodeShare(state()).replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - (encodeShare(state()).length % 4)) % 4)), (c) => c.charCodeAt(0)));
+      const withProto = valid.replace('{"v":1,', '{"v":1,"__proto__":{"polluted":true},');
+      const code = btoa(String.fromCharCode(...new TextEncoder().encode(withProto)));
       expect(decodeShare(code)).toBeNull();
       expect(({} as Record<string, unknown>).polluted).toBeUndefined();
     });

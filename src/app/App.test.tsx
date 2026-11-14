@@ -176,6 +176,11 @@ describe('shared report link', () => {
     await waitFor(() => expect(useAppStore.getState().step).toBe(7));
     expect(useAppStore.getState().goal).toBe('keepSoil');
     await waitFor(() => expect(window.location.hash).toBe(''));
+
+    // a hash without a share code is left alone
+    window.location.hash = '#something-else';
+    await new Promise((r) => setTimeout(r, 20));
+    expect(window.location.hash).toBe('#something-else');
   });
 
   it('starts at step 1 when the hash holds no share code', () => {
