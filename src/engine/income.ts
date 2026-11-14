@@ -2,8 +2,9 @@
 // the rotation would have earned here in each past year. It is not a forecast and it promises no yield.
 //
 // Per crop and record year the yield comes from the same hazard checks as climate resilience (`yearlyHitsDetailed`):
-// - drought: the largest (deficit × yield response factor) over the crop's drought-sensitive months that were hit,
-//   where deficit is the shortfall of root-zone wetness against the field's median for that month;
+// - drought: the largest (shortfall × yield response factor) over the crop's drought-sensitive months, in every year
+//   below the median, hit or not; the shortfall is (median − wetness) / median of root-zone wetness for that calendar
+//   month on this field (`shortfallVsMedian`, SPEC 7). The drought limit (D30) only decides resilience hits;
 // - heat and frost: each sensitive row (hazard + months) with a hit in any of its months adds its `lossShare`;
 // - the total loss is capped at 1; yield = reference yield × (1 − loss).
 // margin = yield × price − direct costs. The rotation's margin in a year is the mean over its main crops; cover
@@ -58,7 +59,12 @@ export interface YearYield {
  * filled). A crop with no sensitive months gets the reference yield in every record year. Throws when the crop is
  * drought-sensitive and has no yield response factor (cover crops may lack one; income uses main crops only).
  */
-export function yearlyYield(crop: CropTraits, climate: ClimateProfile, referenceYieldTPerHa: number): YearYield[] {
+export function yearlyYield(
+  crop: CropTraits,
+  climate: ClimateProfile,
+  referenceYieldTPerHa: number,
+  droughtPercentile: number,
+): YearYield[] {
   const years = recordYears(climate);
   const ky = (crop as { yieldResponseFactor?: number }).yieldResponseFactor;
   const droughtSensitive = crop.sensitive.some((s) => s.hazard === 'drought' && s.months.length > 0);
@@ -66,7 +72,7 @@ export function yearlyYield(crop: CropTraits, climate: ClimateProfile, reference
     throw new Error(`income: no yield response factor for '${crop.id}'`);
   }
   const hasChecks = crop.sensitive.some((s) => s.months.length > 0);
-  const { rows } = yearlyHitsDetailed(crop, climate);
+  const { rows } = yearlyHitsDetailed(crop, climate, droughtPercentile);
 
   const out: YearYield[] = [];
   for (const year of years) {
@@ -76,11 +82,10 @@ export function yearlyYield(crop: CropTraits, climate: ClimateProfile, reference
     let drought = 0;
     let other = 0;
     for (const s of crop.sensitive) {
-      const hits = yearRows.filter((r) => r.hazard === s.hazard && s.months.includes(r.month) && r.hit);
-      if (hits.length === 0) continue;
+      const inMonths = yearRows.filter((r) => r.hazard === s.hazard && s.months.includes(r.month));
       if (s.hazard === 'drought') {
-        for (const h of hits) drought = Math.max(drought, h.deficit * (ky as number));
-      } else {
+        for (const r of inMonths) drought = Math.max(drought, (r.shortfallVsMedian ?? 0) * (ky as number));
+      } else if (inMonths.some((r) => r.hit)) {
         other += s.lossShare;
       }
     }
@@ -119,6 +124,7 @@ export function incomeEstimate(
   payments: MoneyEstimate['payments'],
   currency: MoneyEstimate['currency'],
   campaign: string,
+  droughtPercentile: number,
 ): AsyncResult<IncomeResult> {
   const mainIds: CropId[] = [...new Set(years.map((y) => y.crop))];
 
@@ -137,11 +143,11 @@ export function incomeEstimate(
 
     let rows: YearYield[];
     try {
-      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value);
+      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile);
     } catch {
       return { status: 'no-data', reason: { code: 'income.no-yield-response', params: { crop: id } } };
     }
-    if (yearlyHitsDetailed(crop, climate).missing.length > 0) complete = false;
+    if (yearlyHitsDetailed(crop, climate, droughtPercentile).missing.length > 0) complete = false;
 
     const price = econ.pricePerT.value;
     const cost = econ.directCostsPerHa.value;

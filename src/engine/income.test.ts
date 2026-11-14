@@ -4,6 +4,8 @@ import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, yearly
 
 type Row = ClimateProfile['monthly'][number];
 
+/** hazards.drought.percentile (D30): pooled over every month of the record. */
+const DROUGHT_P = 20;
 const FIRST = 1981;
 const LAST = 2025;
 const YEARS = Array.from({ length: LAST - FIRST + 1 }, (_, i) => FIRST + i);
@@ -11,7 +13,7 @@ const YEARS = Array.from({ length: LAST - FIRST + 1 }, (_, i) => FIRST + i);
 /**
  * A hand-made 45-year record: every month has wetness 0.5, tMax 20 °C and no frost days, unless `edit` changes it.
  * With 0.5 in at least 37 of 45 Julys, the 20th percentile and the median are both 0.5, so a July at 0.25 is a
- * drought hit with deficit exactly 0.5.
+ * July shortfall of exactly 0.5 against the median.
  */
 function makeClimate(edit: (row: Row) => Row = (row) => row): ClimateProfile {
   const monthly: Row[] = [];
@@ -70,7 +72,7 @@ const yieldOf = (rows: ReturnType<typeof yearlyYield>, year: number) => rows.fin
 
 describe('yearlyYield', () => {
   it('equals the reference yield in every year without a hazard hit', () => {
-    const rows = yearlyYield(cropA, makeClimate(), 10);
+    const rows = yearlyYield(cropA, makeClimate(), 10, DROUGHT_P);
     expect(rows).toHaveLength(45);
     for (const r of rows) {
       expect(r.loss).toBe(0);
@@ -78,11 +80,21 @@ describe('yearlyYield', () => {
     }
   });
 
-  it('turns a drought hit with deficit 0.5 and yield response factor 1.2 into a loss of 0.6', () => {
-    const rows = yearlyYield(cropA, dryClimate, 10);
+  it('turns a July shortfall of 0.5 against the median and yield response factor 1.2 into a loss of 0.6', () => {
+    const rows = yearlyYield(cropA, dryClimate, 10, DROUGHT_P);
     expect(yieldOf(rows, 1985)!.loss).toBeCloseTo(0.6, 10);
     expect(yieldOf(rows, 1985)!.yieldTPerHa).toBeCloseTo(4, 10);
     expect(yieldOf(rows, 1986)!.loss).toBe(0);
+  });
+
+  it('counts the July shortfall against the median in a year below the median that is not a drought hit (SPEC 7)', () => {
+    // Julys rise from 0.30 (1981) to 0.74 (2025), median 0.52; every other month is 0.1, so the pooled 20th
+    // percentile is 0.1 and no July is a drought hit. 1981 still falls short of the median by (0.52-0.30)/0.52.
+    const climate = makeClimate((r) => ({ ...r, rootWetness: r.month === 7 ? 0.3 + 0.01 * (r.year - FIRST) : 0.1 }));
+    const rows = yearlyYield(cropA, climate, 10, DROUGHT_P);
+    expect(yieldOf(rows, 1981)!.loss).toBeCloseTo(((0.52 - 0.3) / 0.52) * 1.2, 6);
+    expect(yieldOf(rows, 2003)!.loss).toBe(0); // July 0.52 = the median
+    expect(yieldOf(rows, 2025)!.loss).toBe(0);
   });
 
   it('takes the largest drought loss over the sensitive months, not the sum', () => {
@@ -97,7 +109,7 @@ describe('yearlyYield', () => {
       if (r.month === 7) return { ...r, rootWetness: 0.25 }; // deficit 0.5
       return r;
     });
-    expect(yieldOf(yearlyYield(twoMonths, climate, 10), 1990)!.loss).toBeCloseTo(0.5, 10);
+    expect(yieldOf(yearlyYield(twoMonths, climate, 10, DROUGHT_P), 1990)!.loss).toBeCloseTo(0.5, 10);
   });
 
   it('applies lossShare for heat and for frost in a sensitive month', () => {
@@ -107,7 +119,7 @@ describe('yearlyYield', () => {
       if (r.year === 1992 && r.month === 8) return { ...r, tMaxC: 40 }; // August is not a sensitive month of A
       return r;
     });
-    const rows = yearlyYield(cropA, climate, 10);
+    const rows = yearlyYield(cropA, climate, 10, DROUGHT_P);
     expect(yieldOf(rows, 1990)!.loss).toBeCloseTo(0.2, 10);
     expect(yieldOf(rows, 1991)!.loss).toBeCloseTo(0.15, 10);
     expect(yieldOf(rows, 1991)!.yieldTPerHa).toBeCloseTo(8.5, 10);
@@ -122,8 +134,8 @@ describe('yearlyYield', () => {
       return r;
     });
     const harsh = { ...cropA, yieldResponseFactor: 2 }; // drought alone gives 1.0
-    expect(yieldOf(yearlyYield(cropA, climate, 10), 1990)!.loss).toBeCloseTo(0.95, 10);
-    const capped = yieldOf(yearlyYield(harsh, climate, 10), 1990)!;
+    expect(yieldOf(yearlyYield(cropA, climate, 10, DROUGHT_P), 1990)!.loss).toBeCloseTo(0.95, 10);
+    const capped = yieldOf(yearlyYield(harsh, climate, 10, DROUGHT_P), 1990)!;
     expect(capped.loss).toBe(1);
     expect(capped.yieldTPerHa).toBe(0);
   });
@@ -132,20 +144,20 @@ describe('yearlyYield', () => {
     const climate = makeClimate((r) =>
       r.year === 2000 && (r.month === 5 || r.month === 7) ? { ...r, rootWetness: null, tMaxC: null, frostDays: null } : r,
     );
-    const rows = yearlyYield(cropA, climate, 10);
+    const rows = yearlyYield(cropA, climate, 10, DROUGHT_P);
     expect(rows).toHaveLength(44);
     expect(yieldOf(rows, 2000)).toBeUndefined();
   });
 
   it('gives the reference yield every year for a crop without sensitive months', () => {
-    const rows = yearlyYield(cropN, makeClimate(), 5);
+    const rows = yearlyYield(cropN, makeClimate(), 5, DROUGHT_P);
     expect(rows).toHaveLength(45);
     expect(rows.every((r) => r.yieldTPerHa === 5)).toBe(true);
   });
 
   it('throws for a drought-sensitive crop without a yield response factor', () => {
     const noKy = { ...cropA, yieldResponseFactor: undefined } as unknown as CropTraits;
-    expect(() => yearlyYield(noKy, dryClimate, 10)).toThrow(/yield response factor/);
+    expect(() => yearlyYield(noKy, dryClimate, 10, DROUGHT_P)).toThrow(/yield response factor/);
   });
 });
 
@@ -185,7 +197,7 @@ const rotation = [{ crop: 'a', coverCrop: 'c' }, { crop: 'n' }];
 
 describe('incomeEstimate', () => {
   it('averages yield × price − direct costs over the main crops and the record years', () => {
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026, check NRCS');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026, check NRCS', DROUGHT_P);
     expect(r.status).toBe('ready');
     if (r.status !== 'ready') return;
     const { estimate, perYearMargins } = r.data;
@@ -201,7 +213,7 @@ describe('incomeEstimate', () => {
   });
 
   it('gives the 10th and 90th percentile year as the range, at today’s prices', () => {
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     const range = r.data.estimate.marginPerHa.range!;
     // sorted: 5 × 650, 40 × 1250; p10 at h = 4.4 → 650 + 0.4 × 600 = 890; p90 = 1250
@@ -211,7 +223,7 @@ describe('incomeEstimate', () => {
   });
 
   it('lists every dataset the margin depends on and the latest retrieval date', () => {
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     const m = r.data.estimate.marginPerHa;
     expect([...m.datasetIds].sort()).toEqual(['isu-budgets', 'nasa-power-monthly', 'usda-quickstats']);
@@ -220,7 +232,7 @@ describe('incomeEstimate', () => {
 
   it('adds only confirmed payments and names unconfirmed ones in the gaps', () => {
     const payments = [payment('NRCS 340 Cover crop', 50, true), payment('CSP bundle', 100, false)];
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, payments, 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, payments, 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     expect(r.data.confirmedPaymentsPerHa).toBe(50);
     expect(r.data.estimate.payments).toHaveLength(2); // listed, even when left out of the sum
@@ -230,7 +242,7 @@ describe('incomeEstimate', () => {
   });
 
   it('leaves a confirmed payment without a rate out of the sum and names it', () => {
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, [payment('NRCS 328', null, true)], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [payment('NRCS 328', null, true)], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     expect(r.data.confirmedPaymentsPerHa).toBe(0);
     expect(r.data.gaps).toEqual([{ code: 'gap.payment-no-rate', params: { programme: 'NRCS 328' } }]);
@@ -238,30 +250,30 @@ describe('incomeEstimate', () => {
 
   it('returns no-data when a main crop has no sourced price, and estimates nothing', () => {
     const noPrice = { ...econN, pricePerT: src(null, 'USD/t', 'usda-quickstats') };
-    const r = incomeEstimate(rotation, crops, dryClimate, [econA, noPrice], [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, [econA, noPrice], [], 'USD', 'FY2026', DROUGHT_P);
     expect(r).toEqual({ status: 'no-data', reason: { code: 'income.no-price', params: { crop: 'n' } } });
   });
 
   it('returns no-data when a main crop has no economics row, or no sourced yield or cost', () => {
-    expect(incomeEstimate(rotation, crops, dryClimate, [econA], [], 'USD', 'FY2026')).toEqual({
+    expect(incomeEstimate(rotation, crops, dryClimate, [econA], [], 'USD', 'FY2026', DROUGHT_P)).toEqual({
       status: 'no-data',
       reason: { code: 'income.no-price', params: { crop: 'n' } },
     });
     const noCost = { ...econA, directCostsPerHa: src(null, 'USD/ha', 'isu-budgets') };
-    expect(incomeEstimate(rotation, crops, dryClimate, [noCost, econN], [], 'USD', 'FY2026')).toEqual({
+    expect(incomeEstimate(rotation, crops, dryClimate, [noCost, econN], [], 'USD', 'FY2026', DROUGHT_P)).toEqual({
       status: 'no-data',
       reason: { code: 'income.no-price', params: { crop: 'a' } },
     });
   });
 
   it('ignores cover crops, which have no economics row and no yield response factor', () => {
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     expect(r.status).toBe('ready');
   });
 
   it('returns no-data when a main crop has no yield response factor', () => {
     const noKy = { ...cropA, yieldResponseFactor: undefined } as unknown as CropTraits;
-    const r = incomeEstimate(rotation, [noKy, cropN, coverC], dryClimate, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, [noKy, cropN, coverC], dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     expect(r).toEqual({ status: 'no-data', reason: { code: 'income.no-yield-response', params: { crop: 'a' } } });
   });
 
@@ -269,7 +281,7 @@ describe('incomeEstimate', () => {
     const climate = makeClimate((r) =>
       r.year === 2000 && (r.month === 5 || r.month === 7) ? { ...r, rootWetness: null, tMaxC: null, frostDays: null } : r,
     );
-    const r = incomeEstimate(rotation, crops, climate, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, climate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     expect(r.data.perYearMargins).toHaveLength(44);
     expect(r.data.years).toBe(44);
@@ -278,7 +290,7 @@ describe('incomeEstimate', () => {
   });
 
   it('returns no-data when no record year can be replayed', () => {
-    const r = incomeEstimate(rotation, crops, { ...makeClimate(), monthly: [] }, economics, [], 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, { ...makeClimate(), monthly: [] }, economics, [], 'USD', 'FY2026', DROUGHT_P);
     expect(r).toEqual({ status: 'no-data', reason: { code: 'income.no-climate-years' } });
   });
 });
@@ -286,7 +298,7 @@ describe('incomeEstimate', () => {
 describe('incomeTotal', () => {
   it('adds confirmed payments to the mean and to the bad-year and good-year margins', () => {
     const payments = [payment('NRCS 340', 50, true), payment('CSP', 100, false)];
-    const r = incomeEstimate(rotation, crops, dryClimate, economics, payments, 'USD', 'FY2026');
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, payments, 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     const t = incomeTotal(r.data);
     expect(t.meanPerHa).toBeCloseTo((40 * 1250 + 5 * 650) / 45 + 50, 2);
