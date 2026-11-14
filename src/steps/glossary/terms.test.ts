@@ -17,6 +17,7 @@ const REQUIRED = [
   'humus-balance',
   'percentile-range',
   'model-estimate',
+  'margin',
 ];
 
 // Vitest runs from the repo root (vite.config.ts), so src is next to it.
