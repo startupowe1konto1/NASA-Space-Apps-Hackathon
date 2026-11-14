@@ -84,8 +84,12 @@ export function buildCalendar(
       // If the cover's sowing month is not in the gap but falls in the main crop's season, it was sown into the
       // standing crop (interseeded, e.g. red clover sown in 8 under maize harvested in 10), so it covers the soil
       // from the first month after harvest. A sowing month outside both means the cover cannot be sown: no cover.
+      // An interseeded cover that is not a winter cover and ends by the main harvest never covers the gap (same
+      // rule as coverFits in candidates.ts): no cover either.
       const sowAt = gap.findIndex((t) => (t % 12) + 1 === cover.sowMonth);
-      coverStart = sowAt !== -1 ? sowAt : inSeason(crop, cover.sowMonth) ? 0 : gap.length;
+      const interseeded = sowAt === -1 && inSeason(crop, cover.sowMonth);
+      const outlivesHarvest = isWinterCrop(cover) || cover.harvestMonth > crop.harvestMonth;
+      coverStart = sowAt !== -1 ? sowAt : interseeded && outlivesHarvest ? 0 : gap.length;
       const endAt = gap.findIndex((t, k) => k >= coverStart && (t % 12) + 1 === cover.harvestMonth);
       coverEnd = endAt === -1 ? gap.length - 1 : endAt;
     }
