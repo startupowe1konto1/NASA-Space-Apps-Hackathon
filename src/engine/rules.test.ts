@@ -90,6 +90,36 @@ describe('toSoilRules on the rows in data/rules', () => {
     expect(sourceIds['erosion.zeroScoreIndex']).toContain('erosion.slr.bare');
   });
 
+  // #105 item 5: the zero point is bare fallow on the RUSLE unit plot (LS = 1, the row's unit text), so the field's
+  // slope factor moves the erosion score instead of cancelling out.
+  it('a steeper field scores lower on erosion: the zero point is bare fallow on the unit plot, LS = 1', () => {
+    const years = [{ crop: 'maize' }, { crop: 'soybean' }];
+    const erosionAt = (pct: number) => {
+      const slopePct = { ...iowaSlope, value: pct };
+      const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, years, { monthly: iowaClimate.monthly, slopePct });
+      const profile = { ...iowaClimate, soil: { sandPct: iowaSlope, clayPct: iowaSlope, organicCarbon: iowaSlope, ph: iowaSlope }, slopePct };
+      return { rules, score: soilHealth(years, fixtureCrops.US, profile, rules, { goal: 'keepSoil', on: [], excludedCrops: [] }).indicators.erosion!.value };
+    };
+    const flat = erosionAt(1);
+    const steep = erosionAt(12);
+    expect(steep.score).toBeLessThan(flat.score);
+    expect(find(flat.rules.erosion, 'erosion.zeroScoreIndex')).toBe(find(steep.rules.erosion, 'erosion.zeroScoreIndex'));
+    const zeroRow = flat.rules.erosion.find((r) => r.id === 'erosion.zeroScoreIndex')!;
+    expect(`${zeroRow.unit} ${zeroRow.appliesTo}`).toMatch(/unit plot/);
+    expect(`${zeroRow.unit} ${zeroRow.appliesTo}`).not.toMatch(/this field/);
+  });
+
+  // #124 review item 2: after its last cut the alfalfa stand stays in the ground until the next crop is sown, so its
+  // residue months use the same established-meadow full-year value (AH 537 Table 5-B) as its crop months.
+  it('gives an alfalfa rotation erosion C factors, the stand counting as meadow until the next crop', () => {
+    const { rules, sourceIds, erosionNoRow } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'alfalfa' }, { crop: 'maize' }], iowa);
+    const meadow = rowValue('erosion.slr.meadow').alfalfa!;
+    const maizeResidue = rowValue('erosion.slr.residueCover.maize').tilled30!;
+    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeCloseTo((meadow + maizeResidue) / 200, 3);
+    expect(sourceIds['erosion.cFactor.residue']).toContain('erosion.slr.meadow');
+    expect(erosionNoRow).not.toContain('alfalfa');
+  });
+
   it('leaves erosion C factors out for a cover crop without a row', () => {
     const { rules, erosionNoRow } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
       monthly: poznanClimate.monthly,

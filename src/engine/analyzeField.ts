@@ -468,7 +468,10 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           totals: r.totals,
           rankByGoal: r.rankByGoal,
           belowSoilFloor: r.belowSoilFloor,
-          soilHealth: r.soilHealth,
+          // #124 review: the card shows the soil total the goals ranked on. Where this rotation's indicators differ from the
+          // current one's, that is the current total plus the mean difference on the shared ones (rankSoil), and the
+          // gap 'gap.soil-compared-shared' says how to rebuild it.
+          soilHealth: sharedOf.has(r.id) ? (r.rankSoil ?? r.soilHealth) : r.soilHealth,
           indicators: c.soil.indicators,
           climateResilience: r.climateResilience,
           priorityScores: r.priorityScores,

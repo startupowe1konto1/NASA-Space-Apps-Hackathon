@@ -50,6 +50,7 @@ export const CARD_MESSAGE_CODES = [
   'gap.suitability-error',
   'gap.rule-missing',
   'gap.soil-compared-shared',
+  'gap.soil-compared-none',
   'gap.humus-medium-class',
   'gap.erosion-rye-row',
   'gap.leaching-not-counted',
@@ -59,6 +60,7 @@ export const CARD_MESSAGE_CODES = [
   'soil.evidence.organic-matter-unadjusted',
   'gap.unknown-crop',
   'soil.basis.total-complete',
+  'soil.basis.compared',
   'empty.outside-coverage',
   'empty.no-history',
   'empty.crops-error',
@@ -297,7 +299,11 @@ export function cardMessages(c: CardInput): CardMessages {
     for (const crop of noRow) gaps.push(m('gap.erosion-no-row', { crop: cropLabel(crop) }));
   }
   if (c.soilComparedOn) {
-    gaps.push(m('gap.soil-compared-shared', { shared: c.soilComparedOn.length > 0 ? c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') : 'none' }));
+    gaps.push(
+      c.soilComparedOn.length > 0
+        ? m('gap.soil-compared-shared', { shared: c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') })
+        : m('gap.soil-compared-none'),
+    );
   }
   if (c.soil.indicators?.organicMatter && c.years.length > 0 && c.soil.evidence.some((e) => e.ruleIds.some((id) => id.startsWith('humus.coef.') && id.endsWith('.pl')))) {
     gaps.push(m('gap.humus-medium-class'));
