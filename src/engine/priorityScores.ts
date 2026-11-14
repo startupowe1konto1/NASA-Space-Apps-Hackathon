@@ -4,6 +4,8 @@
 // in the ground (sowMonth..harvestMonth; a winter crop starts in the previous calendar year), is compared with a
 // seasonal need in mm for its need class. The thresholds come in as `waterNeedMm` because no sourced table exists
 // yet; O3-B6 passes them from data/rules once one does. Evapotranspiration is not used.
+// Until a sourced data/rules row backs those thresholds, the water score is never 'strong': 'moderate' with a
+// complete record, 'weak' when a season had to be skipped for a gap in the rain record.
 import type { ClimateProfile, CropTraits, RotationOption, Score } from '../contracts';
 import { cropById } from './calendar';
 
@@ -15,6 +17,7 @@ export const PRIORITY_MESSAGE_CODES = [
   'priority.basis.forage', //        "{forageYears} of {years} rotation years give forage: a forage crop or a grazed cover crop. Counted from crop traits."
   'priority.basis.water', //         "Rain covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (a model estimate). Range: 10th to 90th percentile year."
   'priority.basis.water-no-data', // "No growing season in the rain record is complete, so the water need could not be checked."
+  'priority.basis.water-no-need-class', // "No crop in this rotation has a water need class, so the water need could not be checked."
 ] as const;
 export type PriorityMessageCode = (typeof PRIORITY_MESSAGE_CODES)[number];
 
@@ -36,7 +39,11 @@ const percentile = (sorted: number[], p: number) => sorted[Math.round(p * (sorte
 /**
  * Share of crop-years (main crop of each rotation year × each year of the climate record) in which growing-season rain
  * reached the need of the crop's class. A season that runs before the record starts is left out; a season with a
- * missing month is left out and lowers confidence to moderate.
+ * missing month is left out and lowers confidence to weak. A crop without a water need class is skipped; when every
+ * crop is, the basis is 'priority.basis.water-no-need-class'.
+ *
+ * `waterNeedMm` (seasonal need in mm per class) is not backed by any data/rules row yet, so confidence starts at
+ * 'moderate', not 'strong'. Raise it once a sourced row exists.
  */
 export function waterScore(
   years: Years,
@@ -81,6 +88,10 @@ export function waterScore(
     covered += yearCovered;
   }
 
+  if (!years.some((y) => cropById(crops, y.crop).waterNeed !== undefined)) {
+    // Placeholder value: no crop could be checked at all, whatever the record holds.
+    return { value: 0, low: 0, high: 0, confidence: 'weak', basis: { code: 'priority.basis.water-no-need-class' } };
+  }
   if (checked === 0) {
     // Placeholder value: nothing was checked, the basis says so and confidence is weak.
     return { value: 0, low: 0, high: 0, confidence: 'weak', basis: { code: 'priority.basis.water-no-data' } };
@@ -90,7 +101,7 @@ export function waterScore(
     value: round((100 * covered) / checked),
     low: round(100 * percentile(sorted, 0.1)),
     high: round(100 * percentile(sorted, 0.9)),
-    confidence: gaps ? 'moderate' : 'strong',
+    confidence: gaps ? 'weak' : 'moderate', // no rule row behind waterNeedMm yet
     basis: { code: 'priority.basis.water', params: { coveredYears: covered, cropYears: checked } },
   };
 }

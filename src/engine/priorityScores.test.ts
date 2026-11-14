@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import type { ClimateProfile } from '../contracts';
+import type { ClimateProfile, CropTraits } from '../contracts';
 import { iowaClimate } from '../fixtures/analysis.iowa';
 import { fixtureCrops } from '../fixtures/crops';
 import { PRIORITY_MESSAGE_CODES, forageScore, waterScore } from './priorityScores';
 
 const us = fixtureCrops.US;
 const NEED = { low: 200, medium: 400, high: 600 };
+
+/** The same crop with no water need class (allowed on cover crops, #44). */
+function withoutWaterNeed(c: CropTraits): CropTraits {
+  const { waterNeed: _omit, ...rest } = c;
+  return rest;
+}
 
 /** A record where every month gets `rain(year, month)` mm. */
 function climate(rain: (year: number, month: number) => number | null, years = [2020, 2021, 2022, 2023]): ClimateProfile {
@@ -62,12 +68,31 @@ describe('waterScore', () => {
     expect(s.basis.params?.cropYears).toBe(3);
   });
 
-  it('skips seasons with missing rain and lowers confidence', () => {
+  it('skips seasons with missing rain and lowers confidence to weak', () => {
     const c = climate((year, month) => (year === 2022 && month === 6 ? null : 100));
     const s = waterScore([{ crop: 'maize' }], us, c, NEED);
     expect(s.value).toBe(100);
-    expect(s.confidence).toBe('moderate');
+    expect(s.confidence).toBe('weak');
     expect(s.basis.params?.cropYears).toBe(3);
+  });
+
+  it('with a complete record confidence is moderate, not strong: the need thresholds have no rule row yet', () => {
+    const s = waterScore([{ crop: 'maize' }], us, climate(() => 100), NEED);
+    expect(s.confidence).toBe('moderate');
+  });
+
+  it('skips a crop without a water need class and scores the others', () => {
+    const noNeed = us.map((c) => (c.id === 'soybean' ? withoutWaterNeed(c) : c));
+    const s = waterScore([{ crop: 'maize' }, { crop: 'soybean' }], noNeed, climate(() => 100), NEED);
+    expect(s.value).toBe(100);
+    expect(s.basis.params?.cropYears).toBe(4); // maize only, 4 record years
+  });
+
+  it('when no crop has a water need class the basis says so, not that the rain record is incomplete', () => {
+    const s = waterScore([{ crop: 'maize' }, { crop: 'soybean' }], us.map(withoutWaterNeed), climate(() => 100), NEED);
+    expect(s.confidence).toBe('weak');
+    expect(s.basis.code).toBe('priority.basis.water-no-need-class');
+    expect(PRIORITY_MESSAGE_CODES).toContain(s.basis.code);
   });
 
   it('runs on the Iowa fixture record', () => {
