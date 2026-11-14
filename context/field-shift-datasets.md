@@ -58,6 +58,26 @@ Rule for the build: every number that decides a recommendation (drought, heat, f
 | 31 | Eurostat agricultural prices and NUTS 2 yields | prices and regional yields | EU | ○ |
 | 32 | World Bank commodity prices ("Pink Sheet") | monthly fertilizer prices (urea, DAP) | global | ○ |
 
+## Added after comparing with the candidate list (PR #17), 14:00 CET
+
+| # | Dataset | What we use it for | Where | Status |
+|---|---|---|---|---|
+| 33 | MODIS MOD16 evapotranspiration (500 m, 8-day, from 2000) | water use per field, finer than POWER | global | ○ (Planetary Computer search works, download returned 403, token to fix) |
+| 34 | [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/) as an access route to NASA products | NASA HLS (30 m, Landsat + Sentinel-2), NASADEM elevation, MODIS NDVI (13Q1) and ET (16A3GF), Landsat C2 without an Earthdata login | global | ✅ for HLS and NASADEM: STAC search CORS `*`, anonymous SAS token, a 15 MB HLS band and a 7.8 MB NASADEM tile answered HEAD 200 for an Iowa field; ◐ for MODIS (403) |
+| 35 | [ULDK (GUGiK)](https://uldk.gugik.gov.pl/) | click on a map → Polish cadastral parcel number and boundary, the same parcel ID farmers use in ARiMR applications | Poland | ✅, no login, CORS `*` (test point returned parcel 428/1, Swarzędz, wielkopolskie) |
+| 36 | [OpenStreetMap](https://www.openstreetmap.org/) | base map; some farmland outlines | global | ○ |
+| 37 | [FAOSTAT](https://www.fao.org/faostat/) | national yields and prices, fallback outside the USA and the EU | global | ○ |
+| 38 | MERRA-2 | source behind most POWER meteorology; only if we need hourly data | global | ○, not needed for the MVP |
+| 39 | Open-Meteo (not NASA) | weather forecast for the coming season | global | ○, optional; keep out of the core so NASA stays the data base |
+
+## Comparison with the candidate list (PR #17)
+
+- **On both lists:** NASA POWER, GPM IMERG, ERA5, SMAP (GIBS and files), NISAR SME2, GRACE, GLDAS, ECOSTRESS, MODIS NDVI, VIIRS, Landsat/HLS, Sentinel-2, SoilGrids, SRTM, SSURGO, FAO GAEZ, FAO EcoCrop, CropScape/NASS, GIBS, AppEEARS, Earthdata Search/CMR.
+- **Only on the candidate list, now added here:** MODIS MOD16, Planetary Computer, OpenStreetMap, FAOSTAT, MERRA-2, Open-Meteo (rows 33–39).
+- **Only on the candidate list, not added:** GEDI (canopy height; little use on arable fields), Google Earth Engine (needs account and cloud project registration; Planetary Computer covers the same NASA products without an account).
+- **Only on our list:** ESA WorldCereal, ESA CCI Soil Moisture, LUCAS topsoil, EuroCrops v2, FAO-56 crop coefficients, Polish soil maps, and the whole money layer (ARiMR, NRCS, NASS QuickStats, AMS, ERS, GUS, Eurostat, World Bank). The candidate list has no prices or payments, which the team decided to include as an add-on.
+- **Status corrections for the candidate list:** CropScape was checked at 13:20 (Iowa corn–soy history 2019–2025 by API; no CORS) and SSURGO was checked through Soil Data Access (CORS `*`). The candidate list marks both "Not checked".
+
 ## Next step
 
-Compare this list with the team's separate list: mark overlaps, datasets only on their list, and datasets only on ours, then decide what to drop. Test the ○ rows the plan depends on before the build starts (first: MODIS NDVI via GIBS, NRCS Iowa rates, ARiMR 2026 rates).
+Test the ○ rows the build depends on before 15:10: MODIS NDVI and ET download from Planetary Computer (fix the 403), NRCS Iowa payment rates for practices 340 and 328, ARiMR 2026 eco-scheme rates.

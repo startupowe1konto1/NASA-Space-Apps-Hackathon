@@ -24,8 +24,12 @@ Sat 14 Nov, around 13:30 CET. From a voice discussion in the team, summarised. I
 
 One idea in the discussion was rejected as something "everyone does"; the transcript does not make clear which one. To confirm with the team.
 
-## Open questions for the spec
+## Decisions after the discussion (14:00)
 
-- How many rotation variants to show (the challenge asks for at least three including the current one).
+- Show the **3 best rotations plus the current one** for comparison. The engine may score more; the screen shows these four.
+- **WhatsApp/Telegram is an add-on:** the simplest version, a bot that sends back a link to the field report. A full chat through the bot only after T+8, if at all.
+- **Sonification** (for example 45 years of soil moisture as sound, droughts heard as silence) is a pitch differentiator, built only if time is left.
+
+## Open questions for the spec
 - What "soil health" score we can compute from the data and defend (nitrogen, organic matter, erosion, structure, pest-cycle break).
 - Which prices and payment rates we can source for 2026 in time.
