@@ -55,7 +55,7 @@ def request(url, data=None, attempts=4, timeout=60):
     last = None
     for attempt in range(attempts):
         try:
-            headers = {'User-Agent': 'curl/8.5.0'}
+            headers = {'User-Agent': 'field-shift-tool/0.1 (NASA Space Apps 2026 build script)'}
             if data is not None:
                 headers['Content-Type'] = 'application/json'
             req = urllib.request.Request(url, data=data, headers=headers)
