@@ -234,7 +234,7 @@ describe('analyzeField with fixture providers', () => {
 
   // #105 item 7 and the #124 review: the soil total on a card is the number the goals rank on, and a farmer can rebuild
   // it from what the cards show. A card scored on the same indicators as the current rotation shows the mean of its
-  // own indicators. A card scored on fewer or other indicators shows the current total plus the mean difference on the
+  // own indicators. A card scored on fewer or other indicators shows the current total plus the weighted difference on the
   // indicators both have, and a gap says so and names them.
   it('shows the soil total the goals rank on, and says how to rebuild it when the indicator sets differ', async () => {
     const withRules = createAnalyzeField({ rules: shippedRules });
