@@ -1,9 +1,4 @@
 {
-  "steps.crops.noField": "Pick a field first.",
-  "steps.crops.proposed": "Satellite crop maps suggest this history. Is this right?",
-  "steps.crops.placeholder": "The crop picker comes with task O2-B2. Until then, use this example history.",
-  "steps.crops.confirm": "Yes, use these crops",
-  "steps.crops.saved": "Saved {n} years of crops.",
   "steps.money.notLoaded": "Prices and payment rates are not loaded yet.",
   "steps.report.placeholder": "Report for {field}, goal: {goal}. The printable report comes with task O2-B7."
 }

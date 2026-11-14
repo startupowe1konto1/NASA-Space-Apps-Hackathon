@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
 import { t } from './i18n';
@@ -56,7 +56,11 @@ describe('step shell on fixtures', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Poznań demo field' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
-    await user.click(screen.getByRole('button', { name: 'Yes, use these crops' }));
+    // Poland has no satellite crop history, so the farmer picks two seasons in the crop picker (O2-B2).
+    const pickers = await screen.findAllByRole('radiogroup', { name: /Main crop in/ });
+    await user.click(within(pickers[0]!).getByRole('radio', { name: 'Winter wheat' }));
+    await user.click(within(pickers[1]!).getByRole('radio', { name: 'Winter rapeseed' }));
+    await screen.findByText('Saved 2 years of crops.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await screen.findByText('Your rotation', undefined, { timeout: 3000 });
