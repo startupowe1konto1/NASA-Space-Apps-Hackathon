@@ -1,5 +1,5 @@
 import type { CropTraits, WaterNeed } from './index';
-import { cropTraits, score, sourced } from './schemas';
+import { cropTraits, moneyFile, score, sourced } from './schemas';
 
 const base = { datasetIds: ['nasa-power-monthly'], kind: 'model', retrievedAt: '2026-11-14' };
 
@@ -57,5 +57,27 @@ describe('WaterNeed', () => {
     const asType: WaterNeed = need;
     const byNeed: Record<WaterNeed, number> = { low: 1, medium: 2, high: 3 };
     expect(byNeed[asType]).toBe(2);
+  });
+});
+
+describe('moneyFile economics periods', () => {
+  const ref = { title: 't', url: 'https://example.org', locator: 'yield: p. 1' };
+  const row = {
+    crop: 'maize', referenceYieldTPerHa: 10, pricePerT: 150, directCostsPerHa: 1000, sources: [ref],
+    yieldPeriod: '2021–2025 mean', pricePeriod: '2025 marketing year', costsPeriod: '2026 budget',
+  };
+  const file = (economics: object[]) => ({ campaign: 'c', currency: 'USD', economics, payments: [] });
+
+  it('accepts a row where each value has its own period and no single year', () => {
+    expect(moneyFile.safeParse(file([row])).success).toBe(true);
+  });
+
+  it('keeps the periods when parsing', () => {
+    const parsed = moneyFile.parse(file([row]));
+    expect(parsed.economics[0]).toMatchObject({ yieldPeriod: row.yieldPeriod, pricePeriod: row.pricePeriod, costsPeriod: row.costsPeriod });
+  });
+
+  it('rejects an empty period', () => {
+    expect(moneyFile.safeParse(file([{ ...row, pricePeriod: '' }])).success).toBe(false);
   });
 });
