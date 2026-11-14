@@ -84,6 +84,11 @@
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
         "locator": "Wheat chapter, page 93: during head development and flowering frost may lead to loss of spikelets; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months (heading and grain-filling months)"
+      },
+      {
+        "title": "Shroyer, Mikesell and Paulsen (1995), Spring Freeze Injury to Kansas Wheat, C646, Kansas State University",
+        "url": "https://bookstore.ksre.ksu.edu/pubs/C646.PDF",
+        "locator": "p. 2, Table 1 (two hours of exposure): heading and flowering 30 F (-1 C), yield effect \"Severe\"; milk and dough 28 F (-2 C); confirms the frost row in the heading and grain-filling months (May, June; COBORU WEDO Zboza ozime 2024 at Srem: heading 20 May, soft dough 10 July). Excerpt: data/samples/research/agronomy/hf-ksu-c646-wheat-freeze.txt"
       }
     ]
   },
@@ -112,6 +117,22 @@
         ],
         "threshold": 35,
         "lossShare": 0.2
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          5
+        ],
+        "threshold": 1,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          9
+        ],
+        "threshold": 1,
+        "lossShare": 0.12
       }
     ],
     "waterNeed": "high",
@@ -153,6 +174,31 @@
         "title": "Hatfield and Prueger (2015), Temperature extremes: Effect on plant growth and development, Weather and Climate Extremes 10: 4-10 (open access)",
         "url": "https://pages.uoregon.edu/chendon/coffee_literature/old_literature/2015%20Weather%20Clim.%20Extremes,%20Temperature%20extremes%20on%20plant%20growth.pdf",
         "locator": "page 5, section 1.2: maize pollen viability decreases above 35 °C, and kernel growth rate falls as temperature rises from 30 to 35 °C; heat threshold 35 °C compared with the monthly maximum of NASA POWER T2M_MAX in the pollination and kernel-filling months"
+      },
+      {
+        "title": "COBORU, Wyniki ekologicznych doswiadczen odmianowych (WEDO) nr 227: Kukurydza (na ziarno), rok zbioru 2025",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WEDO_227_Kukurydza_2025.pdf",
+        "locator": "PDF p. 8, Tabela 3, column Srem (Wielkopolska), one organic trial season: sowing 6.05, emergence 19.05, silking 26.07, full maturity 1.10, harvest 30.10; places the emergence frost in May and the grain-fill frost in September, the month before maturity. Excerpt: data/samples/research/agronomy/hf-coboru-wedo-kukurydza-2025.txt"
+      },
+      {
+        "title": "Licht (2020), Cold temperatures on the way; what will it mean for corn and soybean seedlings?, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/cold-temperatures-way-what-will-it-mean-corn-and-soybean-seedlings",
+        "locator": "paragraphs 8-9: \"Temperature 28 oF or lower for a couple of hours will be lethal to growing tissue that has emerged\" (-2 °C); frost row for May (emergence), threshold 1 on NASA POWER FROST_DAYS in that month, the same rule as the other frost rows in data/crops (monthly data cannot show how far below 0 °C the air went); lossShare 0.2 is the team rule of thumb (no loss share given). Excerpt: data/samples/research/agronomy/hf-isu-spring-cold-seedlings.txt"
+      },
+      {
+        "title": "IUNG-PIB, Instrukcja upowszechnieniowa nr 200 (2015): Ksiezak, Staniak and Bojarszczuk, Uprawa kukurydzy w systemie ekologicznym",
+        "url": "https://www.iung.pl/wp-content/uploads/2023/09/Instrukcja-Uprawa-kukurydzy-w-systemie-ekologicznym.pdf",
+        "locator": "PDF pp. 22 and 24: \"Spadki temperatury ponizej -2ºC powoduja przerwanie wegetacji\"; early autumn frosts are dangerous \"gdy kukurydza jest w fazie wypelniania ziarna\" (during grain filling); harvest at the earliest in the second or third ten days of September. Frost row for September, threshold 1 on NASA POWER FROST_DAYS in that month, the same rule as the other frost rows in data/crops (monthly data cannot show how far below 0 °C the air went). Excerpt: data/samples/research/agronomy/hf-iung-kukurydza-ekologiczna-2015.txt"
+      },
+      {
+        "title": "Licht and Hurburgh (2019), Harvest consideration for frost killed corn, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/harvest-consideration-frost-killed-corn",
+        "locator": "paragraph 9: yield loss from a killing frost before maturity \"ranges from 12% in late dent up to 41% at beginning dent stage\"; lossShare 0.12 for the September frost row is the low end. Excerpt: data/samples/research/agronomy/hf-isu-corn-fall-frost.txt"
+      },
+      {
+        "title": "Licht and Archontoulis (2020), What impact will the heat and dry weather have on pollination 2020?, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/what-impact-will-heat-and-dry-weather-have-pollination-2020",
+        "locator": "paragraphs 7-8: heat stress \"typically requires temperature of greater than 95 oF\" (35 °C) in the 2 weeks before or after pollination; a second source for the 35 °C heat threshold (silking 26 July at Srem 2025, so the window reaches into August). Excerpt: data/samples/research/agronomy/hf-isu-corn-pollination-heat.txt"
       }
     ]
   },
@@ -171,6 +217,14 @@
           7
         ],
         "threshold": 20,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          6
+        ],
+        "threshold": 29,
         "lossShare": 0.2
       }
     ],
@@ -208,6 +262,16 @@
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
         "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      },
+      {
+        "title": "Bueckert, Pea yield formation in warming temperatures: phenological mechanisms, University of Saskatchewan research project (project page by Saskatchewan Pulse Growers)",
+        "url": "https://saskpulse.com/research/listing/pea-yield-formation-in-warming-temperatures-phenological-mechanisms/",
+        "locator": "\"Project Description\": \"A few days of heat above 29°C in the field causes flower and young pod abortion and lowers yield\"; heat threshold 29 °C compared with the monthly maximum of NASA POWER T2M_MAX in the flowering month (June, from the COBORU start of flowering 31.05 and 10.06); lossShare 0.2 is the team rule of thumb (no loss share given). Excerpt: data/samples/research/agronomy/hf-saskpulse-pea-heat.txt"
+      },
+      {
+        "title": "FAO Land and Water, Crop information: Pea (based on FAO Irrigation and Drainage Paper 33)",
+        "url": "https://www.fao.org/land-water/databases-and-software/crop-information/pea/en/",
+        "locator": "live page returned 404 on 14 Nov 2026; read through the Internet Archive copy http://web.archive.org/web/20250907125315/https://www.fao.org/land-water/databases-and-software/crop-information/pea/en/ (D37). Stage table, row \"Yield Response Factor, Ky\": 0.2 / 0.9 / 0.7 / 0.2, total 1.15; confirms the seasonal 1.15. Excerpt: data/samples/research/agronomy/ky-fao-cropinfo-pea.txt"
       }
     ]
   },
@@ -376,7 +440,7 @@
           6,
           7
         ],
-        "threshold": 32,
+        "threshold": 30,
         "lossShare": 0.2
       }
     ],
@@ -402,12 +466,12 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Barley chapter, page 139: high temperatures (above 30-32 °C) during grain filling shorten it and reduce grain weight, even in spells of only 3 days; heat threshold 32 °C (the top of that range) compared with the monthly maximum of NASA POWER T2M_MAX in the heading and grain-filling months"
+        "locator": "Barley chapter, page 139 (PDF p. 154): \"High temperatures (above 30-32 ºC) accelerate seed development towards maturity, shortening the grain filling period\", even in spells of only 3 days; heat threshold 30 °C, the low end of that range (R10 conversion rule 1), compared with the monthly maximum of NASA POWER T2M_MAX in the heading and grain-filling months. Excerpt: data/samples/research/agronomy/hf-fao66-crop-chapters.txt"
       },
       {
         "title": "Field Shift decision D29: the yield response factor is optional",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-        "locator": "D29: no opened document gives a Ky for barley (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+        "locator": "D29: no single Ky for barley. FAO Paper 66 Table 1 (the FAO-33 seasonal values) has none; the one measured value found (Andersen, Jensen and Losch, IPI 1/1994, Table 5, Jyndevad, Denmark, sandy soil) ranges from 0.38 to 1.50 over the whole season between two years, so yieldResponseFactor is left out and the income score for this crop is no-data (R10: data/samples/research/agronomy/ky-andersen-1992-spring-barley.txt)"
       },
       {
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
@@ -496,9 +560,19 @@
         ],
         "threshold": 20,
         "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          4,
+          5
+        ],
+        "threshold": 29,
+        "lossShare": 0.5
       }
     ],
     "waterNeed": "low",
+    "yieldResponseFactor": 1.52,
     "forage": false,
     "residueCover": "low",
     "sources": [
@@ -523,11 +597,6 @@
         "locator": "page 4, \"Low Residue Crop List\", low residue seed/grain: Canola; page 5 lists Canola/Rapeseed as fragile; low residue list maps to residueCover low"
       },
       {
-        "title": "Field Shift decision D29: the yield response factor is optional",
-        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-        "locator": "D29: no opened document gives a Ky for rapeseed (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
-      },
-      {
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
         "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
@@ -536,6 +605,16 @@
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
         "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      },
+      {
+        "title": "Moteva, Spalevic, Gigova and Tanaskovik (2016), Water use efficiency and yield-dependences for canola (Brassica napus L.) under irrigation, Agriculture and Forestry 62(1): 403-413",
+        "url": "https://repository.ukim.mk/bitstream/20.500.12188/28014/1/20160330-42%20Moteva%20et%20al.pdf",
+        "locator": "Summary p. 403, Results p. 408 and Conclusion 4 p. 411: \"the value of the crop factor was established as Ky=1.52, with a high coefficient of determination R2=0.73\"; seasonal value from a winter canola trial near Sofia, Bulgaria, temperate-continental climate, 2010-2013 (one trial, no stage values). Istanbulluoglu et al. (2010) give 0.87 but only an abstract on a third-party index was read, so it is not used (D37). Excerpt: data/samples/research/agronomy/ky-moteva-2016-canola.txt"
+      },
+      {
+        "title": "Tidy et al. (2025), Large scale phenotyping on the effect of heat and cold stress on Brassica napus during floral development, Plant Stress 17: 100957 (open access, Rothamsted Repository)",
+        "url": "https://repository.rothamsted.ac.uk/id/eprint/33546/1/Tidy%20et%20al%202025%20Plant%20Stress.pdf",
+        "locator": "PDF p. 3, Introduction: \"high-temperature stress can occur at >25 ◦C in OSR, with >29 ◦C leading to >50 % reduction in seed yield\"; heat threshold 29 °C compared with the monthly maximum of NASA POWER T2M_MAX in the flowering months (April and May: COBORU Oleiste 2024 mean start of flowering about 18 April, end 10.05 and 27.05); lossShare 0.5 is the lower bound the source gives. Excerpt: data/samples/research/agronomy/hf-tidy-2025-osr-heat-cold-flowering.txt"
       }
     ]
   },
@@ -574,6 +653,11 @@
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
         "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "IUNG-PIB (2025), Podlesny and Leszczynska, Miedzyplony i ich znaczenie w produkcji rolniczej, presentation",
+        "url": "https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf",
+        "locator": "slide 5, ARiMR payment rule: stubble catch crops sown 1 July to 20 August and kept until 15 October or 8 weeks from sowing (a mixture of at least two species); slide 30: recommended sowing by 15 August (mustard 20 kg/ha). Confirms sowMonth August and harvestMonth (termination) October. Excerpt: data/samples/research/agronomy/cover-iung-miedzyplony-prezentacja-2025.txt"
       }
     ]
   },
@@ -612,6 +696,11 @@
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
         "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "IUNG-PIB (2025), Podlesny and Leszczynska, Miedzyplony i ich znaczenie w produkcji rolniczej, presentation",
+        "url": "https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf",
+        "locator": "slide 5, ARiMR payment rule: stubble catch crops sown 1 July to 20 August and kept until 15 October or 8 weeks from sowing (a mixture of at least two species); slide 30: recommended sowing by 15 August (phacelia 10 kg/ha). Confirms sowMonth August and harvestMonth (termination) October. Excerpt: data/samples/research/agronomy/cover-iung-miedzyplony-prezentacja-2025.txt"
       }
     ]
   }
