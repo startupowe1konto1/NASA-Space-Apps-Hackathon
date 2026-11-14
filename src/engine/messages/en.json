@@ -1,0 +1,63 @@
+{
+  "resilience.basis.years": "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}). The range runs from the 10th to the 90th percentile year.",
+  "resilience.basis.missing-months": "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}). {count} of the {needed} months the crops need are missing from the record and were left out.",
+
+  "soil.basis.rule-range": "The range comes from the low and high values given in the source rules.",
+  "soil.basis.rule-of-thumb": "The source gives a single value, so the range is 15% either side, a rule of thumb.",
+  "soil.basis.total": "Weighted mean of {indicators} soil health indicators. Not scored: {missing}.",
+  "soil.basis.no-indicators": "No soil health indicator could be scored: the rule tables are missing.",
+  "soil.basis.cover-only": "Only soil cover is counted so far: the share of months with a crop, cover crop or residue. Nitrogen, organic matter, erosion and pest break are not scored yet. The range is 15% either side, a rule of thumb.",
+  "soil.evidence.nitrogen": "{legumeYears} of {years} years carry a legume, about {creditKgPerHa} kg N/ha a year. Leaching in bare months takes about {leachingLossPct}% of it.",
+  "soil.evidence.organic-matter": "Humus balance of {balancePerYear} units a year on this field ({climateClass} climate).",
+  "soil.evidence.erosion": "{exposedMonths} bare months per cycle catch about {bareRainMm} mm of rain a year.",
+  "soil.evidence.pest-break": "{violations} of {years} crops come back before their family's minimum break.",
+
+  "priority.basis.forage": "{forageYears} of {years} rotation years give forage: a forage crop or a cover crop that can be grazed. Counted from crop traits.",
+  "priority.basis.water": "Rain covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years in this field's NASA POWER record, a model estimate. The range runs from the 10th to the 90th percentile year.",
+  "priority.basis.water-no-data": "No growing season in the rain record is complete, so the water need could not be checked.",
+
+  "total.basis": "Soil health counts for {soil}%, climate resilience for {climate}%, your priorities for {priorities}% and income for {income}%.",
+  "income.not-wired": "Income is not calculated yet. Prices and costs are not loaded.",
+  "twins.error": "Similar fields could not be loaded. The rest of the card is complete.",
+
+  "why.rank.keepSoil": "Ranked {rank} of {count} rotations checked when you rank on keeping your soil.",
+  "why.rank.improveSoil": "Ranked {rank} of {count} rotations checked when you rank on improving your soil.",
+  "why.rank.income": "Ranked {rank} of {count} rotations checked when you rank on income.",
+  "why.current": "This is the rotation the field grows now. Every other option is compared with it.",
+  "why.cover-crop": "A {cover} cover crop after the {crop} keeps living roots in the soil after harvest.",
+  "why.legume": "The {crop} is a legume. It fixes nitrogen that the next crop can use.",
+  "why.fewer-bare": "The soil is bare about {bare} months a year instead of {currentBare} with your current rotation.",
+  "why.more-resilient": "{value}% of crop-years came through without drought, heat or frost damage on this field's record, against {current}% for your current rotation.",
+  "why.small-change": "It changes only one year of what you grow now.",
+  "why.more-families": "{families} crop families instead of {currentFamilies} give pests and diseases a longer break.",
+
+  "benefit.living-cover": "A crop or cover crop is growing in {living} of the {total} months of the cycle.",
+  "benefit.legume-nitrogen": "A legume in the rotation adds nitrogen, so the next crop may need less fertiliser.",
+  "benefit.fewer-hazard-years": "Fewer crop-years hit by drought, heat or frost over the {years} years on record: {value}% came through, against {current}% now.",
+  "benefit.family-break": "{families} crop families in the cycle break pest and disease cycles.",
+
+  "evidence.resilience": "{value}% of crop-years came through without drought, heat or frost damage at this field, {years} years ({from}–{to}) of NASA POWER data, a model estimate.",
+  "evidence.hazard-month": "In {hit} of {years} years at this field, {hazard} hit the {crop} in {month}.",
+  "evidence.cover-months": "In each {total}-month cycle the crop calendar shows {bare} bare months and {living} months with a living crop or cover crop. Our calculation from crop calendars.",
+
+  "gap.weak.soil-cover-only": "Low confidence: soil health counts only soil cover so far. Nitrogen, organic matter, erosion and pest break are not scored yet.",
+  "gap.weak.soil": "Low confidence in the soil health score: two or more of its inputs or rules are missing.",
+  "gap.weak.climate-record": "Low confidence in climate resilience: more than one month in ten that the crops need is missing from the climate record.",
+  "gap.current-not-suitable": "Your current rotation has {crop}, which FAO GAEZ rates not suitable here (index {index} of 100). It is kept for comparison.",
+  "gap.not-suitable": "{cropName} was left out: not suitable here according to FAO GAEZ (index {index} of 100).",
+  "gap.suitability-unknown": "FAO GAEZ has no suitability value for {crop} at this field, so it was not checked.",
+  "gap.suitability-error": "FAO GAEZ suitability could not be loaded, so no crop was checked for suitability.",
+  "gap.rule-missing": "Not scored yet: {indicator}. Its rule table with a source is not loaded.",
+  "gap.soil-missing": "Soil data is missing for: {inputs}. Scores that use soil texture or organic carbon leave it out.",
+  "gap.slope-missing": "The field's slope is missing, so erosion does not account for it.",
+  "gap.priority-not-scored": "Your {priority} priority is not scored yet, so it does not change the ranking.",
+  "gap.income-not-wired": "Income is not compared yet. Prices, costs and payments are not loaded.",
+  "gap.not-checked": "Not checked by this tool: drainage, weed pressure and herbicide history, local pests and diseases, and your machinery and contracts.",
+
+  "risk.local-pests": "Check local pest and disease pressure with your advisor. This tool does not see it.",
+  "risk.new-crop": "New on this field: {crop}. Check machinery, storage, seed and a buyer before you commit.",
+  "risk.herbicide-carryover": "Check the labels of herbicides used in the last two years for carry-over limits on the new crops.",
+  "risk.cover-termination": "Plan how and when you end the {cover} cover crop, so it does not take water or nitrogen from the next crop.",
+  "risk.perennial-establishment": "The {crop} needs a good first year to establish. Check seedbed, soil pH and how you will harvest or sell it.",
+  "risk.bare-months": "The soil is bare {bare} of {total} months. Check fields with slopes or poor drainage for runoff in those months."
+}

@@ -3,7 +3,8 @@
 // PR #24 (team decisions in SPEC section 7 and DECISIONS D9/D20, and the GAEZ and drought rows with their sources).
 // A row in a file always wins over its fallback.
 import { z } from 'zod';
-import type { GoalId } from '../contracts';
+import type { CropTraits, GoalId } from '../contracts';
+import type { SoilRules } from './soilHealth';
 import { ruleRow } from '../contracts/schemas';
 
 export type RuleRow = z.infer<typeof ruleRow>;
@@ -183,3 +184,13 @@ const ruleFiles = import.meta.glob('../../data/rules/*.json', { eager: true, imp
 
 /** The rule tables shipped with the app, over the fallback rows. */
 export const shippedRules: LoadedRules = loadRules(ruleFiles);
+
+/**
+ * Soil rule rows in the shape O3-B5's soilHealth reads, for one country. Rows already in that shape
+ * (ids 'nitrogen.*', 'humus.*', 'erosion.*', 'pestBreak.*') pass through.
+ */
+export function toSoilRules(rules: LoadedRules, _country: 'US' | 'PL', _crops: CropTraits[]): SoilRules {
+  const all = [...rules.byId.values()];
+  const pick = (prefix: string) => all.filter((r) => r.id.startsWith(prefix));
+  return { nitrogen: pick('nitrogen.'), humus: pick('humus.'), erosion: pick('erosion.'), pestBreak: pick('pestBreak.') };
+}
