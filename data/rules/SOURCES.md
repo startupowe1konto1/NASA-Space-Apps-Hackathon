@@ -91,3 +91,21 @@ Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 row
 - `hazards.gaez.notSuitableBelowSI`: the check is "at or below", on the 0–100 SI scale. `hazards.gaez.classes` uses stable keys (`veryHigh` … `notSuitable`).
 - Relabelled as what they are: `nitrogen.credit.alfalfa.us-ia` and `nitrogen.credit.alfalfaSecondYear.us-ia` ("team calculation from …"), `erosion.ls.slopeLength75ft` ("team choice of the 75 ft column from …"), `humus.coef.soybean.pl`, `humus.coef.alfalfa.pl`, `humus.coef.red-clover.pl` ("borrowed from …").
 - Istanbulluoglu et al. 2010 (an abstract on a third-party index, R10) is not used anywhere (D37).
+
+## Seasonal crop water need (`water.json`)
+
+Read by the water priority (SPEC section 7, O3's #119). One row per crop, `water.needMm.<cropId>`, and one per water need class, `water.needMm.low|medium|high`, as a fallback.
+
+| Source | URL | Used for |
+|---|---|---|
+| FAO Irrigation Water Management Training Manual No. 3, chapter 3, Table 14 "Indicative values of crop water needs" | https://www.fao.org/4/s2022e/s2022e07.htm | mm per total growing period: Barley/Oats/Wheat 450–650, Maize 500–800, Alfalfa 800–1600, Pea 350–500, Potato 500–700, Soybean 450–700, Sugarbeet 550–750; excerpt `data/samples/rules/fao-manual3-table14-crop-water-needs.txt` |
+| FAO Irrigation and Drainage Paper 24, Table 20, page 36 (PDF page 46) | https://www.fao.org/3/s8376e/s8376e.pdf | rye (Grains, small, 300–450 mm) and winter rapeseed (Oil seeds, 300–600 mm), which have no Table 14 row; excerpt `data/samples/rules/fao-paper24-table20.txt` (the PDF is a scan, so the excerpt is its OCR text) |
+
+- **Crop rows:** the midpoint of each range. FAO's text above Table 14 says to use the minimum for a short growing period, the maximum for a long one and "an average value … with a medium total growing period". The midpoint is that average. It is labelled "team calculation from …", because the choice of a medium season is ours.
+- **Class rows:** the mean of the crop midpoints in each class, with the class taken from `data/crops`:
+  - low 417 mm (field pea, rye, winter rapeseed);
+  - medium 579 mm (wheat, oats, spring barley, soybean, potato, sugar beet);
+  - high 925 mm (maize, alfalfa).
+
+  The engine should prefer a crop's own row. The high class mixes maize (650) and alfalfa (1200).
+- **Missing:** cover crops have no water need class and no row (they are not harvested; contract PR #44).

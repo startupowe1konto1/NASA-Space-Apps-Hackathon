@@ -193,7 +193,7 @@ export interface SoilParts {
  * Soil health for ranking. Rotations can have different indicators scored (a crop without a sourced rule leaves an
  * indicator out), so their own totals average different sets. For ranking, a rotation's soil is the current
  * rotation's total plus the weighted mean of its differences on the indicators both have; `weightOf` gives the
- * priority doubling. The card keeps its own soilHealth. `partial` = the shared set is smaller than either set.
+ * priority doubling. The card shows this ranked score, with the basis soil.basis.compared when partial. `partial` = the shared set is smaller than either set.
  */
 export function rankSoil(c: SoilParts, cur: SoilParts, weightOf: (id: IndicatorId) => number): { score: Score; shared: IndicatorId[]; partial: boolean } {
   if (c.isCurrent || c.coverOnly || cur.coverOnly) return { score: c.soilHealth, shared: [], partial: false };

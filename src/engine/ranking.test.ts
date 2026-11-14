@@ -30,6 +30,16 @@ describe('goalTotal', () => {
     expect(t.value).toBeCloseTo(0.6 * 80 + 0.25 * 40 + 0.15 * 40, 1);
   });
 
+  // Missing data is never a zero: a switched-on priority without a score is left out of the mean, not counted as 0.
+  it('leaves a switched-on priority without a score out of the priorities column', () => {
+    const base = item('a', [{ crop: 'maize' }], 80, 40);
+    const forageOnly = goalTotal({ ...base, priorityScores: { forage: s(60) } }, rules.weights.improveSoil, ['water', 'forage']);
+    const asIfForageAlone = goalTotal({ ...base, priorityScores: { forage: s(60) } }, rules.weights.improveSoil, ['forage']);
+    expect(forageOnly.value).toBe(asIfForageAlone.value);
+    const waterZero = goalTotal({ ...base, priorityScores: { forage: s(60), water: s(0) } }, rules.weights.improveSoil, ['water', 'forage']);
+    expect(forageOnly.value).toBeGreaterThan(waterZero.value);
+  });
+
   it('keeps low <= value <= high', () => {
     const a = { ...item('a', [{ crop: 'maize' }], 80, 40), climateResilience: { ...s(40), low: 20, high: 70 } };
     const t = goalTotal(a, rules.weights.keepSoil, []);
