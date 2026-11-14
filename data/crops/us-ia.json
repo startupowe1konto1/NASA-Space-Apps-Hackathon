@@ -261,6 +261,65 @@
     ]
   },
   {
+    "id": "oats",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 4,
+    "harvestMonth": 7,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          6,
+          7
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "forage": false,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Oats, spring\": most active planting Apr 2 - May 2 (midpoint 17 April, so April), most active harvest Jul 17 - Aug 5 (midpoint 27 July, so July); the table lists no silage or hay use for oats, so forage is false"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Barley/Oats/Wheat, 35-45 °L, March/Apr planting: 20/25/60/30 days; mid-season starts 45 days after sowing (17 April), about 1 June, so drought-sensitive months are June and July"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Barley/Oats/Wheat 450-650 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\", cool season: Oats; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift decision D29: the yield response factor is optional",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+        "locator": "D29: no opened document gives a Ky for oats (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
     "id": "alfalfa",
     "family": "Fabaceae",
     "legume": true,
