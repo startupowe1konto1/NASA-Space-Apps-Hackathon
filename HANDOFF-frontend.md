@@ -8,7 +8,7 @@ This file covers the app UI only; the pitch part of the call is left out. `HANDO
 
 1. Read `CLAUDE.md`, `HANDOFF.md`, `docs/SPEC.md` §7 (confidence), §12 (screens) and §13 (owner folders), `src/steps/design.md` and `docs/FRONTEND-SKILLS.md`.
 2. Owners: `src/steps/` and `src/map/` are O2's folders; `src/app/`, `src/ui-kit/`, `e2e/` and `docs/` are O1's; `src/engine/` is O3's. A change outside your folders is a separate `[contract]` PR.
-3. #143 (KIEG parcel layer, split and merge) is still open in `src/map/`. Start the field-step work only after it is merged. The #76 review follow-ups (#157) are on `main` and changed `RotationCard.tsx` and `RotationsStep.tsx`, so rebase any older branch first.
+3. The #76 review follow-ups (#157) and the KIEG parcel layer with split and merge (#159, replacing #143) are on `main`. They changed `RotationCard.tsx`, `RotationsStep.tsx` and `MapStep.tsx`, so rebase any older branch first.
 4. Use `ui-ux-pro-max` for the layout work and `impeccable` for the audit before a PR (repo rule).
 
 ## The new flow (user's decision)
@@ -39,10 +39,10 @@ User: before step 1, a screen with the app name and a short description of what 
 
 ### Step 1, field (was step 2)
 
-User: remove the two demo tiles, Iowa and Poznań (`src/map/MapStep.tsx:87–91`). In the pitch animation, someone types the address of an Iowa field and the app outlines that field along its edges.
+User: remove the two demo tiles, Iowa and Poznań (`src/map/MapStep.tsx:118–125`). In the pitch animation, someone types the address of an Iowa field and the app outlines that field along its edges.
 
 - Keep `demoFields` in `src/fixtures`: tests read their values from it. `e2e/demo-fields.spec.ts` and `e2e/helpers.ts` press the demo buttons, so switch them to the search box in the same PR.
-- Today a search hit only moves the map (`MapStep.tsx:95`, `showPlace`), and a field is added only by a tap. `addFieldAt` in `src/map/parcels/tap.ts` returns the ULDK parcel outline in Poland and a 4 ha square anywhere else. First change: call `addFieldAt(lat, lon)` for the search hit, show the outline, and let the farmer accept it.
+- Today a search hit only moves the map (`MapStep.tsx:127`, `showPlace`); a field is added only on the map itself (a tap, the parcel layer or drawing). `addFieldAt` in `src/map/parcels/tap.ts` returns the ULDK parcel outline in Poland and a 4 ha square anywhere else. First change: call `addFieldAt(lat, lon)` for the search hit, show the outline, and let the farmer accept it.
 - Iowa is the gap. None of the allowed sources (SPEC §15) gives US field boundaries, so the Iowa search hit gets a 4 ha square, not the field's edges. See open question 1.
 
 ### Step 2, goal (was step 1)
@@ -111,7 +111,7 @@ The deadline is Sun 15 Nov, 11:59 CET.
 1. Step 5: fold the sections and the sources, remove the goal switcher, drop the weak-evidence banner. No open question blocks it.
 2. Step 4: the text layout.
 3. The new flow in one PR: start page, field and goal swapped, step 7 removed, SPEC §12 and DECISIONS updated, e2e updated.
-4. Step 1: drop the demo tiles, add the field on a search hit, switch e2e to the search box. After #143 merges, and after open question 1 for Iowa.
+4. Step 1: drop the demo tiles, add the field on a search hit, switch e2e to the search box. After open question 1 for Iowa.
 5. Step 6, once its owner is settled.
 
 Each item is its own PR with the gate (`git fetch && git rebase origin/main && npm run typecheck && npm run test && npm run build && npm run validate:data`). Every screen keeps its loading, offline, no-data and error states. English UI text goes through the anti-ai-writing skill, and every new key gets its Polish line in `pl.json` (the i18n parity test checks the ids). Check each change on localhost with both demo places, both languages and a phone-width window.
