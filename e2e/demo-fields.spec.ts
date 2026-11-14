@@ -24,7 +24,7 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       const cards = await expectFourCards(page);
       for (const card of await cards.all()) {
         await expect(card.getByRole('table', { name: /calendar/i })).toHaveCount(1);
-        expect(await card.getByRole('button', { name: /source/i }).count()).toBeGreaterThanOrEqual(1);
+        await expect(card.getByRole('button', { name: /source/i }).first()).toBeVisible();
       }
     });
   });

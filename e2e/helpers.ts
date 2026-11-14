@@ -13,6 +13,7 @@ export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field'
   await next(page);
 
   // Step 3: confirm the proposed history (Iowa) or the picked crops (Poznań).
+  // When O2-B2 merges: Iowa answers "Is this right?" with "Yes"; Poznań picks two or three crops in the icon picker.
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 3 of 7');
   await page.getByRole('button', { name: /Yes, use these crops/ }).click();
   await expect(page.getByText(/Saved \d+ years of crops/)).toBeVisible();
@@ -34,8 +35,9 @@ export async function expectFourCards(page: Page) {
     await expect(card).toContainText('What we do not know');
     await expect(card).toContainText('Check locally');
     await expect(card).toContainText(SUPPORT_SENTENCE);
-    // Gaps and risks are lists with at least one entry each.
-    expect(await card.getByRole('listitem').count()).toBeGreaterThanOrEqual(2);
+    // Gaps (first list) and risks to check locally (second list) each have at least one entry.
+    await expect(card.getByRole('list').nth(0).getByRole('listitem').first()).toBeVisible();
+    await expect(card.getByRole('list').nth(1).getByRole('listitem').first()).toBeVisible();
   }
   return cards;
 }

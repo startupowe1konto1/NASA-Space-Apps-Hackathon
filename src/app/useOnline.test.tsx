@@ -61,5 +61,13 @@ describe('step 5 offline', () => {
       window.dispatchEvent(new Event('online'));
     });
     await screen.findByText('Your rotation', undefined, { timeout: 3000 });
+
+    // A loaded analysis stays on screen when the connection drops.
+    act(() => {
+      setNavigatorOnline(false);
+      window.dispatchEvent(new Event('offline'));
+    });
+    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(screen.queryByText('No connection')).not.toBeInTheDocument();
   });
 });
