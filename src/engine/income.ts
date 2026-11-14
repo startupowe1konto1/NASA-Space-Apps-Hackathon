@@ -60,6 +60,8 @@ export const INCOME_MESSAGE_CODES = [
   // "{crop}: the hazard checks lose much more than the recent harvests show, so each replayed year is scaled up {factor}
   // times ..."
   'gap.income-calibration-large',
+  // "{crop}: no source gives its own yield response to water, so the dry-year replay uses the {from} value (FAO Paper 66, Table 1; D53)."
+  'gap.income-ky-borrowed',
 ] as const;
 
 /**
@@ -182,6 +184,7 @@ export function incomeEstimate(
   const dates: string[] = [climate.source.retrievedAt];
   let complete = true;
   const calibrationGaps: Message[] = [];
+  const borrowedKyGaps: Message[] = [];
 
   for (const id of mainIds) {
     const econ = economics.find((e) => e.crop === id);
@@ -204,6 +207,8 @@ export function incomeEstimate(
       if (factor > CALIBRATION_GAP_FACTOR) calibrationGaps.push({ code: 'gap.income-calibration-large', params: { crop: id, factor: round(factor, 2) } });
     }
     if (hits.missing.length > 0) complete = false;
+    // D53: a Ky borrowed from another crop is a weaker basis for the dry-year replay, so the card names it
+    if (crop.yieldResponseFactorFrom) borrowedKyGaps.push({ code: 'gap.income-ky-borrowed', params: { crop: id, from: crop.yieldResponseFactorFrom } });
 
     const price = econ.pricePerT.value;
     const cost = econ.directCostsPerHa.value;
@@ -240,7 +245,7 @@ export function incomeEstimate(
   }
   if (perYearMargins.length === 0) return { status: 'no-data', reason: { code: 'income.no-climate-years' } };
 
-  const gaps: Message[] = [...coverGaps, ...calibrationGaps];
+  const gaps: Message[] = [...coverGaps, ...calibrationGaps, ...borrowedKyGaps];
   // A main crop right after itself, wrapping round the rotation (issue #98): priced as if it followed another crop.
   const afterItself = new Set<CropId>();
   years.forEach((y, i) => {
