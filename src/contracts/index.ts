@@ -69,6 +69,7 @@ export interface CropTraits {
   sensitive: { hazard: Hazard; months: number[]; threshold: number; lossShare: number }[]; // lossShare 0-1 when the hazard hits
   waterNeed?: WaterNeed;                           // required unless kind is 'cover' (schema enforces it)
   yieldResponseFactor?: number;                    // FAO Ky; optional for every crop kind (D29): a missing Ky gives no-data income
+  yieldResponseFactorFrom?: string;                // D53: the Ky is borrowed from this crop (as FAO-66 Table 1 names it); the card says so in its gaps
   forage: boolean;
   residueCover: 'low' | 'medium' | 'high';
   sources: SourceRef[];                            // min 1
