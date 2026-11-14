@@ -145,3 +145,21 @@ describe('precomputedContextProvider', () => {
     expect(await provider.getCrops('OTHER')).toEqual([]);
   });
 });
+
+describe('precomputedContextProvider on the shipped files', () => {
+  it('runs on real soil, slope, suitability and crop history for both demo fields', async () => {
+    const { precomputedContextProvider: real } = await import('./provider');
+    const { demoFields } = await import('../fixtures/fields');
+    const iowaHistory = await real.getCropHistory(demoFields.iowa);
+    expect(iowaHistory.status).toBe('ready');
+    for (const f of [demoFields.iowa, demoFields.poznan]) {
+      const soil = await real.getSoil(f);
+      expect(soil.sandPct.value).not.toBeNull();
+      expect((await real.getSlope(f)).value).not.toBeNull();
+    }
+    const s = await real.getSuitability(demoFields.poznan, ['winter-wheat']);
+    expect(s['winter-wheat']?.value).not.toBeNull();
+    expect((await real.getCrops('US')).length).toBeGreaterThan(0);
+    expect((await real.getCrops('PL')).length).toBeGreaterThan(0);
+  });
+});

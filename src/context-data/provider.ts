@@ -2,6 +2,12 @@
 // A value is used only for a field whose centroid is within MAX_DISTANCE_KM of the point the file was computed for;
 // anywhere else the value is null with a reason, never borrowed from the nearest demo field.
 import type { AsyncResult, ContextProvider, CropId, CropTraits, CropYear, Field, Soil, Sourced, ValueKind } from '../contracts';
+import cropscapeFile from '../../data/precomputed/cropscape.json';
+import gaezFile from '../../data/precomputed/gaez.json';
+import slopeFile from '../../data/precomputed/slope.json';
+import soilFile from '../../data/precomputed/soil.json';
+import cropsPl from '../../data/crops/pl.json';
+import cropsUs from '../../data/crops/us-ia.json';
 
 export const MAX_DISTANCE_KM = 2;
 
@@ -156,3 +162,13 @@ export function createPrecomputedContextProvider(files: PrecomputedFiles): Conte
     },
   };
 }
+
+// ---------- the shipped files ----------
+/** The provider the app uses: precomputed soil, slope, GAEZ and crop history for the two demo fields, crop traits per country. */
+export const precomputedContextProvider: ContextProvider = createPrecomputedContextProvider({
+  cropscape: cropscapeFile as unknown as CropscapeFile,
+  soil: soilFile as unknown as SoilFile,
+  gaez: gaezFile as unknown as GaezFile,
+  slope: slopeFile as unknown as SlopeFile,
+  crops: { US: cropsUs as unknown as CropTraits[], PL: cropsPl as unknown as CropTraits[] },
+});
