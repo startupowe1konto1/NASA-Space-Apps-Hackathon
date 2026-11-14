@@ -1,12 +1,13 @@
 // The one place that decides which implementation each provider uses.
 // A lane swaps its fixture for the real module with a one-line [contract] PR to this file (docs/PLAN.md).
 import type { AnalyzeField, Providers } from '../contracts';
+import { precomputedContextProvider } from '../context-data/provider';
 import { analyzeField as engineAnalyzeField } from '../engine/analyzeField';
 import { fixtureProviders } from '../fixtures';
 
 export const providers: Providers = {
   profile: fixtureProviders.profile, // O3-A2: powerProfileProvider
-  context: fixtureProviders.context, // O4-A3: precomputedContextProvider
+  context: precomputedContextProvider, // O4-A3
   twins: fixtureProviders.twins, // O4-B3
   money: fixtureProviders.money, // O4-A4
 };
