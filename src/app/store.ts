@@ -4,7 +4,10 @@ import type { Analysis, CropId, CropYear, Field, GoalId, PriorityId } from '../c
 import { SourceError } from '../contracts';
 import { analyzeField, providers } from './providers';
 
-export const STEP_COUNT = 7;
+/** The steps in order (HANDOFF-frontend.md v2.1). Step 0 is the start page and has no key. */
+export const STEP_KEYS = ['field', 'goal', 'crops', 'priorities', 'rotations', 'money'] as const;
+export type StepKey = (typeof STEP_KEYS)[number];
+export const STEP_COUNT = STEP_KEYS.length;
 
 export type AnalysisState =
   | { status: 'idle' }
@@ -13,7 +16,7 @@ export type AnalysisState =
   | { status: 'error'; source: string; reason: string };
 
 export interface AppState {
-  step: number; // 1..STEP_COUNT
+  step: number; // 0 (start page) ..STEP_COUNT
   goal: GoalId;
   fields: Field[];
   selectedFieldId: string | null;
@@ -34,7 +37,7 @@ export interface AppState {
 }
 
 const initial = {
-  step: 1,
+  step: 0,
   goal: 'keepSoil' as GoalId,
   fields: [] as Field[],
   selectedFieldId: null as string | null,
@@ -46,7 +49,7 @@ const initial = {
 export const useAppStore = create<AppState>((set, get) => ({
   ...initial,
 
-  goToStep: (step) => set({ step: Math.min(STEP_COUNT, Math.max(1, step)) }),
+  goToStep: (step) => set({ step: Math.min(STEP_COUNT, Math.max(0, step)) }),
   // The goal only changes the ranking, and the analysis holds the ranking for every goal, so no re-run is needed.
   setGoal: (goal) => set({ goal }),
 
@@ -104,10 +107,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 export const selectedField = (s: AppState): Field | undefined => s.fields.find((f) => f.id === s.selectedFieldId);
 
-/** Whether the farmer can leave the given step. */
+/** Whether the farmer can leave the given step. Decided by step key, so the order can change without touching this. */
 export function canContinue(s: AppState): boolean {
   const field = selectedField(s);
-  if (s.step === 2) return field !== undefined;
-  if (s.step === 3) return field !== undefined && (s.cropHistory[field.id]?.length ?? 0) >= 2;
+  const key: StepKey | undefined = STEP_KEYS[s.step - 1];
+  if (key === 'field') return field !== undefined;
+  if (key === 'crops') return field !== undefined && (s.cropHistory[field.id]?.length ?? 0) >= 2;
   return s.step < STEP_COUNT;
 }
