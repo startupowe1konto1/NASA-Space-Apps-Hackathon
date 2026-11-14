@@ -18,19 +18,26 @@ export function rotationTitle(rotation: RotationOption): string {
     .join(' → ');
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** Each card section goes through <StateBoundary>: an empty section says so instead of showing nothing. */
+function Section({ title, empty, children }: { title: string; empty?: boolean; children: ReactNode }) {
   return (
     <section className="grid gap-1.5">
       <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-      {children}
+      <StateBoundary state={empty ? 'no-data' : 'ready'} reason={t('steps.rotations.sectionEmpty')}>
+        {children}
+      </StateBoundary>
     </section>
   );
 }
+
+/** The engine may repeat a code with other params, so the key holds both. */
+const keyOf = (m: Message, i: number) => `${m.code}:${JSON.stringify(m.params ?? {})}:${i}`;
 
 const Para = ({ m }: { m: Message }) => <p className="text-base leading-snug text-slate-800">{t(m)}</p>;
 
 export function RotationCard(props: {
   rotation: RotationOption;
+  /** 1–3 for the other rotations in the order shown; not shown on the current rotation. */
   rank: number;
   goal: GoalId;
   datasets: Dataset[];
@@ -79,22 +86,31 @@ export function RotationCard(props: {
           total.status === 'ready' ? (
             <ScoreBar label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} basisText={t(total.data.basis)} />
           ) : (
-            <p className="text-sm text-slate-700">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
+            <div className="grid gap-1">
+              <p className="text-sm font-medium text-slate-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
+              <StateBoundary
+                state={total.status === 'error' ? 'error' : 'no-data'}
+                source={total.status === 'error' ? total.source : t('steps.rotations.goalTotalSource')}
+                reason={total.status === 'not-loaded' ? t('steps.rotations.goalTotalNotLoaded') : t(total.reason)}
+              >
+                {null}
+              </StateBoundary>
+            </div>
           )
         ) : null}
       </div>
 
       {calendar}
 
-      <Section title={t('steps.rotations.why')}>
-        {r.why.map((m) => (
-          <Para key={m.code} m={m} />
+      <Section title={t('steps.rotations.why')} empty={r.why.length === 0}>
+        {r.why.map((m, i) => (
+          <Para key={keyOf(m, i)} m={m} />
         ))}
       </Section>
 
-      <Section title={t('steps.rotations.evidence')}>
+      <Section title={t('steps.rotations.evidence')} empty={r.evidence.length === 0}>
         {r.evidence.map((e, i) => (
-          <div key={`${e.message.code}-${i}`} className="grid gap-1">
+          <div key={keyOf(e.message, i)} className="grid gap-1">
             <Para m={e.message} />
             {e.values.length > 0 ? (
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-base text-slate-900">
@@ -109,7 +125,7 @@ export function RotationCard(props: {
 
       <Section title={t('steps.rotations.benefits')}>
         {r.benefits.length > 0 ? (
-          r.benefits.map((m) => <Para key={m.code} m={m} />)
+          r.benefits.map((m, i) => <Para key={keyOf(m, i)} m={m} />)
         ) : (
           <p className="text-base text-slate-700">{t('steps.rotations.benefitsNone')}</p>
         )}
@@ -136,18 +152,18 @@ export function RotationCard(props: {
         )}
       </Section>
 
-      <Section title={t('steps.rotations.gaps')}>
-        <ul className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
+      <Section title={t('steps.rotations.gaps')} empty={r.gaps.length === 0}>
+        <ul aria-label={t('steps.rotations.gaps')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
           {r.gaps.map((m, i) => (
-            <li key={`${m.code}-${i}`}>{t(m)}</li>
+            <li key={keyOf(m, i)}>{t(m)}</li>
           ))}
         </ul>
       </Section>
 
-      <Section title={t('steps.rotations.risks')}>
-        <ul className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
+      <Section title={t('steps.rotations.risks')} empty={r.localReviewRisks.length === 0}>
+        <ul aria-label={t('steps.rotations.risks')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
           {r.localReviewRisks.map((m, i) => (
-            <li key={`${m.code}-${i}`}>{t(m)}</li>
+            <li key={keyOf(m, i)}>{t(m)}</li>
           ))}
         </ul>
       </Section>

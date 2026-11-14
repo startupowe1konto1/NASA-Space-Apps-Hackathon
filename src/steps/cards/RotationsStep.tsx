@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { StateBoundary } from '../../ui-kit';
+import { CalendarStrip } from '../calendar/CalendarStrip';
 import { FieldSummary } from './FieldSummary';
 import { GoalSwitcher } from './GoalSwitcher';
 import { RotationCard } from './RotationCard';
@@ -35,6 +36,8 @@ export function RotationsStep() {
   const ranking = data.shownByGoal[goal] ? goal : 'keepSoil';
   const ids = data.shownByGoal[ranking] ?? [];
   const rotations = ids.flatMap((id) => data.rotations.filter((r) => r.id === id));
+  // "Option n" counts only the other rotations, so the labels read 1, 2, 3 whatever place the current one takes.
+  const others = rotations.filter((r) => !r.isCurrent).map((r) => r.id);
 
   return (
     <div className="grid gap-5">
@@ -60,8 +63,9 @@ export function RotationsStep() {
               key={r.id}
               rotation={r}
               goal={ranking}
-              rank={r.rankByGoal[ranking] ?? ids.indexOf(r.id) + 1}
+              rank={others.indexOf(r.id) + 1}
               datasets={data.datasets}
+              calendar={<CalendarStrip months={r.calendar} datasets={data.datasets} />}
             />
           ))}
         </>

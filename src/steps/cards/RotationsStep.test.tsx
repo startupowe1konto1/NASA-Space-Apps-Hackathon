@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
+import { cropName } from '../shared/cropName';
 import type { Analysis, RotationOption } from '../../contracts';
 import { iowaAnalysis, poznanAnalysis } from '../../fixtures';
 import { RotationCard } from './RotationCard';
@@ -31,8 +33,7 @@ describe('RotationCard', () => {
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} />);
     const card = await screen.findByRole('article');
     const heading = within(card).getByRole('heading', { level: 2 });
-    expect(heading).toHaveTextContent('Maize');
-    expect(heading).toHaveTextContent('Soybean');
+    for (const y of r.years) expect(heading).toHaveTextContent(cropName(y.crop));
     expect(within(card).getByText('Your rotation')).toBeInTheDocument();
 
     const text = card.textContent ?? '';
@@ -52,9 +53,12 @@ describe('RotationCard', () => {
   it('keeps gaps as the first list and local risks as the second (the e2e tests read them that way)', () => {
     const r = current(iowaAnalysis);
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} />);
-    const lists = within(screen.getByRole('article')).getAllByRole('list');
+    const card = screen.getByRole('article');
+    const lists = within(card).getAllByRole('list');
     expect(within(lists[0]!).getAllByRole('listitem')).toHaveLength(r.gaps.length);
     expect(within(lists[1]!).getAllByRole('listitem')).toHaveLength(r.localReviewRisks.length);
+    expect(within(card).getByRole('list', { name: 'What we do not know' })).toBe(lists[0]);
+    expect(within(card).getByRole('list', { name: 'Check locally' })).toBe(lists[1]);
   });
 
   it('shows the evidence values with a source chip', () => {
@@ -69,6 +73,7 @@ describe('RotationCard', () => {
     const card = screen.getByRole('article');
     const alert = within(card).getByTestId('weak-evidence');
     expect(alert).toHaveTextContent('Weak evidence');
+    expect(alert).toHaveTextContent(t(weak.gaps[0]!));
     const text = card.textContent ?? '';
     expect(text.indexOf(alert.textContent!)).toBeLessThan(text.indexOf('Soil health'));
   });
@@ -79,7 +84,7 @@ describe('RotationCard', () => {
       twins: { status: 'no-data', reason: { code: 'fx.twins.not-loaded' } },
     };
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} />);
-    expect(screen.getByText('Similar fields are not loaded yet.')).toBeInTheDocument();
+    expect(screen.getByText(t({ code: 'fx.twins.not-loaded' }))).toBeInTheDocument();
   });
 
   it('under another goal, says where the card would rank on keeping the soil', () => {
@@ -157,5 +162,47 @@ describe('RotationsStep', () => {
     render(<RotationsStep />);
     expect(await screen.findByRole('alert')).toHaveTextContent('NASA POWER');
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  it('puts a calendar strip on every card', async () => {
+    readyWith(iowaAnalysis);
+    render(<RotationsStep />);
+    for (const card of await screen.findAllByRole('article')) {
+      expect(within(card).getByRole('table', { name: /calendar/i })).toBeInTheDocument();
+    }
+  });
+
+  it('numbers the other rotations 1 to 3 without counting the current one', async () => {
+    readyWith(iowaAnalysis);
+    render(<RotationsStep />);
+    await screen.findAllByRole('article');
+    for (const n of [1, 2, 3]) expect(screen.getByText(`Option ${n}`)).toBeInTheDocument();
+    expect(screen.queryByText('Option 4')).not.toBeInTheDocument();
+  });
+
+  it('shows why a goal score is missing, with its source', async () => {
+    const base = iowaAnalysis;
+    const rotations = base.rotations.map((r) => ({
+      ...r,
+      totals: { ...r.totals, improveSoil: { status: 'error' as const, source: 'Soil rules', reason: { code: 'fx.twins.not-loaded' } } },
+    }));
+    readyWith({ ...base, rotations }, 'improveSoil');
+    render(<RotationsStep />);
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.some((a) => /Soil rules/.test(a.textContent ?? ''))).toBe(true);
+  });
+
+  it('shows the missing reason when a hazard has no values at all', async () => {
+    const reason = 'POWER has no frost days for this point.';
+    const profile = {
+      ...iowaAnalysis.profile,
+      monthlyRisk: iowaAnalysis.profile.monthlyRisk.map((m) =>
+        m.hazard === 'frost' ? { ...m, probability: { ...m.probability, value: null, missingReason: reason } } : m,
+      ),
+    };
+    readyWith({ ...iowaAnalysis, profile });
+    render(<RotationsStep />);
+    const summary = await screen.findByRole('region', { name: /This field/ });
+    expect(within(summary).getByText(new RegExp(reason))).toBeInTheDocument();
   });
 });

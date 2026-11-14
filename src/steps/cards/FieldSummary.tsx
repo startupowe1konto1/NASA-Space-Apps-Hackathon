@@ -10,8 +10,8 @@ function droughtYears(analysis: Analysis): Sourced {
   const { profile } = analysis;
   const n = profile.yearly.length;
   const base = { datasetIds: profile.source.datasetIds, kind: 'derived' as const, retrievedAt: profile.source.retrievedAt };
-  if (n === 0) return { ...base, value: null, missingReason: t('summary.droughtYears.none') };
-  return { ...base, value: profile.droughtYears.length, unit: t('summary.droughtYears.unit', { n }) };
+  if (n === 0) return { ...base, value: null, missingReason: t('steps.rotations.summary.droughtYears.none') };
+  return { ...base, value: profile.droughtYears.length, unit: t('steps.rotations.summary.droughtYears.unit', { n }) };
 }
 
 /** The month with the highest share of years hit by a hazard, shown as a percentage of years. */
@@ -26,7 +26,7 @@ function peak(analysis: Analysis, hazard: Hazard): { month: number; share: Sourc
     share: {
       ...p,
       value: pct(p.value ?? 0),
-      unit: t('summary.yearsShare'),
+      unit: t('steps.rotations.summary.yearsShare'),
       range: p.range ? { ...p.range, low: pct(p.range.low), high: pct(p.range.high) } : undefined,
     },
   };
@@ -48,24 +48,31 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
   return (
     <section aria-labelledby="field-summary-title" className="grid gap-2 rounded-2xl border-2 border-slate-200 bg-white p-4">
       <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
-        {t('summary.title')}: {field.name}
+        {t('steps.rotations.summary.title')}: {field.name}
       </h2>
       <dl>
-        <Row label={t('summary.droughtYears')} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
+        <Row label={t('steps.rotations.summary.droughtYears')} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);
-          const name = t(`summary.hazard.${hazard}`);
+          const name = t(`steps.rotations.summary.hazard.${hazard}`);
           if (!top) {
+            // Every value is missing: show the provider's reason instead of a blank line.
+            const missing = analysis.profile.monthlyRisk.find((m) => m.hazard === hazard)?.probability;
+            if (missing) {
+              return (
+                <Row key={hazard} label={t('steps.rotations.summary.peak', { hazard: name })} value={missing} datasets={datasets} />
+              );
+            }
             return (
               <div key={hazard} className="border-b border-slate-200 py-2 text-base text-slate-700 last:border-0">
-                {t('summary.peak.none', { hazard: name })}
+                {t('steps.rotations.summary.peak.none', { hazard: name })}
               </div>
             );
           }
           return (
             <Row
               key={hazard}
-              label={`${t('summary.peak', { hazard: name })}: ${t(`month.${top.month}`)}`}
+              label={`${t('steps.rotations.summary.peak', { hazard: name })}: ${t(`steps.rotations.month.${top.month}`)}`}
               value={top.share}
               datasets={datasets}
               decimals={0}
@@ -76,16 +83,16 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
       {/* Soil and slope fold away so the cards start on the first screen of a phone. */}
       <details className="group rounded-lg border border-slate-200 px-3">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
-          {t('summary.soilAndSlope')}
+          {t('steps.rotations.summary.soilAndSlope')}
           <span aria-hidden="true" className="text-slate-600 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>
         <dl>
-          <Row label={t('summary.sand')} value={profile.soil.sandPct} datasets={datasets} decimals={0} />
-          <Row label={t('summary.clay')} value={profile.soil.clayPct} datasets={datasets} decimals={0} />
-          <Row label={t('summary.organicCarbon')} value={profile.soil.organicCarbon} datasets={datasets} />
-          <Row label={t('summary.slope')} value={profile.slopePct} datasets={datasets} />
+          <Row label={t('steps.rotations.summary.sand')} value={profile.soil.sandPct} datasets={datasets} decimals={0} />
+          <Row label={t('steps.rotations.summary.clay')} value={profile.soil.clayPct} datasets={datasets} decimals={0} />
+          <Row label={t('steps.rotations.summary.organicCarbon')} value={profile.soil.organicCarbon} datasets={datasets} />
+          <Row label={t('steps.rotations.summary.slope')} value={profile.slopePct} datasets={datasets} />
         </dl>
       </details>
     </section>
