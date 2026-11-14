@@ -6,7 +6,14 @@
 //   below the median, hit or not; the shortfall is (median − wetness) / median of root-zone wetness for that calendar
 //   month on this field (`shortfallVsMedian`, SPEC 7). The drought limit (D30) only decides resilience hits;
 // - heat and frost: each sensitive row (hazard + months) with a hit in any of its months adds its `lossShare`;
-// - the total loss is capped at 1; yield = reference yield × (1 − loss).
+// - the total loss is capped at 1; the relative yield of the year is (1 − loss).
+// The reference yield in data/money is already a mean of actual yields (recent county or state years), so it is not the
+// yield of a year without any hazard (issue #98). The replay keeps the year-to-year pattern of the hazard checks and
+// scales it to that mean: yield = reference × (1 − loss) / mean over the crop's replayed years of (1 − loss). The mean
+// replayed yield is then the reference yield, and the mean margin is the margin at the reference yield.
+// The money tables price each crop after a different crop (for example ISU's "Corn Following Soybeans" budget). A main
+// crop that follows itself in the rotation (not a perennial kept in place) gets no yield or cost penalty here; that is
+// named in the gaps until data/money has a sourced row for it.
 // margin = yield × price − direct costs. The rotation's margin in a year is the mean over its rotation years (a crop
 // grown in two of three years counts twice). A cover crop has no revenue; it is there for the soil (D34). Its seed and
 // sowing cost is subtracted only where the money tables have a sourced direct-cost row for it, spread over the
@@ -27,7 +34,8 @@ import { percentile, recordYears, yearlyHitsDetailed } from './resilience';
 
 /** Every Message code this module emits. The English text for each belongs in src/engine/messages/en.json. */
 export const INCOME_MESSAGE_CODES = [
-  // "What this rotation would have earned on this field over {years} past years at today's prices. Not a forecast."
+  // "What this rotation would have earned ... over {years} past years at today's prices. ... the average year yields the
+  // recent average harvest. Not a forecast."
   'income.basis.replay',
   // "No sourced price, yield or direct costs for {crop}, so income is not estimated for this rotation."
   'income.no-price',
@@ -43,6 +51,8 @@ export const INCOME_MESSAGE_CODES = [
   'gap.income-years-left-out',
   // "{crop} earns nothing directly. It pays back through the soil health scores."
   'income.cover-no-revenue',
+  // "{crop} follows {crop} in this rotation. A crop after itself may yield less and cost more; not counted, no sourced row."
+  'gap.crop-after-itself-not-priced',
   // "No sourced seed and sowing cost for {crop}, so its cost is left out of the income."
   'gap.cover-cost-missing',
 ] as const;
@@ -57,19 +67,23 @@ const round = (x: number, digits: number) => {
 export interface YearYield {
   year: number;
   yieldTPerHa: number;
-  loss: number; // 0–1
+  /** Hazard loss of the year before calibration, 0–1. */
+  loss: number;
 }
 
 /**
- * Yield of one crop in each record year. A year in which every check of the crop is missing is left out (never
- * filled). A crop with no sensitive months gets the reference yield in every record year. Throws when the crop is
- * drought-sensitive and has no yield response factor (cover crops may lack one; income uses main crops only).
+ * Yield of one crop in each record year, calibrated so the mean over the replayed years is the reference yield. A
+ * year in which every check of the crop is missing is left out (never filled). A crop with no sensitive months gets
+ * the reference yield in every record year. When every replayed year is a total loss the yields stay 0. Throws when the
+ * crop is drought-sensitive and has no yield response factor (cover crops may lack one; income uses main crops only).
+ * `hits` is the crop's `yearlyHitsDetailed` result when the caller already has it.
  */
 export function yearlyYield(
   crop: CropTraits,
   climate: ClimateProfile,
   referenceYieldTPerHa: number,
   droughtPercentile: number,
+  hits: ReturnType<typeof yearlyHitsDetailed> = yearlyHitsDetailed(crop, climate, droughtPercentile),
 ): YearYield[] {
   const years = recordYears(climate);
   const ky = (crop as { yieldResponseFactor?: number }).yieldResponseFactor;
@@ -78,7 +92,7 @@ export function yearlyYield(
     throw new Error(`income: no yield response factor for '${crop.id}'`);
   }
   const hasChecks = crop.sensitive.some((s) => s.months.length > 0);
-  const { rows } = yearlyHitsDetailed(crop, climate, droughtPercentile);
+  const { rows } = hits;
 
   const out: YearYield[] = [];
   for (const year of years) {
@@ -96,8 +110,11 @@ export function yearlyYield(
       }
     }
     const loss = Math.min(1, drought + other);
-    out.push({ year, yieldTPerHa: referenceYieldTPerHa * (1 - loss), loss });
+    out.push({ year, yieldTPerHa: 1 - loss, loss }); // relative yield until calibrated below
   }
+  const meanRelative = out.reduce((a, r) => a + r.yieldTPerHa, 0) / (out.length || 1);
+  const scale = meanRelative > 0 ? referenceYieldTPerHa / meanRelative : 0;
+  for (const r of out) r.yieldTPerHa *= scale;
   return out;
 }
 
@@ -147,13 +164,14 @@ export function incomeEstimate(
     const crop = crops.find((c) => c.id === id);
     if (!crop) throw new Error(`income: no crop traits for '${id}'`);
 
+    const hits = yearlyHitsDetailed(crop, climate, droughtPercentile);
     let rows: YearYield[];
     try {
-      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile);
+      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile, hits);
     } catch {
       return { status: 'no-data', reason: { code: 'income.no-yield-response', params: { crop: id } } };
     }
-    if (yearlyHitsDetailed(crop, climate, droughtPercentile).missing.length > 0) complete = false;
+    if (hits.missing.length > 0) complete = false;
 
     const price = econ.pricePerT.value;
     const cost = econ.directCostsPerHa.value;
@@ -191,6 +209,13 @@ export function incomeEstimate(
   if (perYearMargins.length === 0) return { status: 'no-data', reason: { code: 'income.no-climate-years' } };
 
   const gaps: Message[] = [...coverGaps];
+  // A main crop right after itself, wrapping round the rotation (issue #98): priced as if it followed another crop.
+  const afterItself = new Set<CropId>();
+  years.forEach((y, i) => {
+    const previous = years[(i + years.length - 1) % years.length]!;
+    if (previous.crop === y.crop && crops.find((c) => c.id === y.crop)?.kind !== 'perennial') afterItself.add(y.crop);
+  });
+  for (const crop of afterItself) gaps.push({ code: 'gap.crop-after-itself-not-priced', params: { crop } });
   const leftOut = record.length - perYearMargins.length;
   if (leftOut > 0) {
     complete = false;
@@ -253,18 +278,20 @@ export function incomeTotal(r: IncomeResult): IncomeTotal {
 }
 
 /**
- * Income scores of the candidates of one field: mean margin plus confirmed payments, scaled so the lowest candidate is
- * 0 and the highest 100 (all equal, or one candidate: 50). low/high are the bad-year and good-year totals scaled the
- * same way and clamped to 0–100. Confidence is never strong: 'moderate', or 'weak' when climate data was missing.
+ * Income scores of the candidates of one field. The mean (margin plus confirmed payments), the bad year and the good
+ * year all go on one money scale per field: 0 is the lowest bad year of any candidate, 100 the highest good year
+ * (issue #98). Nothing is clamped, the order of the means is kept, and each card's bad year stays below its mean and
+ * its good year above it. When every year of every candidate earns the same, every score is 50. Confidence is never
+ * strong: 'moderate', or 'weak' when climate data was missing.
  */
 export function incomeScores(totals: Record<string, IncomeTotal>): Record<string, Score> {
   const ids = Object.keys(totals);
   if (ids.length === 0) return {};
-  const means = ids.map((id) => totals[id]!.meanPerHa);
-  const min = Math.min(...means);
-  const max = Math.max(...means);
+  const all = ids.flatMap((id) => [totals[id]!.lowPerHa, totals[id]!.meanPerHa, totals[id]!.highPerHa]);
+  const min = Math.min(...all);
+  const max = Math.max(...all);
   const span = max - min;
-  const scale = (x: number) => (span === 0 ? 50 : round(Math.min(100, Math.max(0, ((x - min) / span) * 100)), 1));
+  const scale = (x: number) => (span === 0 ? 50 : round(((x - min) / span) * 100, 1));
 
   const out: Record<string, Score> = {};
   for (const id of ids) {
