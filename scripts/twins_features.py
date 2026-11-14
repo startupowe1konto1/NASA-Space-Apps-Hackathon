@@ -190,7 +190,7 @@ def main():
         {'title': f'NASA POWER Climatology API (community AG), {PERIOD} climatology, MERRA-2 based model estimates',
          'url': POWER_URL}]
     cases['features'] = [
-        {**f, 'datasetId': 'nasa-power', 'period': PERIOD, 'kind': 'model estimate', 'season':
+        {**f, 'datasetId': 'nasa-power-climatology', 'period': PERIOD, 'kind': 'model estimate', 'season':
          'April-September' if f['id'].startswith('gs') else 'whole year'} for f in FEATURES]
     cases['regionsWithAllFeatures'] = complete
     write_text(CASES, dump_cases(cases))

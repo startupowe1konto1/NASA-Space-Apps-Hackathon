@@ -32,7 +32,7 @@
    "unit": "C",
    "name": "Growing-season mean temperature (April-September)",
    "parameter": "T2M",
-   "datasetId": "nasa-power",
+   "datasetId": "nasa-power-climatology",
    "period": "2001-2025",
    "kind": "model estimate",
    "season": "April-September"
@@ -42,7 +42,7 @@
    "unit": "mm",
    "name": "Growing-season rain (April-September total)",
    "parameter": "PRECTOTCORR",
-   "datasetId": "nasa-power",
+   "datasetId": "nasa-power-climatology",
    "period": "2001-2025",
    "kind": "model estimate",
    "season": "April-September"
@@ -52,7 +52,7 @@
    "unit": "0-1",
    "name": "Growing-season root-zone wetness (April-September mean)",
    "parameter": "GWETROOT",
-   "datasetId": "nasa-power",
+   "datasetId": "nasa-power-climatology",
    "period": "2001-2025",
    "kind": "model estimate",
    "season": "April-September"
@@ -62,7 +62,7 @@
    "unit": "days",
    "name": "Frost days per year",
    "parameter": "FROST_DAYS",
-   "datasetId": "nasa-power",
+   "datasetId": "nasa-power-climatology",
    "period": "2001-2025",
    "kind": "model estimate",
    "season": "whole year"
@@ -73,7 +73,7 @@
    "name": "Hottest temperature of the year, averaged over the years",
    "parameter": "T2M_MAX_AVG",
    "note": "stands in for hot days; POWER climatology has no hot-day count",
-   "datasetId": "nasa-power",
+   "datasetId": "nasa-power-climatology",
    "period": "2001-2025",
    "kind": "model estimate",
    "season": "whole year"
