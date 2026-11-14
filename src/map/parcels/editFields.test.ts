@@ -93,3 +93,34 @@ describe('joinFields', () => {
     expect(joinFields(poznan.id, 'missing')).toEqual({ ok: false, reason: 'no-field' });
   });
 });
+
+describe('undo after a cut or a join', () => {
+  const state = () => useAppStore.getState();
+
+  it('takes a whole cut back in one undo, with the crop history', () => {
+    const before = state().fields;
+    cutField(poznan.id, through(poznan));
+    state().undoFieldEdit();
+    expect(state().fields).toEqual(before);
+    expect(state().selectedFieldId).toBe(poznan.id);
+    expect(state().cropHistory[poznan.id]).toEqual(history);
+  });
+
+  it('takes a whole join back in one undo', () => {
+    const cut = cutField(poznan.id, through(poznan));
+    if (!cut.ok) throw new Error('setup: the cut failed');
+    const halves = state().fields;
+    joinFields(cut.fields[0].id, cut.fields[1].id);
+    state().undoFieldEdit();
+    expect(state().fields).toEqual(halves);
+  });
+
+  it('adds no undo step when a cut fails', () => {
+    const steps = state().fieldHistory.length;
+    cutField(poznan.id, [
+      [poznan.centroid.lon + 5, poznan.centroid.lat],
+      [poznan.centroid.lon + 5, poznan.centroid.lat + 1],
+    ]);
+    expect(state().fieldHistory).toHaveLength(steps);
+  });
+});

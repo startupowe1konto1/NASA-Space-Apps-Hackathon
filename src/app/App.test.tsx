@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { demoFields } from '../fixtures';
 import terms from '../steps/glossary/terms.en.json';
@@ -101,7 +101,7 @@ describe('step shell on fixtures', () => {
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`Step 1 of ${STEP_COUNT}`);
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: demoFields.iowa.name }));
+    act(() => useAppStore.getState().addField(demoFields.iowa)); // the map step's own tests cover the search
     await user.click(screen.getByRole('button', { name: 'Next' }));
 
     await user.click(screen.getByRole('radio', { name: /Improve my soil/ }));
@@ -133,7 +133,7 @@ describe('step shell on fixtures', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('button', { name: 'Start' }));
-    await user.click(screen.getByRole('button', { name: demoFields.poznan.name }));
+    act(() => useAppStore.getState().addField(demoFields.poznan));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     // Poland has no satellite crop history, so the farmer picks two seasons in the crop picker (O2-B2).
@@ -170,14 +170,15 @@ describe('glossary link', () => {
     expect(link).toHaveAttribute('aria-expanded', 'true');
     expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
     // The step stays mounted but hidden, so its local state (the map view) survives.
-    expect(screen.queryByRole('button', { name: demoFields.iowa.name })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: demoFields.iowa.name, hidden: true })).not.toBeVisible();
+    const searchBox = { name: t('search.label') };
+    expect(screen.queryByRole('searchbox', searchBox)).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { ...searchBox, hidden: true })).not.toBeVisible();
 
     await user.click(screen.getByRole('button', { name: 'Back to step 1' }));
     expect(await screen.findByRole('button', { name: 'Next' })).toBeInTheDocument();
     expect(screen.queryByText('Words used in this tool')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(`Step 1 of ${STEP_COUNT}`);
-    expect(screen.getByRole('button', { name: demoFields.iowa.name })).toBeVisible();
+    expect(screen.getByRole('searchbox', searchBox)).toBeVisible();
     expect(link).toHaveFocus();
   });
 
