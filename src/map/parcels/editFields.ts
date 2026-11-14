@@ -1,6 +1,6 @@
 // Cut and join applied to the app's fields: the geometry in splitMerge.ts, plus what the store has to carry over.
 import type { Position } from 'geojson';
-import { useAppStore } from '../../app/store';
+import { asOneEdit, useAppStore } from '../../app/store';
 import type { CropYear, Field } from '../../contracts';
 import { mergeFields, splitField, type SplitFailure } from './splitMerge';
 
@@ -21,14 +21,16 @@ export function cutField(id: string, line: [Position, Position]): CutOutcome {
   if (!result.ok) return result;
   const [first, second] = result.fields;
   const history = cropHistory[id];
-  removeField(id);
-  addField(first);
-  addField(second);
-  selectField(first.id);
-  if (history) {
-    setCropHistory(first.id, history);
-    setCropHistory(second.id, history);
-  }
+  asOneEdit(() => {
+    removeField(id);
+    addField(first);
+    addField(second);
+    selectField(first.id);
+    if (history) {
+      setCropHistory(first.id, history);
+      setCropHistory(second.id, history);
+    }
+  });
   return result;
 }
 
@@ -45,9 +47,11 @@ export function joinFields(idA: string, idB: string): JoinOutcome {
   if (!joined) return { ok: false, reason: 'not-adjacent' };
   const historyA = cropHistory[idA];
   const historyB = cropHistory[idB];
-  removeField(idA);
-  removeField(idB);
-  addField(joined);
-  if (historyA && historyB && sameHistory(historyA, historyB)) setCropHistory(joined.id, historyA);
+  asOneEdit(() => {
+    removeField(idA);
+    removeField(idB);
+    addField(joined);
+    if (historyA && historyB && sameHistory(historyA, historyB)) setCropHistory(joined.id, historyA);
+  });
   return { ok: true, field: joined };
 }

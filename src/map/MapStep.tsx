@@ -19,6 +19,7 @@ const BUTTON =
 export function MapStep() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
+  const canUndo = useAppStore((s) => s.fieldHistory.length > 0);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapController | null>(null);
@@ -148,6 +149,21 @@ export function MapStep() {
             onClick={() => (cutting ? mapRef.current?.stopCut() : mapRef.current?.startCut())}
           >
             {cutting ? t('edit.cut.cancel') : t('edit.cut.start')}
+          </button>
+          <button
+            type="button"
+            className={`${BUTTON} inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50`}
+            disabled={!canUndo || cutting}
+            onClick={() => {
+              useAppStore.getState().undoFieldEdit();
+              setEditNote({ text: t('edit.undo.done'), fields: useAppStore.getState().fields });
+            }}
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7.5 5 3.5 9l4 4" />
+              <path d="M3.5 9H12a4.5 4.5 0 0 1 0 9h-2" />
+            </svg>
+            {t('edit.undo.button')}
           </button>
           <label className="flex min-h-11 items-center gap-2 text-base text-slate-900">
             <input

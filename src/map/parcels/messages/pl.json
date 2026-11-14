@@ -29,5 +29,7 @@
   "edit.layer.label": "Pokaż działki z ewidencji gruntów (Polska)",
   "edit.layer.hint": "Granice działek pojawiają się od poziomu przybliżenia 17, a ich numery od około 18, więc przybliż mapę do pola.",
   "edit.layer.source": "Mapa działek GUGiK (KIEG)",
-  "edit.layer.error": "Warstwa działek się nie wczytała. Mapa i twoje pola działają dalej."
+  "edit.layer.error": "Warstwa działek się nie wczytała. Mapa i twoje pola działają dalej.",
+  "edit.undo.button": "Cofnij",
+  "edit.undo.done": "Cofnięto ostatnią zmianę."
 }

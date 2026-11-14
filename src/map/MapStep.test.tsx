@@ -309,3 +309,41 @@ describe('cutting a field and the parcel layer', () => {
   });
 });
 
+
+describe('undo', () => {
+  const undoButton = () => screen.getByRole('button', { name: t('edit.undo.button') });
+
+  it('offers Undo only after a field edit, and takes the last one back', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    expect(undoButton()).toBeDisabled();
+
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(undoButton()).toBeEnabled());
+    await user.click(undoButton());
+
+    expect(useAppStore.getState().fields).toHaveLength(0);
+    expect(await screen.findByText(t('edit.undo.done'))).toBeInTheDocument();
+    expect(undoButton()).toBeDisabled();
+  });
+
+  it('puts a cut field back as it was', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+    const { iowa } = demoFields;
+    act(() =>
+      leaflet.handlers!.onCut([
+        [iowa.centroid.lon - 1, iowa.centroid.lat],
+        [iowa.centroid.lon + 1, iowa.centroid.lat],
+      ]),
+    );
+    await waitFor(() => expect(useAppStore.getState().fields).toHaveLength(2));
+
+    await user.click(undoButton());
+
+    expect(useAppStore.getState().fields).toEqual([iowa]);
+    await screen.findByText(`${iowa.name}, ${iowa.areaHa.toFixed(1)} ha`);
+  });
+});
