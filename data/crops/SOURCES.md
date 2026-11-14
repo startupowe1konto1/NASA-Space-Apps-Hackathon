@@ -1,6 +1,6 @@
 # Crop traits: sources
 
-`us-ia.json` and `pl.json` hold one `CropTraits` row per crop (schema `cropTraits` in `src/contracts/schemas.ts`). Every value was copied from a document opened on Sat 14 Nov 2026 (task O4-A2; oats, spring barley, rye and winter rapeseed were added in a second PR the same day). Each row lists its sources with a page, table or section.
+`us-ia.json` and `pl.json` hold one `CropTraits` row per crop (schema `cropTraits` in `src/contracts/schemas.ts`). Every value was copied from a document opened on Sat 14 Nov 2026 (task O4-A2; oats, spring barley, rye and winter rapeseed were added in a second PR the same day; a third PR took in research R10, `context/research/agronomy-thresholds.md`). Each row lists its sources with a page, table or section. Sources from R10 also name their excerpt file in `data/samples/research/agronomy/`.
 
 ## Sources used
 
@@ -30,6 +30,41 @@
 | Iowa State University Extension, Terminating cover crops ahead of corn (22 April 2026) | https://crops.extension.iastate.edu/post/terminating-cover-crops-ahead-corn | terminate the cover crop at least 10 days before planting corn |
 | IUNG-PIB, Uprawa międzyplonów, instrukcja upowszechnieniowa (2025) | https://www.iung.pl/wp-content/uploads/2026/03/instrukcja.pdf | PDF pages 9, 13, 23-26: stubble catch crop sowing window, latest sowing dates for mustard and phacelia (Tabele 11 and 12), ARiMR rule to keep them until 15 October, termination in October, use of each species |
 
+### Added from research R10
+
+| Source | URL | What was taken |
+|---|---|---|
+| Moteva et al. (2016), Water use efficiency and yield-dependences for canola under irrigation, Agriculture & Forestry 62(1): 403-413 | https://repository.ukim.mk/bitstream/20.500.12188/28014/1/20160330-42%20Moteva%20et%20al.pdf | Summary p. 403, Results p. 408, Conclusion 4 p. 411: winter rapeseed Ky 1.52 (R² 0.73), winter canola near Sofia, 2010-2013 |
+| Tidy et al. (2025), Plant Stress 17: 100957 (open access, Rothamsted Repository) | https://repository.rothamsted.ac.uk/id/eprint/33546/1/Tidy%20et%20al%202025%20Plant%20Stress.pdf | PDF p. 3: rapeseed heat above 29 °C cuts seed yield by more than 50 percent; heat threshold 29 °C, lossShare 0.5 |
+| Licht (2020), Cold temperatures on the way; what will it mean for corn and soybean seedlings?, ISU ICM | https://crops.extension.iastate.edu/post/cold-temperatures-way-what-will-it-mean-corn-and-soybean-seedlings | paragraphs 8-10: emerged maize tissue dies at 28 °F (-2 °C); soybean cotyledons survive above 30 °F; maize May frost row, soybean May frost confirmed |
+| Licht and Hurburgh (2019), Harvest consideration for frost killed corn, ISU ICM | https://crops.extension.iastate.edu/post/harvest-consideration-frost-killed-corn | paragraphs 7 and 9: a freeze of 28 °F kills the plant before black layer; yield loss 12 percent (late dent) to 41 percent (beginning dent); maize September frost row, lossShare 0.12 |
+| Licht and Archontoulis (2020), What impact will the heat and dry weather have on pollination 2020?, ISU ICM | https://crops.extension.iastate.edu/post/what-impact-will-heat-and-dry-weather-have-pollination-2020 | paragraphs 7-8: maize heat stress above 95 °F (35 °C) around pollination; second source for the 35 °C row |
+| Hurburgh, Vittetoe and Anderson (2019), Frost Damage to Soybeans, ISU ICM | https://crops.extension.iastate.edu/post/frost-damage-soybeans | paragraphs 1-3: killing freeze 28 °F, green pods most affected; soybean pod-filling frost confirmed |
+| Shroyer, Mikesell and Paulsen (1995), Spring Freeze Injury to Kansas Wheat, C646, Kansas State University | https://bookstore.ksre.ksu.edu/pubs/C646.PDF | p. 2 Table 1: -1 °C at heading and flowering (severe), -2 °C at milk and dough; wheat May-June frost confirmed (us-ia and pl) |
+| IUNG-PIB, Instrukcja upowszechnieniowa nr 200 (2015), Uprawa kukurydzy w systemie ekologicznym | https://www.iung.pl/wp-content/uploads/2023/09/Instrukcja-Uprawa-kukurydzy-w-systemie-ekologicznym.pdf | PDF pp. 22 and 24: drops below -2 °C stop maize growth; early autumn frost is dangerous during grain filling; Polish maize September frost row |
+| COBORU, WEDO nr 227, Kukurydza (na ziarno), rok zbioru 2025 | https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WEDO_227_Kukurydza_2025.pdf | PDF p. 8, Tabela 3, Śrem: emergence 19 May, silking 26 July, full maturity 1 October; months of the Polish maize frost rows |
+| Bueckert, Pea yield formation in warming temperatures, University of Saskatchewan project (page by Saskatchewan Pulse Growers) | https://saskpulse.com/research/listing/pea-yield-formation-in-warming-temperatures-phenological-mechanisms/ | Project Description: a few days above 29 °C cause flower and young pod abortion; field pea heat threshold 29 °C in June |
+| FAO Land and Water, Crop information: Pea (read through the Internet Archive, D37) | https://www.fao.org/land-water/databases-and-software/crop-information/pea/en/ (archive: http://web.archive.org/web/20250907125315/https://www.fao.org/land-water/databases-and-software/crop-information/pea/en/) | stage Ky 0.2 / 0.9 / 0.7 / 0.2, season 1.15; confirms the field pea Ky |
+| Licht and Clemens (2021), Considerations when overseeding cover crops, ISU ICM News | https://crops.extension.iastate.edu/cropnews/2021/07/considerations-when-overseeding-cover-crops | overseeding in the last week of August to the first week of September; supports cereal rye `sowMonth` 9 |
+| Podleśny and Leszczyńska (2025), Międzyplony i ich znaczenie w produkcji rolniczej, IUNG-PIB presentation | https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf | slide 5: ARiMR rule, stubble catch crops sown 1 July to 20 August and kept until 15 October; slide 30: mustard and phacelia sown by 15 August; confirms the mustard and phacelia windows |
+
+## What R10 changed
+
+| Crop | File | Change |
+|---|---|---|
+| winter-rapeseed | pl | `yieldResponseFactor` 1.52 (Moteva et al. 2016), so its income is no longer no-data. New heat row: April and May, T2M_MAX above 29 °C, lossShare 0.5 (Tidy et al. 2025). The months are the COBORU flowering period (mean start about 18 April, end 10 and 27 May). |
+| spring-barley | pl | Heat threshold 32 → 30 °C. Same source (FAO Paper 66, barley, p. 139, "above 30-32 ºC"); R10's rule takes the low end of a range, and this file now does the same. |
+| maize | us-ia, pl | Two new frost rows. May (emerged seedlings, -2 °C lethal, ISU 2020), lossShare 0.2 rule of thumb. September (grain fill before maturity, -2 °C, ISU 2019 and IUNG 2015; Śrem maturity 1 October in COBORU WEDO 2025), lossShare 0.12, the low end of the ISU 12-41 percent loss. Heat 35 °C unchanged; ISU 2020 added as a second source. |
+| field-pea | pl | New heat row: June (flowering), T2M_MAX above 29 °C, lossShare 0.2 rule of thumb. FAO crop information page added as a second source for Ky 1.15. |
+| soybean | us-ia | No value change. ISU 2020 and ISU 2019 added as sources for the May and pod-filling frost row. |
+| winter-wheat | us-ia, pl | No value change. Kansas State C646 added for the May-June frost row. |
+| cereal-rye | us-ia | No value change. ISU 2021 overseeding article added for `sowMonth` 9. Termination stays April (at least 10 days before corn planting). |
+| white-mustard, phacelia | pl | No value change. The IUNG 2025 presentation (ARiMR rule) agrees with the current August sowing and October termination. |
+
+Iowa maize autumn frost: R10's months column says October, from the date of the ISU 2019 article (a late-planted year). Its POWER rule says "the month before maturity". The NASS harvest midpoint is October, so the row uses September. The NASA POWER sample for Ames (`data/samples/power/point-monthly-1981-2025-ag.json`) has more than one frost day in October in 39 of 45 years, against 2 of 45 in September; an October row would mark almost every year although the crop is normally mature by then.
+
+Not used: Istanbulluoglu et al. (2010), rapeseed Ky 0.87. Only an abstract on a third-party index was read, and D37 rules that out as a value source. The Terra Nostra / EIT Food rapeseed guide (NGO) and the Iowa Soybean Association flyer (industry) were not needed for any value: winterkill cannot be a frost row (see Missing), and the ISU pages cover cereal rye.
+
 ## How the numbers were derived
 
 - Sowing and harvest month (Iowa): the month that holds the midpoint of the NASS "most active" window. Oats: planting midpoint 17 April, harvest midpoint 27 July. Alfalfa has no planting date in NASS, so its sowing month is the spring oat window (Iowa State says alfalfa is usually sown with oats), and its harvest month is the end of the most active cutting window (15 September).
@@ -39,9 +74,9 @@
 - Residue cover: crops on the NRCS high residue list are `high`, crops on the low residue list are `low`. Alfalfa hay is on the low residue list (residue removed) but is non-fragile, so it is `medium`.
 - Forage: `true` only where the calendar source lists a forage use (Iowa "Corn for silage" and "Hay, alfalfa"; the COBORU silage maize series).
 - Family and legume flag: copied from `src/fixtures/crops.ts`, as task O4-A2 requires.
-- Heat: a source temperature for damage at flowering or grain filling (spring barley: 32 °C, the top of the 30-32 °C range in FAO Paper 66) is used as the threshold for the monthly maximum of NASA POWER T2M_MAX, in the same flowering and yield-formation months as drought. A short spell above the source temperature is enough to do the damage the sources describe, so the monthly maximum is compared with it directly.
-- Frost: where a source says the crop is damaged by frost at a stage, the threshold is 1 frost day (NASA POWER FROST_DAYS) in the months of that stage. Wheat: heading and grain filling. Soybean (Iowa): emergence in May and pod filling in August and September (FAO-56 Table 11 stages from the sowing midpoint). Potato: emergence in May (FAO-56 initial stage from planting).
-- Yield response factor: oats, spring barley, rye and winter rapeseed have no `yieldResponseFactor`. No sourced Ky was found for them, so their income score is no-data (D29, [contract] PR #63). Each of these rows has a source entry that says so.
+- Heat: a source temperature for damage at flowering or grain filling (spring barley: 30 °C, the low end of the 30-32 °C range in FAO Paper 66, as R10's conversion rule says; rapeseed and field pea: 29 °C) is used as the threshold for the monthly maximum of NASA POWER T2M_MAX, in the same flowering and yield-formation months as drought. A short spell above the source temperature is enough to do the damage the sources describe, so the monthly maximum is compared with it directly.
+- Frost: where a source says the crop is damaged by frost at a stage, the threshold is 1 frost day (NASA POWER FROST_DAYS) in the months of that stage. Wheat: heading and grain filling. Soybean (Iowa): emergence in May and pod filling in August and September (FAO-56 Table 11 stages from the sowing midpoint). Potato: emergence in May (FAO-56 initial stage from planting). Maize (both files): emergence in May and grain fill in September, the month before maturity, in two rows because the September row has its own loss share. The engine counts a month as a frost hit when its frost days are above the threshold (`src/engine/resilience.ts`), so threshold 1 means two or more frost days in the month, not one; R10 and the older rows call it "at least one". All frost rows use the same 1, so they agree with each other; whether it should be 0 is open (see the PR).
+- Yield response factor: oats, spring barley and rye have no `yieldResponseFactor`. No usable sourced Ky was found for them, so their income score is no-data (D29, [contract] PR #63). Each of these rows has a source entry that says so. Winter rapeseed has 1.52 from one temperate winter canola trial (Moteva et al. 2016, from R10). The schema holds one seasonal Ky per crop, so the stage values R10 found (field pea 0.2 / 0.9 / 0.7 / 0.2; potato 0.60 / – / 0.70 / 0.20 in FAO Paper 66 Table 2) are not stored.
 - Cover crops (`kind: 'cover'`): no water need or yield response factor (contract PR #44), and no hazard rows, since they are not harvested for yield. Sowing month is the midpoint of the seeding window for Iowa (NRCS fact sheets). For the Polish stubble catch crops it is August: IUNG gives the latest sowing date as 10 August (phacelia mixtures) or 15 August (mustard) and says they follow the cereal harvest, which COBORU puts in August. `harvestMonth` is the termination month. Residue: the NRCS Washington note puts any cover crop left on the field on the high residue list; a cover crop the note lists as fragile (mustard, fall seeded cover crops) is `medium`.
 
 ## Team rules of thumb
@@ -53,30 +88,33 @@ These values have no document behind them. Each row says so in a source entry ti
 
 ## Missing
 
-No crop is left out of the files now. Four crops are in without a yield response factor, so their income is no-data (D29):
+No crop is left out of the files now. Three crops are in without a yield response factor, so their income is no-data (D29):
 
 | Crop | File | Missing trait |
 |---|---|---|
-| oats | us-ia | yield response factor: FAO Paper 66 Table 1 (the FAO-33 seasonal values) has no oats value |
-| spring-barley | pl | yield response factor: no barley value in FAO Table 1 |
-| rye | pl | yield response factor: not in FAO Table 1 |
-| winter-rapeseed | pl | yield response factor: not in FAO Table 1 |
+| oats | us-ia | yield response factor: FAO Paper 66 Table 1 (the FAO-33 seasonal values) has no oats value; R10 found no measured value in FAO Water Reports 22 either, and two candidate papers did not open |
+| spring-barley | pl | yield response factor: no barley value in FAO Table 1. The one measured value R10 found (Andersen et al., IPI 1/1994, Table 5) is 0.38 in one year and 1.48-1.50 in the next for the whole season, too wide for an income replay |
+| rye | pl | yield response factor: not in FAO Table 1, nor in FAO Water Reports 22 (R10) |
 
 Proxy values (for example the wheat Ky for oats or rye) were not approved, so the field stays empty until a document with the crop's own Ky is opened.
 
-Heat and frost rows missing (these crops have drought only):
+Heat and frost rows still missing after R10:
 
 | Crop | File | Missing |
 |---|---|---|
-| maize | us-ia, pl | frost: no opened source names a damaging frost stage for maize |
-| alfalfa | us-ia | heat and frost |
-| field-pea | pl | heat and frost |
-| sugar-beet | pl | heat and frost |
-| oats | us-ia | heat and frost |
-| spring-barley | pl | frost: FAO Paper 66 (barley, page 140) mentions some risk of frost at flowering but gives no damaging temperature |
-| rye | pl | heat and frost |
-| winter-rapeseed | pl | heat and frost |
+| alfalfa | us-ia | heat: no number for hay (FAO Paper 66 gives 27 °C for seed yield only). Frost: SDSU gives -4 °C for four hours on spring regrowth, but no source gives the months in Iowa, so no row |
+| field-pea | pl | frost: NDSU gives only tolerance (seedlings survive frost in the low 20s °F), not a damaging temperature |
+| sugar-beet | pl | heat and frost: FAO Paper 66 says only to sow when "the risks of frost is nil"; no damaging temperature for emergence or autumn roots |
+| oats | us-ia | heat and frost: no number |
+| spring-barley | pl | frost: Penn State ranks barley the most frost-susceptible small grain, but gives no temperature; FAO Paper 66 p. 140 gives none either |
+| rye | pl | heat and frost: Penn State says only that rye is the hardiest small grain |
+| winter-rapeseed | pl | winterkill: -15 °C without snow, -20 °C under 5-10 cm of snow (IOR-PIB 2025 instruction, PDF p. 5; IUNG 2017 field report of damage below -10 °C in late January and February). FROST_DAYS cannot express a minimum temperature; it needs NASA POWER monthly T2M_MIN and snow depth SNODP, which is a [contract] change. No °C number for frost at bolting or flowering either |
+| potato | pl | frost on foliage beyond FAO Paper 66 "1 °C and less": no other source opened. Kiongo et al. (2025) give 25 °C for delayed tuberisation, but the monthly hottest hour passes 25 °C nearly every summer, so the 35 °C row stays |
+| winter-wheat | us-ia, pl | heat at grain fill: the Kansas State pages are JavaScript-only; 34 °C (FAO Paper 66 p. 98) stays the only value |
+| soybean | us-ia | heat damage number: NC State gives only an 85 °F optimum, not a damage limit; 35 °C stays |
 | cover crops | us-ia, pl | not scored for hazards (not harvested for yield) |
+
+Cover crop windows still missing (R10): the current 2023-2027 catch crop rule on gov.pl or ARiMR (the dates come from the IUNG 2025 slide that quotes them), the NRCS 340 seeding-date table by Iowa zone, red clover frost seeding and termination dates for Iowa.
 
 FAO EcoCrop (https://ecocrop.apps.fao.org/ecocrop/srv/en/home) opened, but its name search returned no records on 14 Nov 2026, so it gave no thresholds.
 

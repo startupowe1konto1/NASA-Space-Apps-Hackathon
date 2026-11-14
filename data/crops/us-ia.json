@@ -24,6 +24,22 @@
         ],
         "threshold": 35,
         "lossShare": 0.2
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          5
+        ],
+        "threshold": 1,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          9
+        ],
+        "threshold": 1,
+        "lossShare": 0.12
       }
     ],
     "waterNeed": "high",
@@ -70,6 +86,21 @@
         "title": "Hatfield and Prueger (2015), Temperature extremes: Effect on plant growth and development, Weather and Climate Extremes 10: 4-10 (open access)",
         "url": "https://pages.uoregon.edu/chendon/coffee_literature/old_literature/2015%20Weather%20Clim.%20Extremes,%20Temperature%20extremes%20on%20plant%20growth.pdf",
         "locator": "page 5, section 1.2: maize pollen viability decreases above 35 °C, and kernel growth rate falls as temperature rises from 30 to 35 °C; heat threshold 35 °C compared with the monthly maximum of NASA POWER T2M_MAX in the pollination and kernel-filling months"
+      },
+      {
+        "title": "Licht (2020), Cold temperatures on the way; what will it mean for corn and soybean seedlings?, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/cold-temperatures-way-what-will-it-mean-corn-and-soybean-seedlings",
+        "locator": "paragraphs 8-9: \"Temperature 28 oF or lower for a couple of hours will be lethal to growing tissue that has emerged\" (-2 °C); emerged seedlings are in the field in May (NASS planting midpoint in May); frost row for May, threshold 1 on NASA POWER FROST_DAYS in that month, the same rule as the other frost rows in data/crops (monthly data cannot show how far below 0 °C the air went); lossShare 0.2 is the team rule of thumb (no loss share given). Excerpt: data/samples/research/agronomy/hf-isu-spring-cold-seedlings.txt"
+      },
+      {
+        "title": "Licht and Hurburgh (2019), Harvest consideration for frost killed corn, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/harvest-consideration-frost-killed-corn",
+        "locator": "paragraphs 7 and 9: \"A freeze of 28 oF or less for a couple hours will result in whole plant death\" (-2 °C) before black layer; yield loss \"ranges from 12% in late dent up to 41% at beginning dent stage\", lossShare 0.12 is the low end. Frost row for September, the month before the NASS harvest midpoint (October); October itself is left out because the corn is usually mature by then, and the NASA POWER sample for Ames (data/samples/power/point-monthly-1981-2025-ag.json) has more than 1 frost day in October in 39 of 45 years against 2 of 45 in September. threshold 1 on NASA POWER FROST_DAYS in that month, the same rule as the other frost rows in data/crops (monthly data cannot show how far below 0 °C the air went). Excerpt: data/samples/research/agronomy/hf-isu-corn-fall-frost.txt"
+      },
+      {
+        "title": "Licht and Archontoulis (2020), What impact will the heat and dry weather have on pollination 2020?, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/what-impact-will-heat-and-dry-weather-have-pollination-2020",
+        "locator": "paragraphs 7-8: heat stress \"typically requires temperature of greater than 95 oF\" (35 °C) in the 2 weeks before or after pollination; a second source for the 35 °C heat threshold. Excerpt: data/samples/research/agronomy/hf-isu-corn-pollination-heat.txt"
       }
     ]
   },
@@ -164,6 +195,16 @@
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
         "locator": "Soybean chapter, page 128: soybean is very sensitive to frost at seed emergence and pod filling; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months; emergence month May (FAO-56 Table 11 initial stage from the 20 May sowing midpoint), pod filling August and September (second half of the FAO-56 mid-season stage)"
+      },
+      {
+        "title": "Licht (2020), Cold temperatures on the way; what will it mean for corn and soybean seedlings?, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/cold-temperatures-way-what-will-it-mean-corn-and-soybean-seedlings",
+        "locator": "paragraph 10: soybean cotyledons survive \"unless there were several hours of temperatures below 30 oF\"; growing point not killed \"down to 28 oF\" (-1 to -2 °C); confirms the May (emergence) month of the frost row. Excerpt: data/samples/research/agronomy/hf-isu-spring-cold-seedlings.txt"
+      },
+      {
+        "title": "Hurburgh, Vittetoe and Anderson (2019), Frost Damage to Soybeans, Iowa State University Extension, Integrated Crop Management",
+        "url": "https://crops.extension.iastate.edu/post/frost-damage-soybeans",
+        "locator": "paragraphs 1-3: \"Temperatures below 32°F can damage soybean leaves ... A killing freeze is considered to be 28°F\"; plants with green pods (before R7) are hurt most; confirms the pod-filling months (August, September) of the frost row. Excerpt: data/samples/research/agronomy/hf-isu-soybean-fall-frost.txt"
       }
     ]
   },
@@ -257,6 +298,11 @@
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
         "locator": "Wheat chapter, page 93: during head development and flowering frost may lead to loss of spikelets; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months (heading and grain-filling months)"
+      },
+      {
+        "title": "Shroyer, Mikesell and Paulsen (1995), Spring Freeze Injury to Kansas Wheat, C646, Kansas State University",
+        "url": "https://bookstore.ksre.ksu.edu/pubs/C646.PDF",
+        "locator": "p. 2, Table 1 (two hours of exposure): heading and flowering 30 F (-1 C), yield effect \"Severe\"; milk and dough 28 F (-2 C); confirms the frost row in the heading and grain-filling months (May, June). Excerpt: data/samples/research/agronomy/hf-ksu-c646-wheat-freeze.txt"
       }
     ]
   },
@@ -421,6 +467,11 @@
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
         "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "Licht and Clemens (2021), Considerations when overseeding cover crops, Iowa State University Extension, Integrated Crop Management News",
+        "url": "https://crops.extension.iastate.edu/cropnews/2021/07/considerations-when-overseeding-cover-crops",
+        "locator": "article body: overseeding into standing corn or soybean is \"usually the last week of August through that first week of September\"; supports sowMonth September. Excerpt: data/samples/research/agronomy/cover-isu-overseeding-2021.txt"
       }
     ]
   },
