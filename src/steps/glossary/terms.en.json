@@ -46,5 +46,9 @@
   "model-estimate": {
     "label": "model estimate",
     "explanation": "A value worked out by a computer model from satellite and weather data, not measured on your field, so the real value may differ."
+  },
+  "margin": {
+    "label": "margin",
+    "explanation": "Crop sales per hectare minus direct costs such as seed, fertiliser, sprays and fuel, before land, labour, machinery ownership and payments."
   }
 }
