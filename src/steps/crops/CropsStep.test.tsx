@@ -3,12 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { providers } from '../../app/providers';
 import { canContinue, useAppStore } from '../../app/store';
 import { SourceError } from '../../contracts';
-import { demoFields } from '../../fixtures';
+import { demoFields, fixtureCrops } from '../../fixtures';
 import { CropsStep, lastSeasons } from './CropsStep';
 
 beforeEach(() => {
   useAppStore.getState().reset();
   vi.restoreAllMocks();
+  // Tested against the fixture crop lists, not the sourced tables in data/crops/, which grow as O4 adds sources.
+  vi.spyOn(providers.context, 'getCrops').mockImplementation(async (country) =>
+    country === 'OTHER' ? [] : fixtureCrops[country],
+  );
 });
 
 const atStep3 = (field = demoFields.iowa) => {

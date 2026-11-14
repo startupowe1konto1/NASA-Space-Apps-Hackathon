@@ -58,8 +58,8 @@ describe('step shell on fixtures', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }));
     // Poland has no satellite crop history, so the farmer picks two seasons in the crop picker (O2-B2).
     const pickers = await screen.findAllByRole('radiogroup', { name: /Main crop in/ });
-    await user.click(within(pickers[0]!).getByRole('radio', { name: 'Winter wheat' }));
-    await user.click(within(pickers[1]!).getByRole('radio', { name: 'Winter rapeseed' }));
+    await user.click(within(pickers[0]!).getAllByRole('radio')[0]!);
+    await user.click(within(pickers[1]!).getAllByRole('radio')[1]!);
     await screen.findByText('Saved 2 years of crops.');
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
