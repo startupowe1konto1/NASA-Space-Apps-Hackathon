@@ -354,6 +354,192 @@
     ]
   },
   {
+    "id": "spring-barley",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 3,
+    "harvestMonth": 8,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          6,
+          7
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          6,
+          7
+        ],
+        "threshold": 32,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "forage": false,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Zboza jare 2024 (No. 209)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_209_Zboza_jare_2024.pdf",
+        "locator": "Tabela 2 \"JECZMIEN JARY. Warunki prowadzenia doswiadczen\", page 12: mean sowing 29.03 (2024) and 1.04 (2023), mean harvest 27.07 and 8.08 (two-year mean 2 August), heading 30-31.05 and 8-9.06 (mean about 4 June); drought-sensitive months are the heading month (June) and the next one (grain filling, July)"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Barley/Oats/Wheat 450-650 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\", cool season: Barley; high residue list maps to residueCover high"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Barley chapter, page 139: high temperatures (above 30-32 °C) during grain filling shorten it and reduce grain weight, even in spells of only 3 days; heat threshold 32 °C (the top of that range) compared with the monthly maximum of NASA POWER T2M_MAX in the heading and grain-filling months"
+      },
+      {
+        "title": "Field Shift decision D29: the yield response factor is optional",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+        "locator": "D29: no opened document gives a Ky for barley (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "rye",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 9,
+    "harvestMonth": 8,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          5,
+          6
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "low",
+    "forage": false,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Zboza ozime 2024 (No. 219)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_219_Zboza_ozime_2024.pdf",
+        "locator": "Tabela 2 \"ZYTO OZIME. Warunki prowadzenia doswiadczen\", page 81: mean sowing 28.09 (2024 and 2023), mean harvest 24.07 and 10.08 (two-year mean 1 August), heading 3-4.05 and 12-14.05 (mean about 8 May); drought-sensitive months are the heading month (May) and the next one (grain filling, June)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 24, Crop water requirements (Doorenbos and Pruitt, revised 1977)",
+        "url": "https://www.fao.org/3/s8376e/s8376e.pdf",
+        "locator": "Table 20 \"Approximate range of seasonal ETcrop in mm\", page 36: Grains (small) 300-450 mm; rye has no row in FAO Training Manual 3 Table 14, so the small grains row is used; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so low"
+      },
+      {
+        "title": "IUNG-PIB, Studia i Raporty 57(11) (2018): G. Podolska, Plon i jakosc ziarna pszenicy ozimej uprawianej w warunkach wysokiej temperatury oraz stresu suszy",
+        "url": "https://iung.pl/wp-content/uploads/2009/10/zesz57.pdf",
+        "locator": "page 10, Tabela 1 \"Potrzeby opadowe roslin w okresie wiosenno-letniej wegetacji\": water need (Ostrowski et al. 2008) of rye 250-280 mm against 270-300 mm for winter wheat, spring and summer only; a check that rye needs no more water than wheat, not used for the class"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\", cool season small grains: Rye; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift decision D29: the yield response factor is optional",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+        "locator": "D29: no opened document gives a Ky for rye (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "winter-rapeseed",
+    "family": "Brassicaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 8,
+    "harvestMonth": 7,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          4,
+          5
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "low",
+    "forage": false,
+    "residueCover": "low",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Oleiste 2024 (No. 220)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_220_Oleiste_2024.pdf",
+        "locator": "Tabela 5 \"RZEPAK OZIMY - doswiadczenia porejestrowe. Daty siewu, zbioru oraz wazniejszych faz rozwojowych\", page 16: mean sowing 02.09 (2023/2024) and 30.08 (2022/2023), two-year mean 31 August; mean harvest 10.07 and 26.07 (mean 18 July); start of flowering 08.04 and 29.04 (mean about 18 April), end of flowering 10.05 and 27.05; drought-sensitive months are the flowering month (April) and the next one (May)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 24, Crop water requirements (Doorenbos and Pruitt, revised 1977)",
+        "url": "https://www.fao.org/3/s8376e/s8376e.pdf",
+        "locator": "Table 20 \"Approximate range of seasonal ETcrop in mm\", page 36: Oil seeds 300-600 mm; rapeseed has no row in FAO Training Manual 3 Table 14, so the oil seeds row is used; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so low"
+      },
+      {
+        "title": "IUNG-PIB, Studia i Raporty 57(11) (2018): G. Podolska, Plon i jakosc ziarna pszenicy ozimej uprawianej w warunkach wysokiej temperatury oraz stresu suszy",
+        "url": "https://iung.pl/wp-content/uploads/2009/10/zesz57.pdf",
+        "locator": "page 10: of the crops compared, winter rapeseed needs the least water (200 to 220 mm), winter wheat 270 to 300 mm, spring and summer only; a check on the class, not used for it"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 4, \"Low Residue Crop List\", low residue seed/grain: Canola; page 5 lists Canola/Rapeseed as fragile; low residue list maps to residueCover low"
+      },
+      {
+        "title": "Field Shift decision D29: the yield response factor is optional",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
+        "locator": "D29: no opened document gives a Ky for rapeseed (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
     "id": "white-mustard",
     "family": "Brassicaceae",
     "legume": false,
