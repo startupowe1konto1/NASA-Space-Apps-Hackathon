@@ -11,6 +11,7 @@ Saved with `curl -s` on Sat 14 Nov 2026, 17:40 UTC (18:40 CET). Used by `src/map
 | `census-empty.json` | `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=99999%20Nowhere%20Rd%2C%20Qwxzv%2C%20IA%2050000&benchmark=Public_AR_Current&format=json` |
 | `nominatim-ames-iowa.json` | `https://nominatim.openstreetmap.org/search?q=Ames%2C%20Iowa&format=jsonv2&limit=5` |
 | `nominatim-empty.json` | `https://nominatim.openstreetmap.org/search?q=Qwxzvqq%20Nowhereplace&format=jsonv2&limit=5` |
+| `nominatim-220th-street-nevada-iowa.json` | `https://nominatim.openstreetmap.org/search?q=220th%20Street%2C%20Nevada%2C%20Iowa&format=jsonv2&limit=5` (saved Sat 14 Nov, 23:45 CET, User-Agent `field-shift-tool-dev`; the address the pitch animation types, next to the Iowa demo field, see `src/map/demoSnap.ts`) |
 
 What the answers show:
 

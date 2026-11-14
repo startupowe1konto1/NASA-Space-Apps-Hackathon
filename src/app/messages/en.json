@@ -7,7 +7,7 @@
   "app.step.priorities": "Your priorities",
   "app.step.rotations": "Rotations for this field",
   "app.step.money": "Money",
-  "app.intro.text": "Find a crop rotation that keeps your soil healthy and copes with your local climate. The tool reads NASA climate data, soil maps and local farming rules for your field.",
+  "app.intro.text": "Find a crop rotation that keeps your soil healthy and copes with your local climate.",
   "app.intro.start": "Start",
   "app.back": "Back",
   "app.next": "Next",

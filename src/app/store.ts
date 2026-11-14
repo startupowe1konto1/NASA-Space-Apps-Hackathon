@@ -15,6 +15,14 @@ export type AnalysisState =
   | { status: 'ready'; data: Analysis }
   | { status: 'error'; source: string; reason: string };
 
+/** The fields as they were before one edit, for undo. */
+export interface FieldSnapshot {
+  fields: Field[];
+  selectedFieldId: string | null;
+  cropHistory: Record<string, CropYear[]>;
+}
+export const FIELD_HISTORY_MAX = 30;
+
 export interface AppState {
   step: number; // 0 (start page) ..STEP_COUNT
   goal: GoalId;
@@ -23,6 +31,8 @@ export interface AppState {
   cropHistory: Record<string, CropYear[]>; // by field id
   priorities: { on: PriorityId[]; excludedCrops: CropId[] };
   analysis: AnalysisState;
+  /** Field edits that undo can take back, oldest first. */
+  fieldHistory: FieldSnapshot[];
 
   goToStep(step: number): void;
   setGoal(goal: GoalId): void;
@@ -30,6 +40,8 @@ export interface AppState {
   updateField(field: Field): void;
   removeField(id: string): void;
   selectField(id: string): void;
+  /** Takes back the last field edit (add, select, reshape, remove, cut, join). Crops entered since are kept. */
+  undoFieldEdit(): void;
   setCropHistory(fieldId: string, history: CropYear[]): void;
   setPriorities(priorities: { on: PriorityId[]; excludedCrops: CropId[] }): void;
   runAnalysis(): Promise<void>;
@@ -44,7 +56,29 @@ const initial = {
   cropHistory: {} as Record<string, CropYear[]>,
   priorities: { on: [] as PriorityId[], excludedCrops: [] as CropId[] },
   analysis: { status: 'idle' } as AnalysisState,
+  fieldHistory: [] as FieldSnapshot[],
 };
+
+// While asOneEdit runs, the store calls inside it do not each add an undo step.
+let grouped = 0;
+
+/** The history with the state before this edit added, unless an edit group already added it. */
+function remember(s: AppState): Pick<AppState, 'fieldHistory'> | Record<string, never> {
+  if (grouped > 0) return {};
+  const snapshot: FieldSnapshot = { fields: s.fields, selectedFieldId: s.selectedFieldId, cropHistory: s.cropHistory };
+  return { fieldHistory: [...s.fieldHistory, snapshot].slice(-FIELD_HISTORY_MAX) };
+}
+
+/** Runs several field edits (a cut, a join) so that one undo takes all of them back. */
+export function asOneEdit(edit: () => void): void {
+  useAppStore.setState((s) => remember(s));
+  grouped++;
+  try {
+    edit();
+  } finally {
+    grouped--;
+  }
+}
 
 export const useAppStore = create<AppState>((set, get) => ({
   ...initial,
@@ -55,24 +89,51 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   addField: (field) =>
     set((s) => ({
+      ...remember(s),
       fields: [...s.fields.filter((f) => f.id !== field.id), field],
       selectedFieldId: field.id,
       analysis: { status: 'idle' },
     })),
   updateField: (field) =>
-    set((s) => ({ fields: s.fields.map((f) => (f.id === field.id ? field : f)), analysis: { status: 'idle' } })),
+    set((s) => ({
+      ...remember(s),
+      fields: s.fields.map((f) => (f.id === field.id ? field : f)),
+      analysis: { status: 'idle' },
+    })),
   removeField: (id) =>
     set((s) => {
       const fields = s.fields.filter((f) => f.id !== id);
       const { [id]: _removed, ...cropHistory } = s.cropHistory;
       return {
+        ...remember(s),
         fields,
         cropHistory,
         selectedFieldId: s.selectedFieldId === id ? (fields[0]?.id ?? null) : s.selectedFieldId,
         analysis: { status: 'idle' },
       };
     }),
-  selectField: (id) => set({ selectedFieldId: id, analysis: { status: 'idle' } }),
+  // A tap on the field that is already selected changes nothing, so it is not an undo step.
+  selectField: (id) =>
+    set((s) => (s.selectedFieldId === id ? {} : { ...remember(s), selectedFieldId: id, analysis: { status: 'idle' } })),
+
+  undoFieldEdit: () =>
+    set((s) => {
+      const last = s.fieldHistory[s.fieldHistory.length - 1];
+      if (!last) return {};
+      // Crops entered after the edit stay; a field that comes back brings its crops from before.
+      const cropHistory: Record<string, CropYear[]> = {};
+      for (const f of last.fields) {
+        const history = s.cropHistory[f.id] ?? last.cropHistory[f.id];
+        if (history) cropHistory[f.id] = history;
+      }
+      return {
+        fields: last.fields,
+        selectedFieldId: last.selectedFieldId,
+        cropHistory,
+        fieldHistory: s.fieldHistory.slice(0, -1),
+        analysis: { status: 'idle' },
+      };
+    }),
 
   setCropHistory: (fieldId, history) =>
     set((s) => ({ cropHistory: { ...s.cropHistory, [fieldId]: history }, analysis: { status: 'idle' } })),

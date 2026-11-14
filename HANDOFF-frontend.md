@@ -112,7 +112,7 @@ The deadline is Sun 15 Nov, 11:59 CET.
 O1, in this order (the plan has the tests):
 
 1. O1-F1: the new flow in one PR: start page, field and goal swapped, step 7 and the share link removed, SPEC §12 and DECISIONS (D52) updated, e2e updated. Done Sat night; the user approved the start page in the preview. Lanes on step 5 or 6: rebase on it, the steps are now 1–6 and step 0 is the start page.
-2. O1-F2: step 1: drop the demo tiles, add the field on a search hit (the Iowa demo outline near the demo field), switch e2e to the search box.
+2. O1-F2: step 1: drop the demo tiles, add the field on a search hit (the Iowa demo outline within 2 km of the demo field), switch e2e to the search box. Done Sat night, with an Undo button for every field edit (the user's request in review). For the animation, type "220th Street, Nevada, Iowa": it fits the Iowa demo field.
 3. O1-F3: step 4: the text layout.
 
 O3 and O4: step 5 (fold the sections and the sources, remove the goal switcher, drop the weak-evidence banner) and step 6. Step 5 touches `RotationsStep.tsx` and `RotationCard.tsx`, which O1-F1 does not, so the two can run at the same time; rebase after O1-F1 merges, because the step numbers change.

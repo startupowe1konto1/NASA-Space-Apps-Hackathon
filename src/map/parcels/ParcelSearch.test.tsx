@@ -169,7 +169,8 @@ describe('a tap on the map', () => {
   });
 
   it('does not ask ULDK outside Poland', async () => {
-    const { lat, lon } = demoFields.iowa.centroid;
+    // A US point away from the Iowa demo field, which a nearby tap now takes as a whole (src/map/demoSnap.ts).
+    const [lat, lon] = [38.5, -98.0];
     await act(() => addFieldAt(lat, lon));
     expect(fetchMock).not.toHaveBeenCalled();
     expect(useAppStore.getState().fields[0]).toEqual(pointToField(lat, lon));

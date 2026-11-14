@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { demoFields } from '../fixtures';
 import { App } from './App';
 import { useAppStore } from './store';
 import { useOnline } from './useOnline';
@@ -48,7 +49,7 @@ describe('step 5 offline', () => {
     const user = userEvent.setup();
     render(<App />);
     await user.click(screen.getByRole('button', { name: 'Start' }));
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    act(() => useAppStore.getState().addField(demoFields.iowa));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(screen.getByRole('button', { name: 'Next' }));
     await user.click(await screen.findByRole('button', { name: 'Yes, use these crops' }));
