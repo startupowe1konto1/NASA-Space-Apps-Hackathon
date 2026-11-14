@@ -1,0 +1,287 @@
+[
+  {
+    "id": "winter-wheat",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 10,
+    "harvestMonth": 8,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          5,
+          6
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "yieldResponseFactor": 1.05,
+    "forage": false,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Zboza ozime 2024 (No. 219)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_219_Zboza_ozime_2024.pdf",
+        "locator": "Tabela 2 \"PSZENICA ZWYCZAJNA OZIMA. Warunki prowadzenia doswiadczen\", page 37: mean sowing 4.10 (2024) and 8.10 (2023), mean harvest 24.07 and 10.08 (two-year mean 2 August), heading 20-21.05 and 30.05-1.06; drought-sensitive months are the heading month (May) and the next one (grain filling, June)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Winter wheat 1.05"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Barley/Oats/Wheat 450-650 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": Spring & Winter Wheat; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "maize",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 4,
+    "harvestMonth": 10,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "high",
+    "yieldResponseFactor": 1.25,
+    "forage": true,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Kukurydza 2024 (No. 208)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_kukurydza_2024.pdf",
+        "locator": "\"KUKURYDZA NA ZIARNO. Warunki polowe doswiadczen\", page 13, series 2 (mid-early): mean sowing 29.04 (2024) and 30.04 (2023), emergence 9.05 and 15.05, harvest 10.10 and 24.10; Tabela 4, page 14: silks appear 62 and 65 days after emergence, about 14 July, so drought-sensitive months are July and August. The silage maize series in the same report gives the forage use"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Maize 1.25"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Maize 500-800 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so high"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": Field Corn; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "field-pea",
+    "family": "Fabaceae",
+    "legume": true,
+    "kind": "cash",
+    "sowMonth": 4,
+    "harvestMonth": 7,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          6,
+          7
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "low",
+    "yieldResponseFactor": 1.15,
+    "forage": false,
+    "residueCover": "low",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Bobowate 2024 (No. 211)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_211_Bobowate_2024.pdf",
+        "locator": "Tabela 3 \"GROCH SIEWNY. Warunki polowe i agrotechniczne doswiadczen oraz daty siewu, zbioru i wazniejszych faz rozwojowych\", page 24: mean sowing 31.03 (2024) and 4.04 (2023), start of flowering 31.05 and 10.06, harvest 16.07 and 31.07; drought-sensitive months are the flowering month (June) and the next one (pod filling, July)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Peas 1.15"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Pea 350-500 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so low"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 4, \"Low Residue Crop List\": Field Peas; low residue list maps to residueCover low"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "sugar-beet",
+    "family": "Amaranthaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 4,
+    "harvestMonth": 10,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "yieldResponseFactor": 1.0,
+    "forage": false,
+    "residueCover": "low",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Burak cukrowy 2024 (No. 207)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_207_Burak_cukrowy_2024.pdf",
+        "locator": "\"BURAK CUKROWY. Warunki polowe doswiadczen, terminy agrotechniczne i fenologiczne\", page 10: mean sowing 13.04 (2024) and 19.04 (2023), mean harvest 21.10 and 17.10"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Sugarbeet, Idaho USA, April planting: 50/40/50/40 days; mid-season starts 90 days after sowing (16 April), about 15 July, so drought-sensitive months are July and August"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Sugarbeet 1.0"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Sugarbeet 550-750 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 4, \"Low Residue Crop List\": Sugar Beets; low residue list maps to residueCover low"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "potato",
+    "family": "Solanaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 4,
+    "harvestMonth": 9,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          6,
+          7
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "yieldResponseFactor": 1.1,
+    "forage": false,
+    "residueCover": "low",
+    "sources": [
+      {
+        "title": "COBORU, Wyniki porejestrowych doswiadczen odmianowych (post-registration variety trials): Ziemniak 2024 (No. 214)",
+        "url": "https://coboru.gov.pl/Publikacje_COBORU/Wyniki_PDO/WPDO_214_Ziemniak_2024.pdf",
+        "locator": "Tabela 15 \"ZIEMNIAK - odmiany jadalne sredniowczesne i sredniopozne. Warunki polowe doswiadczen oraz termin sadzenia i zbioru\", page 25: mean planting 22.04 (2024) and 24.04 (2023), mean harvest 18.09 and 30.09"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Potato, Europe, April planting: 30/35/50/30 days; mid-season starts 65 days after planting (23 April), about 27 June, so drought-sensitive months are June and July"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Potato 1.1"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Potato 500-700 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 4, \"Low Residue Crop List\": Potatoes; low residue list maps to residueCover low"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  }
+]

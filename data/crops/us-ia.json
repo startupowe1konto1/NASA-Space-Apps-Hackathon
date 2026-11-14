@@ -1,0 +1,249 @@
+[
+  {
+    "id": "maize",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 5,
+    "harvestMonth": 10,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "high",
+    "yieldResponseFactor": 1.25,
+    "forage": true,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Corn for grain\": most active planting Apr 25 - May 18 (midpoint in May), most active harvest Oct 5 - Nov 9 (midpoint in October); \"Corn for silage\" row gives the forage use"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Maize (grain), Idaho USA, April planting: 30/40/50/50 days; mid-season (flowering and yield formation) starts 70 days after the May sowing midpoint, about 15 July, so drought-sensitive months are July and August"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Maize 1.25"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Maize 500-800 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so high"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": Field Corn; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "soybean",
+    "family": "Fabaceae",
+    "legume": true,
+    "kind": "cash",
+    "sowMonth": 5,
+    "harvestMonth": 10,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "yieldResponseFactor": 0.85,
+    "forage": false,
+    "residueCover": "low",
+    "sources": [
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Soybeans\": most active planting May 8 - Jun 2 (midpoint in May), most active harvest Sep 28 - Oct 20 (midpoint in October)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Soybeans, Central USA, May planting: 20/30-35/60/25 days; mid-season starts about 52 days after the sowing midpoint (20 May), about 12 July, so drought-sensitive months are July and August"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Soybean 0.85"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Soybean 450-700 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Nebraska Conservation Planning Sheet No. 4, Crop Residue Management (rev. December 2006)",
+        "url": "https://www.mssoy.org/sites/default/files/documents/residue-mgmt-nrcs-2006.pdf",
+        "locator": "section \"Residue type\": soybeans are a low residue crop; maps to residueCover low"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "winter-wheat",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cash",
+    "sowMonth": 10,
+    "harvestMonth": 7,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          5,
+          6
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "medium",
+    "yieldResponseFactor": 1.05,
+    "forage": false,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Wheat, winter\": most active planting Sep 26 - Oct 15 (midpoint in October), most active harvest Jul 6 - Jul 22 (July)"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 56, Crop evapotranspiration, chapter 6",
+        "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+        "locator": "Table 11, Winter Wheat, Idaho USA, October planting: 160/75/75/25 days; mid-season starts 235 days after the sowing midpoint (5 October), about 28 May, so drought-sensitive months are May and June"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Winter wheat 1.05"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Barley/Oats/Wheat 450-650 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so medium"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": Spring & Winter Wheat; high residue list maps to residueCover high"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "alfalfa",
+    "family": "Fabaceae",
+    "legume": true,
+    "kind": "perennial",
+    "sowMonth": 4,
+    "harvestMonth": 9,
+    "sensitive": [
+      {
+        "hazard": "drought",
+        "months": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "threshold": 20,
+        "lossShare": 0.2
+      }
+    ],
+    "waterNeed": "high",
+    "yieldResponseFactor": 1.1,
+    "forage": true,
+    "residueCover": "medium",
+    "sources": [
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Hay, alfalfa\": planting dates (NA); most active harvest May 30 - Sep 15, so harvestMonth is the end of that window (September) and the drought-sensitive months are the months with 10 or more days inside it (June to September), since each cut is a harvest"
+      },
+      {
+        "title": "Iowa State University Extension, Integrated Crop Management News: Alfalfa Seeding Recommendations (17 April 2024)",
+        "url": "https://crops.extension.iastate.edu/post/alfalfa-seeding-recommendations",
+        "locator": "section \"Companion Crop or Herbicide\": alfalfa is commonly spring-planted with a nurse cereal such as oats"
+      },
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Oats, spring\": most active planting Apr 2 - May 2, midpoint in April; used as the spring sowing month of alfalfa planted with an oat companion crop"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Alfalfa 1.1"
+      },
+      {
+        "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
+        "url": "https://www.fao.org/4/s2022e/s2022e07.htm",
+        "locator": "Table 14 \"Indicative values of crop water needs\": Alfalfa 800-1600 mm per growing period; our class from the upper bound: up to 600 mm low, 601-750 medium, above 750 high, so high"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 4, \"High Residue Crops with Residue Removed\": Alfalfa (hay or silage) is a low residue crop, page 5 lists alfalfa hay as non-fragile; low but non-fragile maps to residueCover medium"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      },
+      {
+        "title": "team rule of thumb",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+      }
+    ]
+  }
+]
