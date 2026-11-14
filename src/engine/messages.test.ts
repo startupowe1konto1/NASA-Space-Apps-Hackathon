@@ -18,3 +18,13 @@ describe('src/engine/messages/en.json', () => {
     expect(missing).toEqual([]);
   });
 });
+
+// #105 minor: the hazard checks see a threshold crossed in a sensitive month, not crop damage, so no text may say
+// "damage" or that a hazard "hit" a crop.
+describe('hazard wording', () => {
+  it('says a threshold was crossed, never that a crop was damaged or hit', () => {
+    for (const [code, text] of Object.entries(en)) {
+      expect(text, code).not.toMatch(/\bdamage\b|\bhit the\b/i);
+    }
+  });
+});

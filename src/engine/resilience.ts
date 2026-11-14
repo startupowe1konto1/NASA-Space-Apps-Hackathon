@@ -24,9 +24,9 @@ import type { CalendarMonth, ClimateProfile, CropId, CropTraits, Hazard, Message
 
 /** Every Message code this module emits. The English text for each lives in src/engine/messages/en.json (task O3-B6). */
 export const RESILIENCE_MESSAGE_CODES = [
-  // "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}); the range is the 10th to 90th percentile year."
+  // "Share of crop-years at this field with no drought, heat or frost in the crop's sensitive months, {years} years ({from}–{to}). The range runs from the 10th to the 90th percentile year."
   'resilience.basis.years',
-  // "Share of crop-years without drought, heat or frost damage at this field, {years} years ({from}–{to}); {count} of {needed} months the crops need are missing from the record and were left out."
+  // "Share of crop-years at this field with no drought, heat or frost in the crop's sensitive months, {years} years ({from}–{to}). {count} of the {needed} months the crops need are missing ..."
   'resilience.basis.missing-months',
 ] as const;
 

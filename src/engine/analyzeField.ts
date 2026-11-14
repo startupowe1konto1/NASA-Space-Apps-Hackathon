@@ -82,7 +82,8 @@ function missing(datasetId: string, source: string, error: unknown, unit?: strin
     value: null,
     ...(unit ? { unit } : {}),
     datasetIds: [datasetId],
-    kind: 'observation',
+    // the kind of the source this value stands for (#105: SoilGrids is a model, SSURGO and NASADEM are not)
+    kind: datasetRegistry.find((d) => d.id === datasetId)?.kind ?? 'observation',
     retrievedAt: today(),
     missingReason: `${source} did not answer: ${detail}`,
   };
