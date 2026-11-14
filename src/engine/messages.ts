@@ -59,6 +59,7 @@ export const CARD_MESSAGE_CODES = [
   'empty.crops-error',
   'empty.unknown-crops',
   'empty.current-not-scored',
+  'empty.rules-missing',
   'gap.soil-missing',
   'gap.slope-missing',
   'gap.priority-not-scored',

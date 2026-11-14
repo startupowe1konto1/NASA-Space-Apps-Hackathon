@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { iowaClimate, iowaSlope } from '../fixtures/analysis.iowa';
 import { poznanClimate, poznanSlope } from '../fixtures/analysis.poznan';
 import { fixtureCrops } from '../fixtures/crops';
-import { FALLBACK_RULES, engineRules, loadRules, toSoilRules } from './rules';
+import { engineRules, loadRules, shippedRules, toSoilRules, type RuleRow } from './rules';
 import { soilHealth } from './soilHealth';
-import { O4_ROWS } from './testdata/o4Rules';
+import goalsFile from '../../data/rules/goals.json';
 import hazardsFile from '../../data/rules/hazards.json';
 
 const row = (id: string, value: unknown) => ({
@@ -18,49 +18,32 @@ const row = (id: string, value: unknown) => ({
 });
 
 describe('loadRules', () => {
-  it('returns the fallback rows when no rule file exists', () => {
+  it('has no rows of its own: without rule files there is nothing, and engineRules says which row is missing', () => {
     const loaded = loadRules({});
-    expect(loaded.byId.get('hazards.calendar.markShare')?.value).toBe(0.2);
-    expect(loaded.byId.get('goals.soilFloor.points')?.value).toBe(5);
+    expect(loaded.byId.size).toBe(0);
     expect(loaded.byFile).toEqual({});
-    const r = engineRules(loaded);
-    expect(r.markShare).toBe(0.2);
-    expect(r.droughtPercentile).toBe(20);
-    expect(r.notSuitableBelowSI).toBe(10);
-    expect(r.floorPoints).toBe(5);
-    expect(r.shownOthers).toBe(3);
-    expect(r.weights.keepSoil).toEqual({ soilHealth: 0.4, climateResilience: 0.45, priorities: 0.15 });
-    expect(r.weights.income).toEqual({ soilHealth: 0.3, climateResilience: 0.2, income: 0.4, priorities: 0.1 });
+    expect(() => engineRules(loaded)).toThrow(/hazards\.calendar\.markShare/);
   });
 
-  it('every fallback row is a sourced rule row', () => {
-    for (const r of FALLBACK_RULES) {
-      expect(r.sourceTitle.length).toBeGreaterThan(0);
-      expect(r.sourceUrl).toMatch(/^https:\/\//);
-      expect(r.sourceLocator.length).toBeGreaterThan(0);
-    }
+  it('reads every engine number from data/rules/goals.json and hazards.json', () => {
+    const r = engineRules(shippedRules);
+    const fileValue = (id: string) => [...(goalsFile as RuleRow[]), ...(hazardsFile as RuleRow[])].find((x) => x.id === id)?.value;
+    expect(r.markShare).toBe(fileValue(r.ids.markShare));
+    expect(r.droughtPercentile).toBe(fileValue(r.ids.drought));
+    expect(r.notSuitableBelowSI).toBe(fileValue(r.ids.gaez));
+    expect(r.floorPoints).toBe(fileValue(r.ids.floor));
+    expect(r.shownOthers).toBe(fileValue('goals.shownOthers.count'));
+    expect(r.doublingFactor).toBe(fileValue('goals.priorityDoubling.factor'));
+    for (const goal of ['keepSoil', 'improveSoil', 'income'] as const) expect(r.weights[goal]).toEqual(fileValue(r.ids.weights[goal]));
   });
 
-  it('a provided row list wins over the fallback, and files are kept by name', () => {
+  it('keeps rows by file name, a later file wins on the same id', () => {
     const loaded = loadRules({
       '../../data/rules/goals.json': [row('goals.soilFloor.points', 7)],
       '../../data/rules/nitrogen.json': [row('nitrogen.credit.soybean', 30)],
     });
-    expect(engineRules(loaded).floorPoints).toBe(7);
+    expect(loaded.byId.get('goals.soilFloor.points')?.value).toBe(7);
     expect(loaded.byFile['nitrogen']?.map((r) => r.id)).toEqual(['nitrogen.credit.soybean']);
-    expect(engineRules(loaded).markShare).toBe(0.2); // still from the fallback
-  });
-
-  it('the fallback drought percentile row is a verbatim copy of the row in data/rules/hazards.json', () => {
-    const inFile = (hazardsFile as { id: string }[]).find((r) => r.id === 'hazards.drought.percentile');
-    expect(inFile).toBeDefined();
-    expect(FALLBACK_RULES.find((r) => r.id === 'hazards.drought.percentile')).toEqual(inFile);
-  });
-
-  it('reads the drought percentile from a rule file over the fallback', () => {
-    const loaded = loadRules({ '../../data/rules/hazards.json': [row('hazards.drought.percentile', 10)] });
-    expect(engineRules(loaded).droughtPercentile).toBe(10);
-    expect(engineRules(loaded).ids.drought).toBe('hazards.drought.percentile');
   });
 
   it('throws on a row without a source', () => {
@@ -68,32 +51,40 @@ describe('loadRules', () => {
   });
 });
 
-describe('toSoilRules on O4 rows (PR #27)', () => {
-  const loaded = loadRules({ '../../data/rules/o4.json': O4_ROWS });
+describe('toSoilRules on the rows in data/rules', () => {
+  const loaded = shippedRules;
+  const rowValue = (id: string) => loaded.byId.get(id)!.value as Record<string, number>;
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const r3 = (x: number) => Math.round(x * 1000) / 1000;
   const iowa = { monthly: iowaClimate.monthly, slopePct: iowaSlope };
   const find = (list: { id: string; value: unknown }[], id: string) => list.find((r) => r.id === id)?.value;
 
   it('converts Iowa nitrogen credits from lb N/acre to kg N/ha with a mid value', () => {
     const { rules, sourceIds } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }, { crop: 'soybean' }], iowa);
-    expect(find(rules.nitrogen, 'nitrogen.credit.soybean')).toEqual({ low: 50.445, mid: 58.853, high: 67.26 });
+    const { low, high } = rowValue('nitrogen.credit.soybean.us-ia') as { low: number; high: number };
+    const kg = 1.121; // lb N/acre to kg N/ha, as printed in the row's unit
+    expect(find(rules.nitrogen, 'nitrogen.credit.soybean')).toEqual({ low: r3(low * kg), mid: r3(((low + high) / 2) * kg), high: r3(high * kg) });
     expect(sourceIds['nitrogen.credit.soybean']).toEqual(['nitrogen.credit.soybean.us-ia']);
     expect(find(rules.nitrogen, 'nitrogen.credit.field-pea')).toBeUndefined(); // Polish row, not for Iowa
   });
 
   it('uses the medium soil class for Polish humus coefficients and none for Iowa', () => {
     const pl = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'maize' }, { crop: 'winter-wheat' }], { monthly: poznanClimate.monthly, slopePct: poznanSlope });
-    expect(find(pl.rules.humus, 'humus.coef.maize')).toBe(-1.15);
+    expect(find(pl.rules.humus, 'humus.coef.maize')).toBe(rowValue('humus.coef.maize.pl').medium);
     expect(toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa).rules.humus).toEqual([]);
   });
 
   it('builds C factors per cover state, the slope table and a bare-fallow zero point', () => {
     const { rules, sourceIds } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean' }], iowa);
-    expect(find(rules.erosion, 'erosion.cFactor.bare')).toBe(1);
-    const maize = (64 + 56 + 43 + 32 + 25 + 21) / 6;
-    const soy = (60 + 52 + 38 + 20 + 17) / 5;
+    expect(find(rules.erosion, 'erosion.cFactor.bare')).toBe((loaded.byId.get('erosion.slr.bare')!.value as number) / 100);
+    const stages = ['seedbed', 'establishment', 'development', 'maturing80', 'maturing90', 'maturing96'];
+    const stageMean = (id: string) => mean(stages.map((k) => rowValue(id)[k]).filter((x): x is number => typeof x === 'number'));
+    const maize = stageMean('erosion.slr.maize.conventional');
+    const soy = stageMean('erosion.slr.soybean.conventional');
     expect(find(rules.erosion, 'erosion.cFactor.crop')).toBeCloseTo((maize + soy) / 200, 3);
-    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeCloseTo((37 + 46) / 200, 3);
-    expect(find(rules.erosion, 'erosion.cFactor.cover-crop')).toBeCloseTo((11 * 4 + 9 + 7) / 6 / 100, 3);
+    const residue = rowValue('erosion.slr.residueCover.maize').tilled30! + rowValue('erosion.slr.residueCover.soybean').tilled30!;
+    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeCloseTo(residue / 200, 3);
+    expect(find(rules.erosion, 'erosion.cFactor.cover-crop')).toBeCloseTo(mean(Object.values(rowValue('erosion.slr.maize.noTillInRyeCover'))) / 100, 3);
     expect(typeof find(rules.erosion, 'erosion.zeroScoreIndex')).toBe('number');
     expect(sourceIds['erosion.zeroScoreIndex']).toContain('erosion.slr.bare');
   });
@@ -107,9 +98,18 @@ describe('toSoilRules on O4 rows (PR #27)', () => {
   });
 
   it('gives each family a minimum return from its crop rows, else the any-family row', () => {
-    const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa);
-    expect(find(rules.pestBreak, 'pestBreak.minReturn.Poaceae')).toEqual({ low: 2, mid: 2, high: 3 });
-    expect(find(rules.pestBreak, 'pestBreak.minReturn.Fabaceae')).toEqual({ low: 3, mid: 3, high: 3 });
+    const { rules, sourceIds } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa);
+    const lowOf = (v: unknown) => (typeof v === 'number' ? v : (v as { low: number }).low);
+    const highOf = (v: unknown) => (typeof v === 'number' ? v : (v as { high: number }).high);
+    for (const family of new Set(fixtureCrops.US.map((c) => c.family))) {
+      const from = sourceIds[`pestBreak.minReturn.${family}`]!;
+      expect(from.length).toBeGreaterThan(0);
+      const values = from.map((id) => loaded.byId.get(id)!.value);
+      const low = Math.max(...values.map(lowOf));
+      expect(find(rules.pestBreak, `pestBreak.minReturn.${family}`)).toEqual(
+        from[0] === 'pestBreak.returnYears.anyFamily' ? low : { low, mid: low, high: Math.max(low, ...values.map(highOf)) },
+      );
+    }
   });
 
   it('lets soilHealth score nitrogen, erosion and pest break for the Iowa current rotation', () => {

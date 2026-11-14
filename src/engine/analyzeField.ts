@@ -152,7 +152,13 @@ export interface AnalyzeOptions {
 
 export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
   const loaded = options.rules ?? shippedRules;
-  const rules: EngineRules = engineRules(loaded);
+  // A row the engine needs is missing from data/rules: no cards, a reason, never invented numbers.
+  let engine: EngineRules | null;
+  try {
+    engine = engineRules(loaded);
+  } catch {
+    engine = null;
+  }
   const registry = options.registry ?? datasetRegistry;
 
   return async (input, providers) => {
@@ -171,6 +177,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
 
     // 3. outside the USA and Poland: profile only
     if (field.country === 'OTHER') return empty({ code: 'empty.outside-coverage' });
+    if (!engine) return empty({ code: 'empty.rules-missing' });
+    const rules = engine;
     const country = field.country;
 
     // 4. crops and the GAEZ gate

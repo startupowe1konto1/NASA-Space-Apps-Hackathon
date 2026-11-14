@@ -68,6 +68,7 @@
   "empty.crops-error": "The crop list could not be loaded, so no rotations were compared. Try again.",
   "empty.unknown-crops": "Your crop history has crops we cannot score yet ({crops}), and fewer than two known years remain. Correct the crops to see rotations.",
   "empty.current-not-scored": "Your current rotation could not be scored against this field's climate record, so no rotations were compared.",
+  "empty.rules-missing": "The rule tables did not load, so no rotations were compared. The climate profile above still applies.",
 
   "risk.local-pests": "Check local pest and disease pressure with your advisor. This tool does not see it.",
   "risk.new-crop": "New on this field: {crop}. Check machinery, storage, seed and a buyer before you commit.",

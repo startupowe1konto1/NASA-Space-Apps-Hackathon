@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Score } from '../contracts';
 import { changedYears, goalTotal, mainCropKey, rankByGoal, rankSoil, type Scored } from './ranking';
-import { engineRules, loadRules } from './rules';
+import { engineRules, shippedRules } from './rules';
 
-const rules = engineRules(loadRules({}));
+const rules = engineRules(shippedRules);
 const s = (value: number): Score => ({ value, low: value, high: value, confidence: 'strong', basis: { code: 'test' } });
 
 const item = (id: string, years: Scored['years'], soil: number, climate: number, isCurrent = false): Scored => ({

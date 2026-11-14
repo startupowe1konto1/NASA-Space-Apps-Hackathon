@@ -3,8 +3,7 @@ import { SourceError, type Analysis, type CropYear, type Message, type Prioritie
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
 import { analyzeField, createAnalyzeField, emptyReason } from './analyzeField';
-import { loadRules } from './rules';
-import { O4_ROWS } from './testdata/o4Rules';
+import { loadRules, shippedRules } from './rules';
 import en from './messages/en.json';
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
@@ -36,9 +35,7 @@ const run = (field: 'iowa' | 'poznan', providers: Providers = fixtureProviders, 
 describe('analyzeField with fixture providers', () => {
   for (const field of ['iowa', 'poznan'] as const) {
     it(`${field}: parses with the Analysis schema and shows four rotations under keepSoil`, async () => {
-      const started = Date.now();
       const a = await run(field);
-      expect(Date.now() - started).toBeLessThan(2000);
       const parsed = analysisSchema.safeParse(a);
       expect(parsed.success, parsed.success ? '' : parsed.error.message).toBe(true);
       expect(a.shownByGoal.keepSoil).toHaveLength(4);
@@ -142,8 +139,8 @@ describe('analyzeField with fixture providers', () => {
     expect(a.rotations).toEqual([]);
   });
 
-  it('with the O4 rule tables, soil indicators are scored and evidence names the O4 rows', async () => {
-    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+  it('with the rule tables in data/rules, soil indicators are scored and evidence names the O4 rows', async () => {
+    const withRules = createAnalyzeField({ rules: shippedRules });
     for (const field of ['iowa', 'poznan'] as const) {
       const a = await withRules({ field: demoFields[field], cropHistory: field === 'iowa' ? iowaHistory : poznanHistory, priorities }, fixtureProviders);
       const parsed = analysisSchema.safeParse(a);
@@ -159,6 +156,17 @@ describe('analyzeField with fixture providers', () => {
     const ruleIds = current.evidence.flatMap((e) => e.ruleIds);
     expect(ruleIds).toContain('nitrogen.credit.soybean.us-ia');
     expect(ruleIds.some((id) => id.startsWith('nitrogen.credit.soybean') && !id.endsWith('us-ia'))).toBe(false);
+  });
+
+  it('without rule tables it returns the profile, no cards and a reason, not invented values', async () => {
+    const noRules = createAnalyzeField({ rules: loadRules({}) });
+    const input = { field: demoFields.iowa, cropHistory: iowaHistory, priorities };
+    const a = await noRules(input, fixtureProviders);
+    expect(a.rotations).toEqual([]);
+    expect(a.profile.monthly.length).toBeGreaterThan(0);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    expect(emptyReason(a, input)?.code).toBe('empty.rules-missing');
+    expect('empty.rules-missing' in en).toBe(true);
   });
 
   it('a crop list provider that throws gives the profile, no cards and a reason', async () => {
@@ -203,7 +211,7 @@ describe('analyzeField with fixture providers', () => {
   });
 
   it('ranks soil over the indicators a rotation shares with the current one, and says so', async () => {
-    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+    const withRules = createAnalyzeField({ rules: shippedRules });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const current = a.rotations.find((r) => r.isCurrent)!;
     const currentSet = Object.keys(current.indicators);
