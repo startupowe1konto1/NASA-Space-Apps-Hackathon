@@ -22,9 +22,5 @@
   "app.stepShort.priorities": "Priorities",
   "app.stepShort.rotations": "Rotations",
   "app.stepShort.money": "Money",
-  "app.intro.eyebrow": "Crop rotation planner",
-  "app.intro.time": "About 3 minutes, no account needed",
-  "app.intro.fact.climate": "Climate at your field from NASA POWER, every month since 1981",
-  "app.intro.fact.slope": "Slope from NASA’s NASADEM elevation map, 30 m grid",
-  "app.intro.fact.soil": "Soil from USDA soil survey in the USA and SoilGrids elsewhere"
+  "app.intro.eyebrow": "Crop rotation planner"
 }

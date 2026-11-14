@@ -36,6 +36,16 @@ describe('start page (step 0)', () => {
     expect(screen.queryByRole('button', { name: en['app.next'] })).not.toBeInTheDocument();
   });
 
+  it('says nothing else: no time estimate and no list of data sources (review of the O4 redesign)', () => {
+    render(<App />);
+    const page = screen.getByRole('heading', { level: 1 }).closest('section');
+    expect(page).not.toBeNull();
+    expect(within(page!).queryByRole('list')).not.toBeInTheDocument();
+    expect(page!.textContent).toBe(
+      en['app.intro.eyebrow' as Key] + PROJECT_NAME + en['app.intro.text' as Key] + en['app.intro.start' as Key],
+    );
+  });
+
   it('shows the description in Polish', async () => {
     render(<App />);
     setLang('pl');
@@ -80,8 +90,16 @@ describe('step order', () => {
     render(<App />);
     const marks = within(screen.getByRole('list', { name: en['app.progress'] })).getAllByRole('listitem');
     // Written out here, not read from STEP_KEYS, so a change of order in the store makes this test fail.
-    const d52: Key[] = ['app.step.field', 'app.step.goal', 'app.step.crops', 'app.step.priorities', 'app.step.rotations', 'app.step.money'];
-    expect(marks.map((m) => m.textContent)).toEqual(d52.map((k) => en[k]));
+    // Each mark is a number (or a tick) and the short step name (the O4 redesign's step chips).
+    const d52: Key[] = [
+      'app.stepShort.field',
+      'app.stepShort.goal',
+      'app.stepShort.crops',
+      'app.stepShort.priorities',
+      'app.stepShort.rotations',
+      'app.stepShort.money',
+    ];
+    expect(marks.map((m) => m.lastElementChild?.textContent)).toEqual(d52.map((k) => en[k]));
     expect(screen.queryByText('Report for your advisor')).not.toBeInTheDocument();
   });
 

@@ -3,8 +3,6 @@
 import { PROJECT_NAME } from './brand';
 import { t } from './i18n';
 
-const FACTS = ['app.intro.fact.climate', 'app.intro.fact.slope', 'app.intro.fact.soil'] as const;
-
 function FieldDrawing() {
   const lines = Array.from({ length: 21 }, (_, i) => i * 24);
   return (
@@ -35,30 +33,21 @@ function FieldDrawing() {
   );
 }
 
+// The text and the drawing sit side by side as one block, centred on the page both ways (review of the O4 redesign).
 export function IntroPage(props: { onStart: () => void }) {
   return (
-    <section className="grid items-center gap-10 py-6 lg:min-h-[calc(100dvh-10rem)] lg:grid-cols-[1fr_1.05fr] lg:gap-14">
-      <div className="flex flex-col gap-6">
+    <section className="mx-auto grid w-full max-w-5xl items-center gap-10 py-6 lg:min-h-[calc(100dvh-10rem)] lg:grid-cols-2 lg:gap-16">
+      <div className="flex flex-col items-start gap-6">
         <p className="text-sm font-semibold uppercase tracking-wider text-emerald-700">{t('app.intro.eyebrow')}</p>
-        <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl">{PROJECT_NAME}</h1>
-        <p className="max-w-xl text-lg leading-relaxed text-slate-700 sm:text-xl">{t('app.intro.text')}</p>
-        <div className="flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            onClick={props.onStart}
-            className="min-h-14 rounded-2xl bg-emerald-700 px-10 text-lg font-semibold text-white shadow-md transition duration-200 ease-out hover:bg-emerald-800 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 motion-reduce:transition-none"
-          >
-            {t('app.intro.start')}
-          </button>
-          <span className="text-sm text-slate-600">{t('app.intro.time')}</span>
-        </div>
-        <ul className="mt-2 grid gap-3 border-t border-slate-200 pt-6 sm:grid-cols-3">
-          {FACTS.map((k) => (
-            <li key={k} className="text-sm leading-snug text-slate-700">
-              {t(k)}
-            </li>
-          ))}
-        </ul>
+        <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl">{PROJECT_NAME}</h1>
+        <p className="max-w-md text-lg leading-relaxed text-slate-700 sm:text-xl">{t('app.intro.text')}</p>
+        <button
+          type="button"
+          onClick={props.onStart}
+          className="mt-2 min-h-14 rounded-2xl bg-emerald-700 px-12 text-lg font-semibold text-white shadow-md transition duration-200 ease-out hover:bg-emerald-800 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 motion-reduce:transition-none"
+        >
+          {t('app.intro.start')}
+        </button>
       </div>
       <div className="relative aspect-[6/5] w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <FieldDrawing />

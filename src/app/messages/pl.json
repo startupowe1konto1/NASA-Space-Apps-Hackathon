@@ -22,9 +22,5 @@
   "app.stepShort.priorities": "Priorytety",
   "app.stepShort.rotations": "Płodozmiany",
   "app.stepShort.money": "Pieniądze",
-  "app.intro.eyebrow": "Planer płodozmianu",
-  "app.intro.time": "Około 3 minut, bez zakładania konta",
-  "app.intro.fact.climate": "Klimat na Twoim polu z NASA POWER, każdy miesiąc od 1981 roku",
-  "app.intro.fact.slope": "Nachylenie z mapy wysokości NASADEM (NASA), siatka 30 m",
-  "app.intro.fact.soil": "Gleba z USDA w USA i z SoilGrids w pozostałych krajach"
+  "app.intro.eyebrow": "Planer płodozmianu"
 }
