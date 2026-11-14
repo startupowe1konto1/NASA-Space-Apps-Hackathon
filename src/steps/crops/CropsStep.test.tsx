@@ -38,7 +38,7 @@ describe('CropsStep with a proposed history (CropScape)', () => {
     expect(await screen.findByText(/Is this right\?/)).toBeInTheDocument();
     const list = screen.getByRole('list', { name: /crops on this field/i });
     const history = await proposedHistory();
-    for (const y of history) {
+    for (const y of history.slice(-3)) {
       expect(within(list).getByText(String(y.year))).toBeInTheDocument();
       expect(within(list).getAllByText(cropName(y.crop)).length).toBeGreaterThan(0);
     }
@@ -143,3 +143,52 @@ describe('lastSeasons', () => {
     expect(lastSeasons(new Date(2026, 2, 1))).toEqual([2025, 2024, 2023]);
   });
 });
+
+describe('CropsStep review follow-ups (#76)', () => {
+  it('shows the three newest proposed years first and the rest behind "Show earlier years"', async () => {
+    const user = userEvent.setup();
+    const history = await proposedHistory();
+    atStep3();
+    render(<CropsStep />);
+    const list = await screen.findByRole('list', { name: /crops on this field/i });
+    const newest = history.slice(-3);
+    const older = history.slice(0, -3);
+    expect(within(list).getAllByRole('listitem')).toHaveLength(Math.min(3, history.length));
+    for (const y of newest) expect(within(list).getByText(String(y.year))).toBeInTheDocument();
+    if (older.length > 0) {
+      for (const y of older) expect(within(list).queryByText(String(y.year))).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: `Show ${older.length} earlier years` }));
+      expect(within(list).getAllByRole('listitem')).toHaveLength(history.length);
+    }
+  });
+
+  it('"Yes" still stores every proposed year, not only the visible ones', async () => {
+    const user = userEvent.setup();
+    const history = await proposedHistory();
+    atStep3();
+    render(<CropsStep />);
+    await user.click(await screen.findByRole('button', { name: /Yes, use these crops/ }));
+    expect(useAppStore.getState().cropHistory[demoFields.iowa.id]).toHaveLength(history.length);
+  });
+
+  it('says "1 year" for a single saved season', async () => {
+    const user = userEvent.setup();
+    atStep3(demoFields.poznan);
+    render(<CropsStep />);
+    const [first] = lastSeasons();
+    const [crop] = mainCrops('PL');
+    await user.click(
+      within(await screen.findByRole('radiogroup', { name: new RegExp(String(first)) })).getByRole('radio', {
+        name: cropName(crop!.id),
+      }),
+    );
+    expect(await screen.findByText('Saved 1 year of crops.')).toBeInTheDocument();
+  });
+
+  it('asks "Is this right?" as a heading, like the picker title', async () => {
+    atStep3();
+    render(<CropsStep />);
+    expect(await screen.findByRole('heading', { level: 2, name: /Is this right\?/ })).toBeInTheDocument();
+  });
+});
+
