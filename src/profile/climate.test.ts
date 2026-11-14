@@ -28,7 +28,7 @@ function series(edit?: (row: Row, i: number) => void, years = 45): Row[] {
   return rows;
 }
 
-const ALL: Thresholds = { droughtPercentile: 20, heatC: 23.95, frostDays: 3 };
+const ALL: Thresholds = { droughtPercentile: 20, heatC: 23.95, frostDays: 3, heatMinDays: 3 };
 const risk = (rows: Row[], month: number, hazard: string, t: Thresholds = ALL) =>
   monthlyRisk(rows, t, SOURCE).find((r) => r.month === month && r.hazard === hazard)!.probability;
 
@@ -105,7 +105,7 @@ describe('monthlyRisk', () => {
   });
 
   it('gives null with a reason when there is no crop-independent heat or frost threshold', () => {
-    const t: Thresholds = { droughtPercentile: 20, heatC: null, frostDays: null };
+    const t: Thresholds = { droughtPercentile: 20, heatC: null, frostDays: null, heatMinDays: 3 };
     for (const hazard of ['heat', 'frost']) {
       const p = risk(series(), 7, hazard, t);
       expect(p.value).toBeNull();
@@ -181,5 +181,39 @@ describe('droughtShare', () => {
   it('is 9 of 45 for distinct values and null for no values', () => {
     expect(droughtShare(Array.from({ length: 45 }, (_, i) => i), 20)).toBeCloseTo(9 / 45, 10);
     expect(droughtShare([], 20)).toBeNull();
+  });
+});
+
+describe('heat from daily maxima (D43)', () => {
+  it('toMonthly attaches each month\'s daily maxima when the daily record is given, and [] for a month it lacks', () => {
+    const power: PowerMonthly = {
+      retrievedAt: '2026-11-14',
+      units: {},
+      months: [
+        { year: 2001, month: 7, GWETROOT: 0.5, GWETTOP: 0.4, PRECTOTCORR: 2, T2M_MAX: 36, FROST_DAYS: 0, EVPTRNS: 0.49 },
+        { year: 2001, month: 8, GWETROOT: 0.5, GWETTOP: 0.4, PRECTOTCORR: 2, T2M_MAX: 30, FROST_DAYS: 0, EVPTRNS: 0.49 },
+      ],
+    };
+    const daily = new Map([[200107, [30, 36, null]]]);
+    const m = toMonthly(power, daily);
+    expect(m[0]!.tMaxDailyC).toEqual([30, 36, null]);
+    expect(m[1]!.tMaxDailyC).toEqual([]);
+    expect(toMonthly(power)[0]).not.toHaveProperty('tMaxDailyC');
+  });
+
+  it('a month counts as a heat month only with at least heatMinDays days above heatC', () => {
+    // July: 3 hot days in years 0-8, 2 hot days in years 9-44
+    const rows = series((row, i) => {
+      if (row.month === 7) row.tMaxDailyC = [...Array<number>(i < 9 ? 3 : 2).fill(30), ...Array<number>(28).fill(20)];
+    });
+    expect(risk(rows, 7, 'heat').value).toBeCloseTo(9 / 45, 10);
+    expect(risk(rows, 7, 'heat', { ...ALL, heatMinDays: 2 }).value).toBe(1);
+  });
+
+  it('a month whose daily list is empty is left out of the share', () => {
+    const rows = series((row, i) => {
+      if (row.month === 7) row.tMaxDailyC = i === 0 ? [] : [...Array<number>(i < 10 ? 3 : 0).fill(30), ...Array<number>(28).fill(20)];
+    });
+    expect(risk(rows, 7, 'heat').value).toBeCloseTo(9 / 44, 10);
   });
 });

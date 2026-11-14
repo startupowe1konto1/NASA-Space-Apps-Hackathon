@@ -34,15 +34,17 @@ export interface GoalWeights { soilHealth: number; climateResilience: number; pr
 
 export interface EngineRules {
   markShare: number;
-  /** Drought limit (D30): percentile of the field's monthly root-zone wetness, all years of the record. */
+  /** Drought limit (D42): percentile of the field's root-zone wetness for the same calendar month, all years of the record. */
   droughtPercentile: number;
+  /** Heat (D43): days in a month with a daily maximum above the crop's threshold that make it a heat month. */
+  heatMinDays: number;
   notSuitableBelowSI: number;
   floorPoints: number;
   shownOthers: number;
   doublingFactor: number;
   weights: Record<GoalId, GoalWeights>;
   /** Rule ids behind each number above, for Evidence.ruleIds. */
-  ids: { markShare: string; gaez: string; floor: string; drought: string; weights: Record<GoalId, string> };
+  ids: { markShare: string; gaez: string; floor: string; drought: string; heatMinDays: string; weights: Record<GoalId, string> };
 }
 
 function numberOf(rules: LoadedRules, id: string): number {
@@ -70,6 +72,7 @@ export function engineRules(rules: LoadedRules): EngineRules {
   return {
     markShare: numberOf(rules, 'hazards.calendar.markShare'),
     droughtPercentile: numberOf(rules, 'hazards.drought.percentile'),
+    heatMinDays: numberOf(rules, 'hazards.heat.minDays'),
     notSuitableBelowSI: numberOf(rules, 'hazards.gaez.notSuitableBelowSI'),
     floorPoints: numberOf(rules, 'goals.soilFloor.points'),
     shownOthers: numberOf(rules, 'goals.shownOthers.count'),
@@ -84,6 +87,7 @@ export function engineRules(rules: LoadedRules): EngineRules {
       gaez: 'hazards.gaez.notSuitableBelowSI',
       floor: 'goals.soilFloor.points',
       drought: 'hazards.drought.percentile',
+      heatMinDays: 'hazards.heat.minDays',
       weights: weightIds,
     },
   };

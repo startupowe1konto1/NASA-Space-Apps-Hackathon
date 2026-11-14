@@ -49,7 +49,7 @@ export type Hazard = 'drought' | 'heat' | 'frost';
 export interface MonthlyRisk { month: number; hazard: Hazard; probability: Sourced } // share of the 45 years, 0–1
 export interface ClimateProfile {                    // what the ProfileProvider returns (NASA POWER, later SMAP)
   source: { datasetIds: string[]; kind: ValueKind; retrievedAt: string };   // applies to every value in monthly
-  monthly: { year: number; month: number; rootWetness: number | null; rainMm: number | null; tMaxC: number | null; frostDays: number | null; evapotranspirationMm: number | null }[]; // raw series for the engine; null = missing
+  monthly: { year: number; month: number; rootWetness: number | null; rainMm: number | null; tMaxC: number | null; frostDays: number | null; evapotranspirationMm: number | null; tMaxDailyC?: (number | null)[] }[]; // raw series for the engine; null = missing. tMaxDailyC: the month's daily maxima, °C (D43); absent = no daily record
   monthlyRisk: MonthlyRisk[];                       // 12 months x 3 hazards
   yearly: { year: number; growingSeasonWetness: Sourced; maxTempC: Sourced; frostDays: Sourced; rainMm: Sourced }[];
   droughtYears: number[];

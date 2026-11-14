@@ -24,6 +24,7 @@
   "steps.rotations.summary.title": "This field",
   "steps.rotations.summary.droughtYears": "Drought years",
   "steps.rotations.summary.droughtYears.unit": "of {n} years",
+  "steps.rotations.summary.droughtYears.recent": "Drought years, {from}–{to}",
   "steps.rotations.summary.droughtYears.none": "No yearly climate record for this field.",
   "steps.rotations.summary.peak": "Highest {hazard} risk",
   "steps.rotations.summary.peak.none": "No monthly {hazard} risk in the record.",
@@ -56,6 +57,6 @@
   "steps.rotations.goalTotalSource": "the score for this goal",
   "steps.rotations.goalTotalNotLoaded": "This part of the analysis is not wired yet.",
   "steps.rotations.sectionEmpty": "Nothing listed here for this rotation.",
-  "steps.rotations.summary.droughtNote": "A drought year means the {rootZone} was unusually dry in the growing season, by NASA POWER's {wetness}. Both are a {model}, not a measurement on your field.",
+  "steps.rotations.summary.droughtNote": "A drought year means the {rootZone} was among the driest fifth of growing seasons on record at this field, by NASA POWER's {wetness}. Over the whole record that is 1 year in 5 by definition, so the count for recent seasons is what tells you whether droughts are getting more common. Both are a {model}, not a measurement on your field.",
   "steps.rotations.rangeNote": "The range under each score is a {range}: most past years fall inside it."
 }

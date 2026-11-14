@@ -7,7 +7,7 @@
 // the remaining dry years as fractional credit, so the drought share is exactly k/n (9 of 45 at p = 20) and
 // rounding alone cannot raise a month's share.
 import type { ClimateProfile, Hazard, MonthlyRisk, Sourced } from '../contracts';
-import { evapotranspirationMm, rainMm, type PowerMonthly } from './power';
+import { evapotranspirationMm, rainMm, type PowerDailyTMax, type PowerMonthly } from './power';
 
 type Monthly = ClimateProfile['monthly'];
 type Row = Monthly[number];
@@ -15,13 +15,15 @@ type Yearly = ClimateProfile['yearly'][number];
 
 export interface Thresholds {
   droughtPercentile: number;  // 0-100; root-zone wetness below this percentile of the month's own record (ties share credit)
-  heatC: number | null;       // monthly T2M_MAX above this; null = no crop-independent threshold
+  heatC: number | null;       // daily T2M_MAX above this (monthly T2M_MAX without a daily record); null = no crop-independent threshold
+  heatMinDays: number;        // D43: days above heatC that make a heat month (hazards.heat.minDays)
   frostDays: number | null;   // FROST_DAYS above this; null = no crop-independent threshold
 }
 
 export const NO_GENERAL_THRESHOLD = "no crop-independent threshold; the calendar uses each crop's own threshold";
 
 const DATASET_IDS = ['nasa-power-monthly'];
+const DAILY_DATASET_IDS = ['nasa-power-daily'];
 /** April to September: the growing season for the Northern Hemisphere fields the tool covers (Iowa, Poland). */
 export const GROWING_SEASON = [4, 5, 6, 7, 8, 9];
 const HAZARDS: Hazard[] = ['drought', 'heat', 'frost'];
@@ -51,20 +53,34 @@ export function droughtShare(values: number[], percentile: number): number | nul
   return (below + ties * credit) / n;
 }
 
-export function toMonthly(power: PowerMonthly): Monthly {
-  return power.months.map((m) => ({
-    year: m.year,
-    month: m.month,
-    rootWetness: m.GWETROOT,
-    rainMm: rainMm(m),
-    tMaxC: m.T2M_MAX,
-    frostDays: m.FROST_DAYS,
-    evapotranspirationMm: evapotranspirationMm(m),
-  }));
+/** Profile rows from POWER monthly; with the daily record, each row also carries its daily maxima (D43), [] when absent. */
+export function toMonthly(power: PowerMonthly, daily?: PowerDailyTMax): Monthly {
+  return power.months.map((m) => {
+    const row: Row = {
+      year: m.year,
+      month: m.month,
+      rootWetness: m.GWETROOT,
+      rainMm: rainMm(m),
+      tMaxC: m.T2M_MAX,
+      frostDays: m.FROST_DAYS,
+      evapotranspirationMm: evapotranspirationMm(m),
+    };
+    if (daily) row.tMaxDailyC = daily.get(m.year * 100 + m.month) ?? [];
+    return row;
+  });
 }
 
-function derived(value: number | null, unit: string, retrievedAt: string, missingReason: string): Sourced {
-  const base = { unit, datasetIds: DATASET_IDS, kind: 'derived' as const, retrievedAt };
+/** Heat month or not (D43): days above `heatC` from the daily maxima, else the monthly maximum; null when unknown. */
+function isHeatMonth(row: Row, heatC: number, minDays: number): boolean | null {
+  if (row.tMaxDailyC !== undefined) {
+    const days = row.tMaxDailyC.filter(isNumber);
+    return days.length === 0 ? null : days.filter((v) => v > heatC).length >= minDays;
+  }
+  return row.tMaxC === null ? null : row.tMaxC > heatC;
+}
+
+function derived(value: number | null, unit: string, retrievedAt: string, missingReason: string, datasetIds = DATASET_IDS): Sourced {
+  const base = { unit, datasetIds, kind: 'derived' as const, retrievedAt };
   return value === null ? { ...base, value: null, missingReason } : { ...base, value };
 }
 
@@ -91,8 +107,13 @@ export function monthlyRisk(monthly: Monthly, thresholds: Thresholds, source: { 
         const threshold = hazard === 'heat' ? thresholds.heatC : thresholds.frostDays;
         if (threshold === null) {
           probability = derived(null, 'share of years', source.retrievedAt, NO_GENERAL_THRESHOLD);
+        } else if (hazard === 'heat') {
+          const hits = rows.map((r) => isHeatMonth(r, threshold, thresholds.heatMinDays)).filter((h): h is boolean => h !== null);
+          const value = hits.length === 0 ? null : hits.filter(Boolean).length / hits.length;
+          const ids = rows.some((r) => r.tMaxDailyC !== undefined) ? DAILY_DATASET_IDS : DATASET_IDS;
+          probability = derived(value, 'share of years', source.retrievedAt, noData, ids);
         } else {
-          const values = rows.map((r) => (hazard === 'heat' ? r.tMaxC : r.frostDays)).filter(isNumber);
+          const values = rows.map((r) => r.frostDays).filter(isNumber);
           probability = derived(share(values, (v) => v > threshold), 'share of years', source.retrievedAt, noData);
         }
       }
