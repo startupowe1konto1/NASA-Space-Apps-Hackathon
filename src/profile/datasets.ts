@@ -12,4 +12,14 @@ export const datasets: Dataset[] = [
     period: '1981–2025',
     kind: 'model',
   },
+  {
+    id: 'smap-l4-rootzone',
+    name: 'SMAP L4 root-zone soil moisture (NASA GIBS)',
+    provider: 'NASA',
+    url: 'https://nasa-gibs.github.io/gibs-api-docs/',
+    nasa: true,
+    resolution: '9 km',
+    period: '2015–present',
+    kind: 'model',
+  },
 ];
