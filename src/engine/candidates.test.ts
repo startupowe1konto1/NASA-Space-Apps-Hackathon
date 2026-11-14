@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { CropYear, Priorities, RotationOption } from '../contracts';
+import cropsPlFile from '../../data/crops/pl.json';
+import cropsUsFile from '../../data/crops/us-ia.json';
+import type { CropTraits, CropYear, Priorities, RotationOption } from '../contracts';
 import { fixtureCrops } from '../fixtures/crops';
 import { canFollow, cropById } from './calendar';
-import { MAX_CANDIDATES, currentRotation, generateCandidates } from './candidates';
+import { MAX_CANDIDATES, coverFits, currentRotation, generateCandidates } from './candidates';
 
 const us = fixtureCrops.US;
 const pl = fixtureCrops.PL;
@@ -74,6 +76,83 @@ describe('currentRotation', () => {
     expect(currentRotation(history(['maize', 'maize', 'maize']))).toEqual([{ crop: 'maize' }]);
     expect(currentRotation([])).toEqual([]);
   });
+
+  it('two years of maize are a one-year cycle', () => {
+    expect(currentRotation(history(['maize', 'maize']))).toEqual([{ crop: 'maize' }]);
+  });
+
+  it('maize, soybean, maize is the two-year cycle, not maize followed by maize', () => {
+    expect(currentRotation(history(['maize', 'soybean', 'maize']))).toEqual([{ crop: 'soybean' }, { crop: 'maize' }]);
+  });
+
+  it('a history that starts and ends with the same crop drops the repeated year instead of wrapping it into itself', () => {
+    expect(currentRotation(history(['maize', 'soybean', 'oats', 'maize']))).toEqual([
+      { crop: 'soybean' },
+      { crop: 'oats' },
+      { crop: 'maize' },
+    ]);
+  });
+
+  it('keeps a self-follow that the farmer actually grew', () => {
+    expect(currentRotation(history(['maize', 'maize', 'soybean']))).toEqual([
+      { crop: 'maize' },
+      { crop: 'maize' },
+      { crop: 'soybean' },
+    ]);
+  });
+});
+
+const realUs = cropsUsFile as CropTraits[];
+const realPl = cropsPlFile as CropTraits[];
+const t = (crops: CropTraits[], id: string) => cropById(crops, id);
+const custom = (row: Pick<CropTraits, 'id' | 'sowMonth' | 'harvestMonth'>): CropTraits => ({
+  ...t(us, 'red-clover'),
+  ...row,
+});
+
+describe('coverFits', () => {
+  it('accepts a cover sown into the previous crop, as calendar.ts does (interseeding)', () => {
+    expect(coverFits(t(realUs, 'maize'), t(realUs, 'cereal-rye'), t(realUs, 'soybean'))).toBe(true);
+    expect(coverFits(t(realUs, 'soybean'), t(realUs, 'red-clover'), t(realUs, 'maize'))).toBe(true);
+  });
+
+  it('accepts a cover sown in or after the harvest month', () => {
+    expect(coverFits(t(realPl, 'winter-wheat'), t(realPl, 'white-mustard'), t(realPl, 'maize'))).toBe(true);
+  });
+
+  it('rejects a cover sown before the previous crop is in the ground', () => {
+    const early = custom({ id: 'early', sowMonth: 3, harvestMonth: 6 });
+    expect(coverFits(t(us, 'oats'), early, t(us, 'maize'))).toBe(false);
+  });
+
+  it('rejects an interseeded cover that ends before the main crop is harvested', () => {
+    const short = custom({ id: 'short', sowMonth: 6, harvestMonth: 9 });
+    expect(coverFits(t(us, 'maize'), short, t(us, 'soybean'))).toBe(false);
+  });
+
+  it('rejects a cover still in the ground when the next winter crop is sown', () => {
+    expect(coverFits(t(realUs, 'maize'), t(realUs, 'cereal-rye'), t(realUs, 'winter-wheat'))).toBe(false);
+  });
+});
+
+describe('generateCandidates on the real crop tables', () => {
+  const share = (list: Years[]) => list.filter((c) => c.some((y) => y.coverCrop !== undefined)).length / list.length;
+
+  it('Iowa: cover variants exist and make up at least 20% of the list', () => {
+    const list = generateCandidates(currentRotation(iowaHistory), realUs, priorities());
+    expect(list.length).toBeLessThanOrEqual(MAX_CANDIDATES);
+    expect(has(list, [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean' }])).toBe(true);
+    expect(has(list, [{ crop: 'maize' }, { crop: 'soybean', coverCrop: 'red-clover' }])).toBe(true);
+    expect(share(list)).toBeGreaterThanOrEqual(0.2);
+  });
+
+  it('Poland: cover variants exist and make up at least 20% of the list', () => {
+    const current: Years = [{ crop: 'winter-wheat' }, { crop: 'maize' }, { crop: 'winter-wheat' }, { crop: 'sugar-beet' }];
+    const list = generateCandidates(current, realPl, priorities());
+    expect(list.length).toBeLessThanOrEqual(MAX_CANDIDATES);
+    expect(list.some((c) => c.some((y) => y.crop === 'winter-wheat' && y.coverCrop === 'white-mustard'))).toBe(true);
+    expect(share(list)).toBeGreaterThanOrEqual(0.2);
+  });
 });
 
 describe('generateCandidates', () => {
@@ -94,10 +173,8 @@ describe('generateCandidates', () => {
     expect(has(iowa, [{ crop: 'maize' }, { crop: 'oats' }])).toBe(true);
   });
 
-  it('does not sow a cover crop where it does not fit (red clover sown in August, maize harvested in October)', () => {
-    const covers = iowa.flatMap((c) => c.map((y) => y.coverCrop)).filter(Boolean);
-    expect(covers).toContain('cereal-rye');
-    expect(iowa.some((c) => c.some((y) => y.crop === 'maize' && y.coverCrop === 'red-clover'))).toBe(false);
+  it('accepts a cover sown into the standing crop (red clover sown in August under maize harvested in October)', () => {
+    expect(iowa.some((c) => c.some((y) => y.crop === 'maize' && y.coverCrop === 'red-clover'))).toBe(true);
   });
 
   it('includes enumerated rotations of two to five years', () => {
