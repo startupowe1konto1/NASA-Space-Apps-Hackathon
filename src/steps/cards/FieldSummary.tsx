@@ -67,20 +67,73 @@ function Row({ label, value, datasets, decimals }: { label: string; value: Sourc
   );
 }
 
+/**
+ * One stripe per growing season, wetter seasons darker, drought years in amber (D42). A picture of the same NASA POWER
+ * record the rows below count from; the rows carry the numbers and their sources.
+ */
+function SeasonStripes({ analysis }: { analysis: Analysis }) {
+  const rows = analysis.profile.yearly.filter((y) => y.growingSeasonWetness.value !== null);
+  if (rows.length === 0) return null;
+  const values = rows.map((y) => y.growingSeasonWetness.value!);
+  const lo = Math.min(...values);
+  const span = Math.max(...values) - lo || 1;
+  const drought = new Set(analysis.profile.droughtYears);
+  const first = rows[0]!.year;
+  const last = rows[rows.length - 1]!.year;
+  return (
+    <figure className="grid gap-1.5">
+      <div
+        role="img"
+        aria-label={t('steps.rotations.summary.stripes.label', { n: rows.length, from: first, to: last, drought: analysis.profile.droughtYears.length })}
+        className="flex h-10 items-stretch gap-[2px]"
+      >
+        {rows.map((y) => {
+          const share = (y.growingSeasonWetness.value! - lo) / span;
+          return (
+            <span
+              key={y.year}
+              title={`${y.year}${drought.has(y.year) ? ` · ${t('steps.rotations.summary.stripes.drought')}` : ''}`}
+              className={`flex-1 rounded-[2px] ${drought.has(y.year) ? 'bg-amber-600' : 'bg-sky-700'}`}
+              style={drought.has(y.year) ? undefined : { opacity: 0.25 + share * 0.75 }}
+            />
+          );
+        })}
+      </div>
+      <figcaption className="flex flex-wrap justify-between gap-x-3 text-xs text-slate-600">
+        <span className="tabular-nums">{first}</span>
+        <span>{t('steps.rotations.summary.stripes.caption')}</span>
+        <span className="tabular-nums">{last}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
 export function FieldSummary({ analysis }: { analysis: Analysis }) {
   const { profile, datasets, field } = analysis;
   return (
-    <section aria-labelledby="field-summary-title" className="grid gap-2 rounded-2xl border-2 border-slate-200 bg-white p-4">
-      <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
-        {t('steps.rotations.summary.title')}: {field.name}
-      </h2>
-      <p className="text-sm leading-relaxed text-slate-700">
-        <TermText
-          code="steps.rotations.summary.droughtNote"
-          terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
-        />
-      </p>
-      <dl>
+    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
+          {t('steps.rotations.summary.title')}: {field.name}
+        </h2>
+        <span className="text-sm text-slate-600">{t('steps.rotations.summary.stripes.title')}</span>
+      </div>
+      <SeasonStripes analysis={analysis} />
+      <details className="group rounded-lg border border-slate-200 px-3">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
+          {t('steps.rotations.summary.droughtWhat')}
+          <span aria-hidden="true" className="text-slate-600 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+            ▾
+          </span>
+        </summary>
+        <p className="pb-3 text-sm leading-relaxed text-slate-700">
+          <TermText
+            code="steps.rotations.summary.droughtNote"
+            terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
+          />
+        </p>
+      </details>
+      <dl className="grid gap-x-6 sm:grid-cols-3">
         <Row label={droughtLabel(analysis)} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);

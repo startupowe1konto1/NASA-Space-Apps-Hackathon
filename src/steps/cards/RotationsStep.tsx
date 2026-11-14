@@ -9,6 +9,7 @@ import { CalendarStrip } from '../calendar/CalendarStrip';
 import { FieldSummary } from './FieldSummary';
 import { RotationCard } from './RotationCard';
 import { SourcesPanel } from './SourcesPanel';
+import { TermText } from './TermText';
 
 export function RotationsStep() {
   const analysis = useAppStore((s) => s.analysis);
@@ -55,13 +56,28 @@ export function RotationsStep() {
       ) : (
         <>
           <div className="grid gap-2">
-            <p className="text-base text-slate-700">{t('steps.rotations.intro')}</p>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <p className="text-base text-slate-700">{t('steps.rotations.intro')}</p>
+              {/* Said once for all cards: how the ranges under the scores are made. */}
+              <details className="group rounded-lg border border-slate-200 bg-white px-3 sm:max-w-md">
+                <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+                  {t('steps.rotations.rangeNoteTitle')}
+                  <span aria-hidden="true" className="text-slate-600 transition-transform group-open:rotate-180">
+                    ▾
+                  </span>
+                </summary>
+                <p className="pb-3 text-sm leading-relaxed text-slate-700">
+                  <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
+                </p>
+              </details>
+            </div>
             {ranking !== goal ? (
               <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-base text-amber-900">
                 {t('steps.rotations.goalNoData')}
               </p>
             ) : null}
           </div>
+          <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-4">
           {rotations.map((r) => (
             <RotationCard
               key={r.id}
@@ -72,6 +88,7 @@ export function RotationsStep() {
               calendar={<CalendarStrip months={r.calendar} datasets={data.datasets} />}
             />
           ))}
+          </div>
         </>
       )}
 

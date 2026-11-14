@@ -15,5 +15,16 @@
   "app.support": "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks above against what you know about this field.",
   "app.language": "Language",
   "app.lang.en": "English",
-  "app.lang.pl": "Polski"
+  "app.lang.pl": "Polski",
+  "app.stepShort.field": "Field",
+  "app.stepShort.goal": "Goal",
+  "app.stepShort.crops": "Crops",
+  "app.stepShort.priorities": "Priorities",
+  "app.stepShort.rotations": "Rotations",
+  "app.stepShort.money": "Money",
+  "app.intro.eyebrow": "Crop rotation planner",
+  "app.intro.time": "About 3 minutes, no account needed",
+  "app.intro.fact.climate": "Climate at your field from NASA POWER, every month since 1981",
+  "app.intro.fact.slope": "Slope from NASA’s NASADEM elevation map, 30 m grid",
+  "app.intro.fact.soil": "Soil from USDA soil survey in the USA and SoilGrids elsewhere"
 }

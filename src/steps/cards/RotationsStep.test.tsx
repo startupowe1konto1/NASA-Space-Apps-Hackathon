@@ -82,7 +82,7 @@ describe('RotationCard', () => {
     expect(text.indexOf(t('steps.rotations.soilHealth'))).toBeGreaterThan(text.indexOf(within(card).getByRole('heading', { level: 2 }).textContent!));
   });
 
-  it('folds the reasons after the first, the evidence, the benefits, the regions, the income and the range note; gaps and risks stay open', async () => {
+  it('folds the reasons after the first, the evidence, the benefits, the regions and the income; the first gaps and risks stay open', async () => {
     const user = userEvent.setup();
     const r = iowaAnalysis.rotations.find((x) => x.why.length > 1 && x.evidence.length > 0)!;
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} moneyAvailable />);
@@ -91,11 +91,17 @@ describe('RotationCard', () => {
     expect(within(card).getByText(t(r.why[0]!))).toBeVisible();
     expect(within(card).getByText(t(r.why[1]!))).not.toBeVisible();
     expect(within(card).getByText(t(r.evidence[0]!.message))).not.toBeVisible();
-    expect(within(card).getByText(/where a source gives a single value/)).not.toBeVisible();
     expect(within(card).getByText(t('steps.rotations.income.notForecast'))).not.toBeVisible();
 
-    for (const m of r.gaps) expect(within(card).getByText(t(m))).toBeVisible();
-    for (const m of r.localReviewRisks) expect(within(card).getByText(t(m))).toBeVisible();
+    // The first three gaps and risks are open; the rest open with one button per list.
+    for (const m of [...r.gaps.slice(0, 3), ...r.localReviewRisks.slice(0, 3)]) expect(within(card).getByText(t(m))).toBeVisible();
+    for (const [items, name] of [[r.gaps, 'steps.rotations.gaps'], [r.localReviewRisks, 'steps.rotations.risks']] as const) {
+      if (items.length <= 3) continue;
+      expect(within(card).queryByText(t(items[3]!))).toBeNull();
+      const list = within(card).getByRole('list', { name: t(name) });
+      await user.click(within(list.parentElement!).getByRole('button', { name: t('steps.rotations.listMore', { count: items.length - 3 }) }));
+      for (const m of items) expect(within(card).getByText(t(m))).toBeVisible();
+    }
     expect(within(card).getByText(SUPPORT)).toBeVisible();
 
     await user.click(within(card).getByText(t('steps.rotations.evidence')));
@@ -228,8 +234,8 @@ describe('RotationsStep', () => {
   it('the range note does not call the soil-health range a range of past years (#76)', async () => {
     readyWith(iowaAnalysis);
     render(<RotationsStep />);
-    const [card] = await screen.findAllByRole('article');
-    const note = within(card!).getByText(/where a source gives a single value/);
+    await screen.findAllByRole('article');
+    const note = screen.getByText(/where a source gives a single value/);
     expect(note.textContent).toMatch(/climate resilience/);
     expect(note.textContent).toMatch(/soil health/);
   });
@@ -313,9 +319,8 @@ describe('RotationsStep', () => {
     for (const id of ['root-zone', 'soil-wetness-index', 'model-estimate'] as const) {
       expect(within(summary).getByRole('button', { name: about(id) })).toBeInTheDocument();
     }
-    for (const card of screen.getAllByRole('article')) {
-      expect(within(card).getByRole('button', { name: about('percentile-range') })).toBeInTheDocument();
-    }
+    // The range note is said once above the cards, not on every card.
+    expect(screen.getAllByRole('button', { name: about('percentile-range') })).toHaveLength(1);
   });
 });
 
