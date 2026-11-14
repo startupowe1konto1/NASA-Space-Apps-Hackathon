@@ -2,16 +2,18 @@
 
 `us-ia.json` and `pl.json` follow the `moneyFile` schema in `src/contracts/schemas.ts`. Every number was copied from a document or API response opened on Sat 14 Nov 2026 (tasks O4-A4 and O4-A4 (2), the second built on research R8 and R9, D33). Each economics row has one source per value, and the locator starts with the value it backs (`yield:`, `price:` or `direct costs:`); `src/money/provider.ts` reads that prefix to give each value its dataset. Excerpts of the documents are in `data/samples/research/us-ia/` and `data/samples/research/pl/`; older raw API responses are in `data/samples/nass-quickstats`, `data/samples/gus` and `data/samples/nrcs`. Research notes: `context/research/us-ia-economics-2026.md` (R9) and `context/research/pl-economics-2026.md` (R8).
 
-Income built on these tables is a replay of past years at today's prices. It is not a forecast and it promises no yield. `year` in an economics row is the year of the price.
+Income built on these tables is a replay of past years at today's prices. It is not a forecast and it promises no yield.
+
+Each value has its own period (issue #79 item 4): `yieldPeriod`, `pricePeriod` and `costsPeriod` in every economics row. The rows used to carry one `year`, which could only date the price. The source chip shows a value's period through its dataset (`SourcedNumber` prints `dataset.period`), so `src/money/datasets.ts` gives Quick Stats yields and Quick Stats prices separate datasets (`usda-nass-quickstats-yields`, `usda-nass-quickstats-prices`), and `src/money/provider.test.ts` checks that each value's dataset period contains the row's period.
 
 ## Iowa (USD), demo field in Story County
 
-| Crop | Yield t/ha | Price USD/t | Direct costs USD/ha | Price year |
-|---|---|---|---|---|
-| maize | 13.046 | 161.41 | 1195.00 | MY2025 (preliminary) |
-| soybean | 4.230 | 385.81 | 717.12 | MY2025 |
-| oats | 2.963 | 244.58 | 582.25 | MY2025 |
-| alfalfa | 8.249 | 119.05 | 599.38 | MY2025 |
+| Crop | Yield t/ha | Price USD/t | Direct costs USD/ha | Yield period | Price period | Costs period |
+|---|---|---|---|---|---|---|
+| maize | 13.046 | 161.41 | 1195.00 | 2021–2025 mean | 2025 marketing year, Sep 2025 to Aug 2026 (preliminary) | 2026 budget |
+| soybean | 4.230 | 385.81 | 717.12 | 2021–2025 mean | 2025 marketing year, Sep 2025 to Aug 2026 | 2026 budget |
+| oats | 2.963 | 244.58 | 582.25 | 2021–2025 mean | 2025 marketing year, Jul 2025 to Jun 2026 | 2026 budget |
+| alfalfa | 8.249 | 119.05 | 599.38 | 2021–2025 mean | 2025 marketing year, Jun 2025 to May 2026 | 2026 budget |
 
 - Yield: USDA NASS Quick Stats, mean of 2021 to 2025. Maize and soybean are Story County survey yields (207.84 and 62.9 bu/acre). Within 2021 to 2025, Story County has an oat yield only for 2023, and it has no alfalfa yield since 2013, so oats (82.6 bu/acre) and alfalfa (3.68 short tons/acre of dry hay) use the Iowa state yield.
 - Price: USDA NASS Quick Stats, Iowa price received, 2025 marketing year: maize $4.10/bu (preliminary; the final state value comes in the next Crop Values report), soybean $10.50/bu, oats $3.55/bu, alfalfa hay $108 per short ton. The same values are in NASS Agricultural Prices (Aug 31 and Sep 29, 2026).
@@ -20,16 +22,16 @@ Income built on these tables is a replay of past years at today's prices. It is 
 
 ## Poland (PLN), demo field near Poznań (Wielkopolskie)
 
-| Crop | Yield t/ha | Price PLN/t | Direct costs PLN/ha | Price period |
-|---|---|---|---|---|
-| winter-wheat | 5.698 | 1005.59 | 4367.49 | 2–8 Nov 2026 |
-| maize | 7.372 | 943.21 | 7015.30 | 2–8 Nov 2026 |
-| winter-rapeseed | 3.404 | 2510.12 | 5564.47 | 2–8 Nov 2026 |
-| spring-barley | 3.984 | 806.50 | 3162.16 | 2–8 Nov 2026 |
-| rye | 3.858 | 731.54 | 3659.19 | 2–8 Nov 2026 |
-| field-pea | 2.797 | 1140.10 | 3933.30 | 2025 average |
-| sugar-beet | 68.155 | 138.50 | 8283.87 | 2025 average |
-| potato | 33.840 | 501.00 | 12851.53 | September 2026 |
+| Crop | Yield t/ha | Price PLN/t | Direct costs PLN/ha | Yield period | Price period | Costs period |
+|---|---|---|---|---|---|---|
+| winter-wheat | 5.698 | 1005.59 | 4367.49 | 2021–2025 mean | 2–8 Nov 2026 | February 2026 budget |
+| maize | 7.372 | 943.21 | 7015.30 | 2021–2025 mean | 2–8 Nov 2026 | February 2026 budget |
+| winter-rapeseed | 3.404 | 2510.12 | 5564.47 | 2021–2025 mean | 2–8 Nov 2026 | February 2026 budget |
+| spring-barley | 3.984 | 806.50 | 3162.16 | 2021–2025 mean | 2–8 Nov 2026 | February 2026 budget |
+| rye | 3.858 | 731.54 | 3659.19 | 2021–2025 mean | 2–8 Nov 2026 | February 2026 budget |
+| field-pea | 2.797 | 1140.10 | 3933.30 | 2023–2025 mean | 2025 yearly average | February 2026 budget |
+| sugar-beet | 68.155 | 138.50 | 8283.87 | 2021–2025 mean | 2025 yearly average | February 2026 budget |
+| potato | 33.840 | 501.00 | 12851.53 | 2021–2025 mean | September 2026 | February 2026 budget |
 
 - Yield: GUS "Produkcja upraw rolnych i ogrodniczych", final estimates, Wielkopolskie row, mean of 2021 to 2025 in dt/ha divided by 10 (our calculation). Field pea ("groch") has its own table only from 2023, so its mean covers 2023 to 2025. Winter rapeseed is GUS "rzepak i rzepik ozimy" (rapeseed and turnip rape together). Pages: [2021](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2021-roku,9,20.html), [2022](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2022-roku,9,21.html), [2023](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2023-roku,9,22.html), [2024](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2024-r-,9,23.html), [2025](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2025-r-,9,24.html). This replaces the Eurostat `apro_cpnhr` yields (2020 to 2024) of the first version: GUS covers every crop, pea included, and has the final 2025 values.
 - Price, the newest per crop. Grain and rapeseed: MRiRW ZSRIR weekly bulletin 45/2026 (2–8 Nov 2026), purchase prices excluding VAT, north-west macroregion (which includes Wielkopolskie) for milling wheat, dry maize, feed barley and milling rye; Poland for rapeseed, which has no regional figure. Dry maize matches the WODR budget, which includes 2125 PLN/ha of drying. Field pea and sugar beet: GUS "Skup i ceny produktów rolnych w 2025 r.", 2025 averages (pea for Poland, beet for Wielkopolskie); GUS publishes the 2026 yearly prices around May 2027. Potato: GUS September 2026, Wielkopolskie, all potatoes (mostly industrial, footnote c), as in the first version, so price, the all-potato yield and the starch-potato budget describe the same crop.

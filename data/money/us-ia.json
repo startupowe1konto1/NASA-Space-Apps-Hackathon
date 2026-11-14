@@ -7,7 +7,9 @@
       "referenceYieldTPerHa": 13.046,
       "pricePerT": 161.41,
       "directCostsPerHa": 1195.0,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: CORN, GRAIN - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
@@ -31,7 +33,9 @@
       "referenceYieldTPerHa": 4.23,
       "pricePerT": 385.81,
       "directCostsPerHa": 717.12,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: SOYBEANS - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
@@ -55,7 +59,9 @@
       "referenceYieldTPerHa": 2.963,
       "pricePerT": 244.58,
       "directCostsPerHa": 582.25,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: OATS - YIELD, MEASURED IN BU / ACRE, Iowa, state (survey)",
@@ -79,7 +85,9 @@
       "referenceYieldTPerHa": 8.249,
       "pricePerT": 119.05,
       "directCostsPerHa": 599.38,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: HAY, ALFALFA - YIELD, MEASURED IN TONS / ACRE, Iowa, state (survey)",

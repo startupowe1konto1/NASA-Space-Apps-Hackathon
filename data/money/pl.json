@@ -7,7 +7,9 @@
       "referenceYieldTPerHa": 5.698,
       "pricePerT": 1005.59,
       "directCostsPerHa": 4367.49,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2–8 Nov 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -31,7 +33,9 @@
       "referenceYieldTPerHa": 7.372,
       "pricePerT": 943.21,
       "directCostsPerHa": 7015.3,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2–8 Nov 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -55,7 +59,9 @@
       "referenceYieldTPerHa": 3.404,
       "pricePerT": 2510.12,
       "directCostsPerHa": 5564.47,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2–8 Nov 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -79,7 +85,9 @@
       "referenceYieldTPerHa": 3.984,
       "pricePerT": 806.5,
       "directCostsPerHa": 3162.16,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2–8 Nov 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -103,7 +111,9 @@
       "referenceYieldTPerHa": 3.858,
       "pricePerT": 731.54,
       "directCostsPerHa": 3659.19,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2–8 Nov 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -127,7 +137,9 @@
       "referenceYieldTPerHa": 2.797,
       "pricePerT": 1140.1,
       "directCostsPerHa": 3933.3,
-      "year": 2025,
+      "yieldPeriod": "2023–2025 mean",
+      "pricePeriod": "2025 yearly average",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -151,7 +163,9 @@
       "referenceYieldTPerHa": 68.155,
       "pricePerT": 138.5,
       "directCostsPerHa": 8283.87,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 yearly average",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
@@ -175,7 +189,9 @@
       "referenceYieldTPerHa": 33.84,
       "pricePerT": 501.0,
       "directCostsPerHa": 12851.53,
-      "year": 2026,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "September 2026",
+      "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",

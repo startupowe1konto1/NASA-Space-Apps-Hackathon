@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { moneyFile } from '../contracts/schemas';
 import pl from '../../data/money/pl.json';
 import usIa from '../../data/money/us-ia.json';
-import { datasetIdForSource, datasets } from './datasets';
+import { datasetIdForSource, datasets, roleOf } from './datasets';
 import { PAYMENT_IDS } from './payments';
 import en from './messages/en.json';
 
@@ -21,10 +21,19 @@ describe.each(Object.entries(files))('data/money/%s', (_name, file) => {
     }
   });
 
+  it('gives the yield, the price and the direct costs each their own period, with no single year for the row', () => {
+    for (const row of file.economics as Record<string, unknown>[]) {
+      for (const key of ['yieldPeriod', 'pricePeriod', 'costsPeriod']) {
+        expect(typeof row[key] === 'string' && (row[key] as string).length > 0, `${String(row.crop)} ${key}`).toBe(true);
+      }
+      expect(row, String(row.crop)).not.toHaveProperty('year');
+    }
+  });
+
   it('maps every source to a registered dataset', () => {
     const ids = new Set(datasets.map((d) => d.id));
     const refs = [...file.economics.flatMap((r) => r.sources), ...file.payments.flatMap((p) => p.sources)];
-    for (const ref of refs) expect(ids.has(datasetIdForSource(ref.url) ?? ''), ref.url).toBe(true);
+    for (const ref of refs) expect(ids.has(datasetIdForSource(ref.url, roleOf(ref.locator)) ?? ''), ref.url).toBe(true);
   });
 
   it('has a qualifying rule for every payment row', () => {
@@ -39,7 +48,7 @@ describe.each(Object.entries(files))('data/money/%s', (_name, file) => {
 describe('src/money/datasets', () => {
   it('registers only datasets that a row in data/money cites', () => {
     const refs = Object.values(files).flatMap((f) => [...f.economics.flatMap((r) => r.sources), ...f.payments.flatMap((p) => p.sources)]);
-    const used = new Set(refs.map((r) => datasetIdForSource(r.url)));
+    const used = new Set(refs.map((r) => datasetIdForSource(r.url, roleOf(r.locator))));
     for (const d of datasets) expect(used.has(d.id), d.id).toBe(true);
   });
 });
