@@ -1,0 +1,14 @@
+{
+  "map.intro": "Dotknij swojego pola na mapie albo wybierz pole przykładowe.",
+  "map.demo.iowa": "Pole przykładowe w stanie Iowa",
+  "map.demo.poznan": "Pole przykładowe pod Poznaniem",
+  "map.label": "Mapa. Dotknij miejsca, żeby dodać tam pole.",
+  "map.hint": "W Polsce, gdy dotkniesz mapy, dodasz działkę ewidencyjną z tego miejsca. Poza Polską dodasz kwadrat 200 na 200 m (4 ha). Dotknij dodanego już pola, żeby je zaznaczyć.",
+  "map.field.atPoint": "Pole w punkcie {lat}, {lon}",
+  "map.fields": "Twoje pola",
+  "map.fields.empty": "Nie masz jeszcze pól.",
+  "map.fields.item": "{name}, {area} ha",
+  "map.tiles.source": "Podkład mapy OpenStreetMap",
+  "map.tiles.reason": "Przyciski pól przykładowych nadal działają.",
+  "map.source": "Mapa"
+}
