@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ClimateProfile, CropEconomics, CropTraits, MoneyEstimate, Sourced } from '../contracts';
 import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, yearlyYield } from './income';
+import { demoFields, fixtureProviders } from '../fixtures';
+import { tableMoneyProvider } from '../money/provider';
+import { engineRules, shippedRules } from './rules';
 
 type Row = ClimateProfile['monthly'][number];
 
@@ -67,6 +70,12 @@ const crops = [cropA, cropN, coverC];
 
 const DRY = [1985, 1990, 1995, 2000, 2005]; // five Julys at 0.25
 const dryClimate = makeClimate((r) => (r.month === 7 && DRY.includes(r.year) ? { ...r, rootWetness: 0.25 } : r));
+/**
+ * Calibration of crop A on dryClimate: 40 years at relative yield 1 and 5 at 0.4 (loss 0.6) average 42/45, so every
+ * year is scaled by 45/42 and the mean replayed yield is the reference yield.
+ */
+const K_A = 45 / 42;
+const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 const yieldOf = (rows: ReturnType<typeof yearlyYield>, year: number) => rows.find((r) => r.year === year);
 
@@ -83,8 +92,47 @@ describe('yearlyYield', () => {
   it('turns a July shortfall of 0.5 against the median and yield response factor 1.2 into a loss of 0.6', () => {
     const rows = yearlyYield(cropA, dryClimate, 10, DROUGHT_P);
     expect(yieldOf(rows, 1985)!.loss).toBeCloseTo(0.6, 10);
-    expect(yieldOf(rows, 1985)!.yieldTPerHa).toBeCloseTo(4, 10);
+    expect(yieldOf(rows, 1985)!.yieldTPerHa).toBeCloseTo(10 * 0.4 * K_A, 10);
     expect(yieldOf(rows, 1986)!.loss).toBe(0);
+  });
+
+  // The reference yield is already a mean of actual yields (issue #98), so the replay scales the hazard pattern to it.
+  it('scales the yields so the mean replayed yield equals the reference yield, keeping the year-to-year ratios', () => {
+    const rows = yearlyYield(cropA, dryClimate, 10, DROUGHT_P);
+    expect(mean(rows.map((r) => r.yieldTPerHa))).toBeCloseTo(10, 10);
+    expect(yieldOf(rows, 1985)!.yieldTPerHa / yieldOf(rows, 1986)!.yieldTPerHa).toBeCloseTo(0.4, 10);
+    expect(yieldOf(rows, 1986)!.yieldTPerHa).toBeCloseTo(10 * K_A, 10);
+  });
+
+  it('calibrates over the replayed years only, leaving out a year with every check missing', () => {
+    const climate = makeClimate((r) => {
+      if (r.month === 7 && DRY.includes(r.year)) return { ...r, rootWetness: 0.25 };
+      if (r.year === 2010 && (r.month === 5 || r.month === 7)) return { ...r, rootWetness: null, tMaxC: null, frostDays: null };
+      return r;
+    });
+    const rows = yearlyYield(cropA, climate, 10, DROUGHT_P);
+    expect(rows).toHaveLength(44);
+    expect(mean(rows.map((r) => r.yieldTPerHa))).toBeCloseTo(10, 10);
+  });
+
+  // D43 (#113): heat counts only when at least heatMinDays days are hot, the same rule as climate resilience.
+  it('counts heat by the same minimum of hot days as climate resilience', () => {
+    const july = (hot: number) => [...Array<number>(hot).fill(38), ...Array<number>(31 - hot).fill(25)];
+    const climate = makeClimate((r) => (r.month === 7 ? { ...r, tMaxDailyC: july(r.year % 2 === 0 ? 2 : 0) } : r));
+    const hot = (rows: ReturnType<typeof yearlyYield>) => rows.filter((r) => r.loss > 0).length;
+    expect(hot(yearlyYield(cropA, climate, 10, DROUGHT_P, 1))).toBeGreaterThan(0);
+    expect(hot(yearlyYield(cropA, climate, 10, DROUGHT_P, 3))).toBe(0);
+    const r1 = incomeEstimate([{ crop: 'a' }], crops, climate, economics, [], 'USD', 'FY2026', DROUGHT_P, 1);
+    const r3 = incomeEstimate([{ crop: 'a' }], crops, climate, economics, [], 'USD', 'FY2026', DROUGHT_P, 3);
+    if (r1.status !== 'ready' || r3.status !== 'ready') throw new Error('expected ready');
+    expect(r1.data.estimate.marginPerHa.range!.low).toBeLessThan(r3.data.estimate.marginPerHa.range!.low);
+  });
+
+  it('gives zero yield in every year when every replayed year is a total loss, and never divides by zero', () => {
+    const climate = makeClimate((r) => (r.month === 7 ? { ...r, rootWetness: r.year % 2 === 0 ? 0 : 0.5, tMaxC: 38 } : r));
+    const harsh = { ...cropA, sensitive: [{ hazard: 'heat' as const, months: [7], threshold: 35, lossShare: 1 }] };
+    const rows = yearlyYield(harsh, climate, 10, DROUGHT_P);
+    expect(rows.every((r) => r.loss === 1 && r.yieldTPerHa === 0)).toBe(true);
   });
 
   it('counts the July shortfall against the median in a year below the median that is not a drought hit (SPEC 7)', () => {
@@ -122,7 +170,8 @@ describe('yearlyYield', () => {
     const rows = yearlyYield(cropA, climate, 10, DROUGHT_P);
     expect(yieldOf(rows, 1990)!.loss).toBeCloseTo(0.2, 10);
     expect(yieldOf(rows, 1991)!.loss).toBeCloseTo(0.15, 10);
-    expect(yieldOf(rows, 1991)!.yieldTPerHa).toBeCloseTo(8.5, 10);
+    // relative yields: 43 years at 1, 0.8 and 0.85, mean (43 + 1.65) / 45
+    expect(yieldOf(rows, 1991)!.yieldTPerHa).toBeCloseTo((10 * 0.85 * 45) / 44.65, 10);
     expect(yieldOf(rows, 1992)!.loss).toBe(0);
   });
 
@@ -137,7 +186,7 @@ describe('yearlyYield', () => {
     expect(yieldOf(yearlyYield(cropA, climate, 10, DROUGHT_P), 1990)!.loss).toBeCloseTo(0.95, 10);
     const capped = yieldOf(yearlyYield(harsh, climate, 10, DROUGHT_P), 1990)!;
     expect(capped.loss).toBe(1);
-    expect(capped.yieldTPerHa).toBe(0);
+    expect(capped.yieldTPerHa).toBeCloseTo(0, 10);
   });
 
   it('leaves out a year in which every check is missing, and never invents it', () => {
@@ -170,8 +219,8 @@ const src = (value: number | null, unit: string, datasetId: string, retrievedAt 
   ...(value === null ? { missingReason: 'not in the table' } : {}),
 });
 
-// A: 10 t/ha × 200 − 1000 = 1000 in a normal year; 4 t/ha × 200 − 1000 = −200 in a dry year.
-// N: 5 t/ha × 400 − 500 = 1500 every year.
+// A on dryClimate (calibrated, K_A): 10·K_A t/ha × 200 − 1000 in a normal year, 4·K_A t/ha × 200 − 1000 in a dry
+// year; the mean over the 45 years is 10 × 200 − 1000 = 1000. N: 5 t/ha × 400 − 500 = 1500 every year.
 const econA: CropEconomics = {
   crop: 'a',
   referenceYieldTPerHa: src(10, 't/ha', 'usda-quickstats'),
@@ -194,6 +243,12 @@ const payment = (programme: string, amount: number | null, confirmed: boolean): 
 });
 
 const rotation = [{ crop: 'a', coverCrop: 'c' }, { crop: 'n' }];
+const A_NORMAL = 10 * K_A * 200 - 1000;
+const A_DRY = 4 * K_A * 200 - 1000;
+const NORMAL = (A_NORMAL + 1500) / 2; // rotation a, n in a normal year
+const DRY_YEAR = (A_DRY + 1500) / 2;
+const MEAN = (1000 + 1500) / 2; // calibrated: the mean margin is the margin at the reference yield
+const near = (xs: number[], x: number) => xs.filter((m) => Math.abs(m - x) < 1e-6);
 
 describe('incomeEstimate', () => {
   // D34: a cover crop has no revenue; it pays back through the soil scores.
@@ -214,8 +269,8 @@ describe('incomeEstimate', () => {
     const r = incomeEstimate(rotation, crops, dryClimate, [...economics, econC], [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     // one cover in a 2-year rotation: 80 / 2 = 40 per ha per year off every replayed year
-    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 1210) < 1e-9)).toHaveLength(40);
-    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 610) < 1e-9)).toHaveLength(5);
+    expect(near(r.data.perYearMargins, NORMAL - 40)).toHaveLength(40);
+    expect(near(r.data.perYearMargins, DRY_YEAR - 40)).toHaveLength(5);
     expect(r.data.gaps).not.toContainEqual({ code: 'gap.cover-cost-missing', params: { crop: 'c' } });
     expect(r.data.gaps).toContainEqual({ code: 'income.cover-no-revenue', params: { crop: 'c' } });
   });
@@ -223,8 +278,8 @@ describe('incomeEstimate', () => {
   it('weights a main crop by the number of rotation years it fills', () => {
     const r = incomeEstimate([{ crop: 'a' }, { crop: 'a' }, { crop: 'n' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
-    // normal year: (1000 + 1000 + 1500) / 3
-    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 3500 / 3) < 1e-9)).toHaveLength(40);
+    // normal year: (A + A + N) / 3
+    expect(near(r.data.perYearMargins, (2 * A_NORMAL + 1500) / 3)).toHaveLength(40);
   });
 
   it('averages yield × price − direct costs over the main crops and the record years', () => {
@@ -233,10 +288,9 @@ describe('incomeEstimate', () => {
     if (r.status !== 'ready') return;
     const { estimate, perYearMargins } = r.data;
     expect(perYearMargins).toHaveLength(45);
-    // normal year: (1000 + 1500) / 2 = 1250; dry year: (−200 + 1500) / 2 = 650
-    expect(perYearMargins.filter((m) => Math.abs(m - 650) < 1e-9)).toHaveLength(5);
-    expect(perYearMargins.filter((m) => Math.abs(m - 1250) < 1e-9)).toHaveLength(40);
-    expect(estimate.marginPerHa.value).toBeCloseTo((40 * 1250 + 5 * 650) / 45, 2);
+    expect(near(perYearMargins, DRY_YEAR)).toHaveLength(5);
+    expect(near(perYearMargins, NORMAL)).toHaveLength(40);
+    expect(estimate.marginPerHa.value).toBeCloseTo(MEAN, 2);
     expect(estimate.marginPerHa.unit).toBe('USD/ha');
     expect(estimate.marginPerHa.kind).toBe('derived');
     expect(estimate.currency).toBe('USD');
@@ -247,9 +301,9 @@ describe('incomeEstimate', () => {
     const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     const range = r.data.estimate.marginPerHa.range!;
-    // sorted: 5 × 650, 40 × 1250; p10 at h = 4.4 → 650 + 0.4 × 600 = 890; p90 = 1250
-    expect(range.low).toBeCloseTo(890, 6);
-    expect(range.high).toBeCloseTo(1250, 6);
+    // sorted: 5 dry years, then 40 normal ones; p10 at h = 4.4 → dry + 0.4 × (normal − dry); p90 = normal
+    expect(range.low).toBeCloseTo(DRY_YEAR + 0.4 * (NORMAL - DRY_YEAR), 2);
+    expect(range.high).toBeCloseTo(NORMAL, 2);
     expect(range.basis).toBe('10th–90th percentile year of the record, at today’s prices');
   });
 
@@ -271,7 +325,7 @@ describe('incomeEstimate', () => {
       { code: 'gap.payment-unconfirmed', params: { programme: 'CSP bundle' } },
     ]);
     // marginPerHa is the margin alone; payments are their own line
-    expect(r.data.estimate.marginPerHa.value).toBeCloseTo((40 * 1250 + 5 * 650) / 45, 2);
+    expect(r.data.estimate.marginPerHa.value).toBeCloseTo(MEAN, 2);
   });
 
   it('leaves a confirmed payment without a rate out of the sum and names it', () => {
@@ -324,6 +378,31 @@ describe('incomeEstimate', () => {
     expect(r.data.gaps).toContainEqual({ code: 'gap.income-years-left-out', params: { count: 1, years: 45 } });
   });
 
+  // Issue #98: the money tables price a crop after a different crop only, so maize after maize is a named gap.
+  it('names a main crop that follows itself, wrapping round the rotation, once per crop', () => {
+    const r = incomeEstimate([{ crop: 'a' }, { crop: 'a' }, { crop: 'n' }, { crop: 'n' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    expect(r.data.gaps.filter((g) => g.code === 'gap.crop-after-itself-not-priced')).toEqual([
+      { code: 'gap.crop-after-itself-not-priced', params: { crop: 'a' } },
+      { code: 'gap.crop-after-itself-not-priced', params: { crop: 'n' } },
+    ]);
+    const wrap = incomeEstimate([{ crop: 'a' }, { crop: 'n' }, { crop: 'a' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
+    if (wrap.status !== 'ready') throw new Error('expected ready');
+    expect(wrap.data.gaps).toContainEqual({ code: 'gap.crop-after-itself-not-priced', params: { crop: 'a' } });
+    expect(wrap.data.gaps).not.toContainEqual({ code: 'gap.crop-after-itself-not-priced', params: { crop: 'n' } });
+  });
+
+  it('does not name a crop that never follows itself, or a perennial kept for several years', () => {
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    expect(r.data.gaps.map((g) => g.code)).not.toContain('gap.crop-after-itself-not-priced');
+    const perennial = testCrop({ id: 'p', kind: 'perennial' });
+    const econP = { ...econN, crop: 'p' };
+    const p = incomeEstimate([{ crop: 'p' }, { crop: 'p' }, { crop: 'n' }], [...crops, perennial], dryClimate, [...economics, econP], [], 'USD', 'FY2026', DROUGHT_P);
+    if (p.status !== 'ready') throw new Error('expected ready');
+    expect(p.data.gaps.map((g) => g.code)).not.toContain('gap.crop-after-itself-not-priced');
+  });
+
   it('returns no-data when no record year can be replayed', () => {
     const r = incomeEstimate(rotation, crops, { ...makeClimate(), monthly: [] }, economics, [], 'USD', 'FY2026', DROUGHT_P);
     expect(r).toEqual({ status: 'no-data', reason: { code: 'income.no-climate-years' } });
@@ -336,14 +415,15 @@ describe('incomeTotal', () => {
     const r = incomeEstimate(rotation, crops, dryClimate, economics, payments, 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     const t = incomeTotal(r.data);
-    expect(t.meanPerHa).toBeCloseTo((40 * 1250 + 5 * 650) / 45 + 50, 2);
-    expect(t.lowPerHa).toBeCloseTo(940, 6);
-    expect(t.highPerHa).toBeCloseTo(1300, 6);
+    expect(t.meanPerHa).toBeCloseTo(MEAN + 50, 2);
+    expect(t.lowPerHa).toBeCloseTo(DRY_YEAR + 0.4 * (NORMAL - DRY_YEAR) + 50, 2);
+    expect(t.highPerHa).toBeCloseTo(NORMAL + 50, 2);
     expect(t.years).toBe(45);
     expect(t.complete).toBe(true);
   });
 });
 
+const round1 = (x: number) => Math.round(x * 10) / 10;
 const total = (meanPerHa: number, lowPerHa: number, highPerHa: number, complete = true) => ({
   meanPerHa,
   lowPerHa,
@@ -353,26 +433,35 @@ const total = (meanPerHa: number, lowPerHa: number, highPerHa: number, complete 
 });
 
 describe('incomeScores', () => {
-  it('scales margin plus confirmed payments 0–100 across the candidates of the field', () => {
-    const s = incomeScores({ r1: total(100, 50, 150), r2: total(200, 150, 250), r3: total(300, 250, 350) });
+  it('ranks margin plus confirmed payments in the same order as the money', () => {
+    const s = incomeScores({ r1: total(100, 100, 100), r2: total(200, 200, 200), r3: total(300, 300, 300) });
     expect(s.r1!.value).toBe(0);
     expect(s.r2!.value).toBe(50);
     expect(s.r3!.value).toBe(100);
   });
 
-  it('scales the 10th and 90th percentile years the same way and keeps them inside 0–100', () => {
-    const s = incomeScores({ r1: total(100, 50, 150), r2: total(200, 150, 250), r3: total(300, 250, 350) });
-    expect(s.r2!.low).toBe(25);
-    expect(s.r2!.high).toBe(75);
-    expect(s.r1!.low).toBe(0); // −25 clamped
-    expect(s.r3!.high).toBe(100); // 125 clamped
+  // D44 (SPEC §7): the means are scaled 0-100 across the candidates. The bad-year and good-year range stays in money
+  // (incomeTotal / the estimate's range), never clamped onto the score scale, so the score range is the value itself.
+  it('scales the means 0-100 across the candidates', () => {
+    const s = incomeScores({ r1: total(100, 80, 120), r2: total(200, 180, 220), r3: total(300, 280, 320) });
+    expect(s.r1).toMatchObject({ value: 0, low: 0, high: 0 });
+    expect(s.r2).toMatchObject({ value: 50, low: 50, high: 50 });
+    expect(s.r3).toMatchObject({ value: 100, low: 100, high: 100 });
   });
 
-  it('gives 50 to every candidate when all incomes are equal, or there is only one', () => {
-    const s = incomeScores({ r1: total(100, 50, 150), r2: total(100, 80, 120) });
+  it('does not let wide year-to-year spreads compress or clamp the means', () => {
+    const s = incomeScores({ r1: total(626, 247, 912), r2: total(698, 364, 913), r3: total(662, 306, 913) });
+    expect(s.r1!.value).toBe(0);
+    expect(s.r2!.value).toBe(100);
+    expect(s.r3!.value).toBe(round1(((662 - 626) / (698 - 626)) * 100));
+    for (const x of Object.values(s)) expect([x.low, x.high]).toEqual([x.value, x.value]);
+  });
+
+  it('gives 50 to every candidate when the means are equal', () => {
+    const s = incomeScores({ r1: total(100, 50, 150), r2: total(100, 100, 100) });
     expect(s.r1).toMatchObject({ value: 50, low: 50, high: 50 });
     expect(s.r2!.value).toBe(50);
-    expect(incomeScores({ only: total(10, 5, 15) }).only!.value).toBe(50);
+    expect(incomeScores({ only: total(10, 5, 15) }).only).toMatchObject({ low: 50, value: 50, high: 50 });
   });
 
   it('is never strong: moderate with a full record, weak when a year was left out', () => {
@@ -401,10 +490,33 @@ describe('INCOME_MESSAGE_CODES', () => {
         'gap.payment-no-rate',
         'gap.payment-unconfirmed',
         'income.basis.replay',
+        'gap.crop-after-itself-not-priced',
         'income.no-climate-years',
         'income.no-price',
         'income.no-yield-response',
       ].sort(),
     );
+  });
+});
+
+// Issue #98 with the shipped tables: the replay must average out at the reference yield the money tables give.
+describe('yearlyYield on the Iowa demo field', () => {
+  it('replays every priced main crop so its mean yield equals the reference yield from data/money', async () => {
+    const field = demoFields.iowa;
+    const climate = await fixtureProviders.profile.getClimate(field);
+    const traits = await fixtureProviders.context.getCrops(field.country);
+    const ids = traits.filter((c) => c.kind === 'cash' && c.yieldResponseFactor !== undefined).map((c) => c.id);
+    const priced = [];
+    for (const id of ids) {
+      const econ = await tableMoneyProvider.getEconomics(field, [id]);
+      if (econ.status === 'ready') priced.push(...econ.data);
+    }
+    expect(priced.length).toBeGreaterThan(1);
+    for (const e of priced) {
+      const crop = traits.find((c) => c.id === e.crop)!;
+      const rows = yearlyYield(crop, climate, e.referenceYieldTPerHa.value!, engineRules(shippedRules).droughtPercentile);
+      expect(rows.length).toBeGreaterThan(0);
+      expect(mean(rows.map((r) => r.yieldTPerHa))).toBeCloseTo(e.referenceYieldTPerHa.value!, 6);
+    }
   });
 });
