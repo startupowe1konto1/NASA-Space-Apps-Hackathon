@@ -30,7 +30,7 @@ export const FALLBACK_RULES: RuleRow[] = [
     id: 'hazards.drought.percentile',
     value: 20,
     unit: "percentile of the field's own monthly root-zone wetness (NASA POWER GWETROOT), all years of the record",
-    appliesTo: 'drought check for every crop in its sensitive months; a month at or below this percentile counts as drought',
+    appliesTo: 'drought check for every crop in its sensitive months; a month below this percentile counts as drought',
     sourceTitle: 'U.S. Drought Monitor, Drought Classification',
     sourceUrl: 'https://droughtmonitor.unl.edu/About/AbouttheData/DroughtClassification.aspx',
     sourceLocator: "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00",
@@ -127,6 +127,8 @@ export interface GoalWeights { soilHealth: number; climateResilience: number; pr
 
 export interface EngineRules {
   markShare: number;
+  /** Drought limit (D30): percentile of the field's monthly root-zone wetness, all years of the record. */
+  droughtPercentile: number;
   notSuitableBelowSI: number;
   floorPoints: number;
   shownOthers: number;
@@ -160,6 +162,7 @@ export function engineRules(rules: LoadedRules): EngineRules {
   };
   return {
     markShare: numberOf(rules, 'hazards.calendar.markShare'),
+    droughtPercentile: numberOf(rules, 'hazards.drought.percentile'),
     notSuitableBelowSI: numberOf(rules, 'hazards.gaez.notSuitableBelowSI'),
     floorPoints: numberOf(rules, 'goals.soilFloor.points'),
     shownOthers: numberOf(rules, 'goals.shownOthers.count'),
