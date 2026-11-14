@@ -51,6 +51,13 @@ Team rules (from the discussion, see team notes):
 - **Data transparency** (added by O1, not yet covered by the concept). Every number on screen shows its source dataset, native resolution, time period and retrieval date, and says whether it is an observation, a model estimate or our own calculation. Missing data is shown as missing, never filled with invented values.
 - **The tool supports the farmer and does not replace them** (added by O1; the brief asks for this explicitly, see "What the challenge asks"). Each rotation card and the advisor report say so in plain words, and the information gaps and risks that need local review are part of every card, not a footnote.
 
+Brief requirements the concept does not cover yet (added by O1; see "What the challenge asks"). The spec must turn each into a concrete screen element:
+
+- **Explain the terms.** Every technical term on screen (evapotranspiration, anomaly, NDVI, soil moisture in m³/m³, root zone, suitability class) has a one-line plain explanation at first use (info icon or tooltip) and an entry on a short glossary page.
+- **Show uncertainty.** Each rotation score and each key number shows how sure we are: a range across the 45 years of data (for example the spread between bad and good years), and for twin evidence the number of similar cases and how similar they are. A card with weak evidence says so.
+- **Bare-field and vulnerable-season calendar.** A visible month-by-month strip for the current rotation and each alternative: when the field is bare, and when the crops on it are exposed to drought, heat or frost according to the field's NASA climate record. The brief asks for this explicitly; today it is only a background part of the field profile.
+- **Income as a farmer priority.** The brief lists market suitability and supplemental income among farmer priorities. In step 4 the farmer can switch on "income"; only then does it enter the ranking. The default ranking stays soil health first, as in the team rules above.
+
 ### Farmer journey (7 steps)
 
 1. **Find the field:** address (GUGiK geocoder in Poland, US Census in the USA, Nominatim elsewhere), parcel number (ULDK, Poland) or click.
