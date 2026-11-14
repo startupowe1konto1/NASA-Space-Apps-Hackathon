@@ -277,6 +277,28 @@ describe('soilHealth: total', () => {
     expect(n.high).toBeGreaterThan(n.value);
   });
 
+  it('a range given as {low, high} without mid is read at (low + high) / 2', () => {
+    const lowHigh = makeRules((id, v) => row(id, { low: v * 0.9, high: v * 1.1 }));
+    const withMid = run(maizeSoy, iowa, rangedRules);
+    const noMid = run(maizeSoy, iowa, lowHigh);
+    for (const id of ['nitrogen', 'organicMatter', 'erosion', 'pestBreak'] as const) {
+      const a = withMid.indicators[id] as Score;
+      const b = noMid.indicators[id] as Score;
+      expect(b).toBeDefined();
+      expect(b.value).toBeCloseTo(a.value, 6);
+      expect(b.low).toBeCloseTo(a.low, 6);
+      expect(b.high).toBeCloseTo(a.high, 6);
+      expect(b.basis.code).toBe('soil.basis.rule-range');
+    }
+  });
+
+  it('a factor row given as {low, high} is read at its midpoint', () => {
+    const swap = (rs: RuleRow[], id: string, value: RuleRow['value']) => rs.map((r) => (r.id === id ? row(id, value) : r));
+    const plain = run(maizeSoy, iowa);
+    const lowHigh = run(maizeSoy, iowa, { ...rules, erosion: swap(rules.erosion, 'erosion.zeroScoreIndex', { low: 300, high: 500 }) });
+    expect((lowHigh.indicators.erosion as Score).value).toBeCloseTo((plain.indicators.erosion as Score).value, 6);
+  });
+
   it('every indicator returns evidence with at least one rule id, and every code is listed', () => {
     const r = run(maizeSoy, iowa);
     expect(r.evidence).toHaveLength(4);

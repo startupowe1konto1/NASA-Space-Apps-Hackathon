@@ -5,6 +5,7 @@ import { fixtureCrops } from '../fixtures/crops';
 import { FALLBACK_RULES, engineRules, loadRules, toSoilRules } from './rules';
 import { soilHealth } from './soilHealth';
 import { O4_ROWS } from './testdata/o4Rules';
+import hazardsFile from '../../data/rules/hazards.json';
 
 const row = (id: string, value: unknown) => ({
   id,
@@ -24,6 +25,7 @@ describe('loadRules', () => {
     expect(loaded.byFile).toEqual({});
     const r = engineRules(loaded);
     expect(r.markShare).toBe(0.2);
+    expect(r.droughtPercentile).toBe(20);
     expect(r.notSuitableBelowSI).toBe(10);
     expect(r.floorPoints).toBe(5);
     expect(r.shownOthers).toBe(3);
@@ -47,6 +49,18 @@ describe('loadRules', () => {
     expect(engineRules(loaded).floorPoints).toBe(7);
     expect(loaded.byFile['nitrogen']?.map((r) => r.id)).toEqual(['nitrogen.credit.soybean']);
     expect(engineRules(loaded).markShare).toBe(0.2); // still from the fallback
+  });
+
+  it('the fallback drought percentile row is a verbatim copy of the row in data/rules/hazards.json', () => {
+    const inFile = (hazardsFile as { id: string }[]).find((r) => r.id === 'hazards.drought.percentile');
+    expect(inFile).toBeDefined();
+    expect(FALLBACK_RULES.find((r) => r.id === 'hazards.drought.percentile')).toEqual(inFile);
+  });
+
+  it('reads the drought percentile from a rule file over the fallback', () => {
+    const loaded = loadRules({ '../../data/rules/hazards.json': [row('hazards.drought.percentile', 10)] });
+    expect(engineRules(loaded).droughtPercentile).toBe(10);
+    expect(engineRules(loaded).ids.drought).toBe('hazards.drought.percentile');
   });
 
   it('throws on a row without a source', () => {

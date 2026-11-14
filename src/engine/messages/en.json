@@ -16,6 +16,7 @@
   "priority.basis.forage": "{forageYears} of {years} rotation years give forage: a forage crop or a cover crop that can be grazed. Counted from crop traits.",
   "priority.basis.water": "Rain covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years in this field's NASA POWER record, a model estimate. The range runs from the 10th to the 90th percentile year.",
   "priority.basis.water-no-data": "No growing season in the rain record is complete, so the water need could not be checked.",
+  "priority.basis.water-no-need-class": "No crop in this rotation has a water need class, so the water need could not be checked.",
 
   "total.basis": "Soil health counts for {soil}%, climate resilience for {climate}%, your priorities for {priorities}% and income for {income}%.",
   "income.not-wired": "Income is not calculated yet. Prices and costs are not loaded.",

@@ -235,7 +235,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       const isCurrent = i === 0;
       try {
         const { months, bareMonths } = buildCalendar(years, crops);
-        const climateResilience = resilienceScore(years, crops, climate);
+        const climateResilience = resilienceScore(years, crops, climate, rules.droughtPercentile);
         const soilRules = toSoilRules(loaded, country, crops, years, profile);
         const soilOut = soilStep(years, crops, profile, soilRules.rules, on, rules.doublingFactor, bareMonths);
         // name the rows in data/rules that each derived rule came from
@@ -291,7 +291,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
     const rotations: RotationOption[] = await Promise.all(
       shown.map(async (r) => {
         const c = byId.get(r.id)!;
-        const calendar: CalendarMonth[] = withExposure(c.months, crops, climate, rules.markShare);
+        const calendar: CalendarMonth[] = withExposure(c.months, crops, climate, rules.markShare, rules.droughtPercentile);
         const shownGoals = GOALS.filter((g: GoalId) => ranked.shownByGoal[g]?.includes(r.id));
         const texts = cardMessages({
           years: r.years,
