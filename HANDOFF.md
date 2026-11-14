@@ -1,3 +1,5 @@
+> **Superseded at 15:05.** The spec (`docs/SPEC.md`), the plan (`docs/PLAN.md`) and the decisions (`docs/DECISIONS.md`) replace this file. The skeleton is on `main` since 16:00 (PR #23) and the lanes have started. Read this file only for the background of the challenge choice.
+
 # Handoff v3: Field Shift chosen, ready for spec and plan
 
 Written Sat 14 Nov 2026, 14:15 CET (T+3:06), for a fresh Claude Code session. Everything below was checked in this repo's history and in live requests; where something was not checked, it says so. The shortlist analysis that led here (v2 of this file) is in git history and in [context/challenge-comparison.md](context/challenge-comparison.md).
