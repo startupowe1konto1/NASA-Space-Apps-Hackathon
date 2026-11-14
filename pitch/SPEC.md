@@ -49,7 +49,7 @@ Mariusz farms 22 hectares near Poznań and plans next year's crop from a noteboo
 
 Stage: 1920 × 1080. Each slide lists its steps (one key press each) and its **final state**, which is what the PDF page shows and must make sense without the speaker.
 
-Times add up to 180 s. Speaker notes are in Polish because that is the language spoken.
+Times add up to 180 s. Speaker notes are in Polish because that is the language spoken. The notes hold about 300 words, roughly 2:30 of speech at a calm pace; the rest is the descent, the camera moves and the pauses on slide 6. Numbers in the notes (22, 45, 9, 13, 4, 27, 77, 58, 10) must match `data/field.json` after every rerun of the export.
 
 ### Slide 1 · Orbit (10 s)
 
@@ -57,7 +57,7 @@ Times add up to 180 s. Speaker notes are in Polish because that is the language 
 - **Text:** eyebrow `NASA Space Apps Challenge 2026 · Field Shift: Adapting Farms with NASA Data`; title: the project name (`Field Shift tool` until D13 is decided, read from one constant); lede `From orbit to one field.`; facts row: `Team` Vibecodersi · `Members` the names · `Local event` Poznań.
 - **Steps:** none. The next key press starts the descent.
 - **Final state:** as described.
-- **Notes (PL):** „Jesteśmy Vibecodersi. Pokażemy, jak dane z orbity pomagają jednemu rolnikowi podjąć jedną decyzję.”
+- **Notes (PL):** „Dzień dobry, jesteśmy Vibecodersi. Pokażemy, jak dane z orbity pomagają jednemu rolnikowi podjąć jedną decyzję: co zasiać w przyszłym roku.”
 
 ### Transition · The descent (about 4 s, not a slide)
 
@@ -69,7 +69,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Text:** eyebrow `The problem`; title `Mariusz plans next year from a notebook.`; facts row: `Location` Uzarzewo, near Poznań · `Coordinates` from `field.centroid` · `Area` from `field.areaHa`.
 - **Steps:** (1) field and facts; (2) the notebook card slides in on the right: a ruled page with a handwritten-style table, one row per year from `notebook` (`2022 Winter wheat` … `2026 Winter wheat`); (3) a last row `2027` with a question mark, which pulses once.
 - **Final state:** field, facts, notebook with the open question.
-- **Notes (PL):** „To pole Mariusza, 22 hektary pod Poznaniem. Co roku decyduje, co zasiać, na podstawie zeszytu i doświadczenia. Pszenica, rzepak, pszenica. Co dalej?”
+- **Notes (PL):** „To pole Mariusza: 22 hektary w Uzarzewie pod Poznaniem. Od pięciu lat Mariusz sieje tu na zmianę pszenicę ozimą i rzepak, a każdy rok zapisuje w zeszycie. Teraz musi zdecydować, co zasiać w 2027 roku. Ma do pomocy ten zeszyt i własne doświadczenie.”
 - **Rule:** the notebook is the only hand-drawn element in the deck. It is an HTML element, not a generated image.
 
 ### Slide 3 · The data (25 s)
@@ -89,7 +89,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Facts row under the title, from `datasetsUsedForThisField` and `climate.years`:** `Datasets for this field` 13 · `From NASA` 4 · `Weather record` 45 years.
 - **Steps:** (1) sheets fall, top first; (2) table and leader lines fade in; (3) facts row counts up.
 - **Final state:** stack, table, facts.
-- **Notes (PL):** „Te dane już istnieją i są otwarte. Czterdzieści pięć lat pogody z NASA, ukształtowanie terenu, gleba, granica działki. Wszystko dla tego jednego miejsca.”
+- **Notes (PL):** „O tym polu sporo już wiadomo i te dane są otwarte. NASA POWER daje 45 lat pogody i wilgotność gleby w strefie korzeni. NASADEM daje nachylenie terenu, SoilGrids glebę, a rejestr gruntów GUGiK dokładną granicę działki. Razem 13 zbiorów danych, z czego 4 z NASA. Wszystko dla tego jednego miejsca.”
 - **Rule:** a layer is listed only if its dataset id is in `datasetsUsedForThisField.ids`. SMAP is registered in the app but is not read for the field today, so it is not a layer. If that changes before the freeze, rerun the export and update the row.
 
 ### Slide 4 · The engine (35 s)
@@ -100,7 +100,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Panel, below:** one row per rotation id in `shownByGoal.keepSoil` (the current rotation and the best three others, the same four the app shows for the soil goal), looked up in `rotations`: the crops as plain text (`Field pea → Winter wheat → Potato + phacelia`), and two bars with values, `Soil health` and `Climate resilience`, each with a thin whisker from `low` to `high`. The row with `isCurrent` carries the tag `Mariusz today`.
 - **Steps:** (1) the ribbon draws left to right; (2) the rows appear in the order Mariusz would think of them (current first) with empty bars; (3) a playhead sweeps the ribbon once while the bars fill to their values; (4) the rows reorder by `rank`, best first; the three that are not the current one turn green; the current one keeps its tag and its place at the bottom.
 - **Final state:** ribbon, four sorted rows, the three proposals highlighted, caption `Soil health and climate resilience come first. Income is a replay of past years at today's prices, not a forecast.`
-- **Notes (PL):** „Silnik bierze każdy sensowny płodozmian i sprawdza go na czterdziestu pięciu latach: suszach, upałach, przymrozkach. Ocenia zdrowie gleby i odporność na klimat. Dzisiejszy płodozmian Mariusza ma 27 punktów za glebę. Najlepszy ma 58.”
+- **Notes (PL):** „Silnik bierze każdy sensowny płodozmian dla tego pola i sprawdza go na tych 45 latach. Czerwone kratki to lata suszy, było ich 9. Każdy płodozmian dostaje dwie oceny: zdrowie gleby i odporność na klimat. Kreska przy słupku pokazuje, jak niepewna jest ocena. Płodozmian Mariusza ma najwyższą odporność na klimat, 77 punktów, ale za glebę tylko 27. Najlepszy kandydat ma za glebę 58. Dochód liczymy, powtarzając minione lata po dzisiejszych cenach. To nie jest prognoza.”
 - **Rules:** the bars show only exported values. Do not draw per-year results for a rotation; the export does not contain them. Do not print confidence words; the whisker carries the uncertainty.
 
 ### Slide 5 · Similar regions (20 s)
@@ -111,7 +111,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Footnote:** `Similarity is our calculation on five NASA POWER climate features. Yields: Eurostat, mean of 2019–2023. Evidence, not a forecast.`
 - **Steps:** (1) the rise; (2) dots and lines appear in order of similarity; (3) the table fades in.
 - **Final state:** map, ten dots, table, footnote.
-- **Notes (PL):** „Szukamy miejsc o takim samym klimacie. Dziesięć regionów, od Lubuskiego po Bawarię i Owernię. To, co tam rośnie i jak plonuje, jest dowodem dla Mariusza, nie prognozą.”
+- **Notes (PL):** „Potem szukamy w Europie regionów o takim samym klimacie. Jest ich 10, od Lubuskiego po Bawarię i Owernię. To, co tam rośnie i jak plonuje, na przykład rzepak według Eurostatu, jest dla Mariusza dowodem, a nie prognozą.”
 - **Rule:** the word is always "regions". The app compares the field with NUTS 2 regions, not with other fields.
 
 ### Slide 6 · The answer (45 s)
@@ -120,7 +120,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Text:** eyebrow `The tool`; title `Three rotations, each with its evidence.`
 - **Steps:** (1) frame with the field step (the parcel on the map); (2) the crop history step with the notebook rows; (3) the goal step; (4) the rotations screen with the first card open; (5) the frame moves left and the closing lines appear on the right: `What we do not know` and `Check locally` are on every card. Below: `The tool supports the farmer's judgment. It does not replace it.`
 - **Final state:** the rotations screen in the frame and the closing lines.
-- **Notes (PL):** „Mariusz zaznacza pole, przepisuje zeszyt, wybiera cel. Dostaje trzy płodozmiany. Każdy pokazuje dowody, braki w danych i rzeczy do sprawdzenia na miejscu. Decyzja zostaje u niego.”
+- **Notes (PL):** „Tak to wygląda w aplikacji. Mariusz zaznacza swoje pole na mapie. Przepisuje zeszyt, czyli co siał w ostatnich latach. Wybiera cel, na przykład zachować dobrą glebę. Dostaje trzy płodozmiany. Przy każdym widzi dowody, braki w danych i to, co warto sprawdzić na miejscu. Narzędzie wspiera ocenę rolnika, ale jej nie zastępuje. Decyzja zostaje u Mariusza.”
 - **Rules:** screenshots are taken by a script from the running app after the UI freeze, in English, at one fixed size. No mock-ups. If a screenshot shows a `weak` label on the soil score, that is what the app says; do not crop it out, be ready to explain it in the questions.
 
 ### Slide 7 · Back to orbit (20 s)
@@ -131,7 +131,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Left, under the title:** team name, member names, the challenge name, the link to the app (and a QR code if the app is hosted by then), and `Built with AI assistance; details on the project page.`
 - **Steps:** none.
 - **Final state:** as described.
-- **Notes (PL):** „Wszystko, co pokazaliśmy, powstało z otwartych danych NASA i partnerów. Dziękujemy.”
+- **Notes (PL):** „Wszystko, co pokazaliśmy, powstało z otwartych danych: NASA, Eurostatu, ISRIC i polskich instytucji. Szczegóły, także to, jak używaliśmy AI, są na stronie projektu. Dziękujemy.”
 
 ## 6. The field
 
