@@ -1,0 +1,23 @@
+{
+  "steps.report.title": "Raport dla doradcy",
+  "steps.report.noField": "Najpierw wybierz pole, a potem wróć po raport.",
+  "steps.report.field": "Pole",
+  "steps.report.area": "{ha} ha",
+  "steps.report.location": "w punkcie {lat}, {lon}",
+  "steps.report.parcels": "działka: {ids}",
+  "steps.report.goal": "Główny cel",
+  "steps.report.crops": "Ostatnie uprawy",
+  "steps.report.cropsNone": "Nie podano.",
+  "steps.report.byFarmer": "odpowiedź rolnika",
+  "steps.report.priorities": "Co jeszcze jest ważne",
+  "steps.report.prioritiesNone": "Nic więcej. Zdrowie gleby liczy się zawsze.",
+  "steps.report.excluded": "Pominięte uprawy",
+  "steps.report.copy": "Kopiuj link",
+  "steps.report.print": "Drukuj lub zapisz jako PDF",
+  "steps.report.copied": "Link skopiowany. Wklej go w wiadomości do doradcy.",
+  "steps.report.linkLabel": "Link do tego raportu (skopiuj go ręcznie)",
+  "steps.report.linkNote": "Link zawiera twój cel, uprawy, priorytety oraz kształt i położenie pola, razem z numerami działek, które w publicznym rejestrze gruntów wskazują właściciela. Link nie jest zapisany na żadnym serwerze, ale każdy, komu go wyślesz, zobaczy to wszystko i tę samą analizę.",
+  "steps.report.analysis": "analiza",
+  "steps.report.generated": "Analiza z dnia {date}.",
+  "steps.report.support": "To jest pomoc w podjęciu decyzji. Nie zastępuje twojej oceny ani oceny twojego doradcy. Porównaj braki w danych i ryzyka opisane niżej z tym, co wiesz o tym polu."
+}
