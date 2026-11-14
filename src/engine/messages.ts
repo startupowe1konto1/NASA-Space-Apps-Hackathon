@@ -50,7 +50,7 @@ export const CARD_MESSAGE_CODES = [
   'gap.suitability-error',
   'gap.rule-missing',
   'gap.soil-compared-shared',
-  'gap.soil-totalled-shared',
+  'gap.soil-compared-none',
   'gap.humus-medium-class',
   'gap.erosion-rye-row',
   'gap.leaching-not-counted',
@@ -150,8 +150,6 @@ export interface CardInput {
   unknownCrops?: CropId[];
   /** Set when soil was ranked over fewer indicators than this rotation or the current one has: the shared ones. */
   soilComparedOn?: IndicatorId[];
-  /** Set when this card's soil total leaves out some of its own indicators (#105 item 7): the ones every card has. */
-  soilTotalledOn?: IndicatorId[];
   /** For the current rotation: where its crop history came from. */
   history?: { source: 'farmer' | 'provider'; years: number[]; cropscape: boolean };
   /** What the money step left out of this rotation's income (O3-B7); absent = income not wired. */
@@ -299,17 +297,12 @@ export function cardMessages(c: CardInput): CardMessages {
     if (noRow.length === 0) gaps.push(m('gap.rule-missing', { indicator: INDICATOR_LABEL[id] }));
     for (const crop of noRow) gaps.push(m('gap.erosion-no-row', { crop: cropLabel(crop) }));
   }
-  if (c.soilTotalledOn) {
-    const left = (Object.keys(c.soil.indicators ?? {}) as IndicatorId[]).filter((id) => !c.soilTotalledOn!.includes(id));
-    gaps.push(
-      m('gap.soil-totalled-shared', {
-        shared: c.soilTotalledOn.map((id) => INDICATOR_LABEL[id]).join(', '),
-        left: left.map((id) => INDICATOR_LABEL[id]).join(', '),
-      }),
-    );
-  }
   if (c.soilComparedOn) {
-    gaps.push(m('gap.soil-compared-shared', { shared: c.soilComparedOn.length > 0 ? c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') : 'none' }));
+    gaps.push(
+      c.soilComparedOn.length > 0
+        ? m('gap.soil-compared-shared', { shared: c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') })
+        : m('gap.soil-compared-none'),
+    );
   }
   if (c.soil.indicators?.organicMatter && c.years.length > 0 && c.soil.evidence.some((e) => e.ruleIds.some((id) => id.startsWith('humus.coef.') && id.endsWith('.pl')))) {
     gaps.push(m('gap.humus-medium-class'));

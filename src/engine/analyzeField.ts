@@ -35,7 +35,7 @@ import { CROP_CALENDARS_ID } from './datasets';
 import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome } from './messages';
 import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, type IncomeResult, type IncomeTotal } from './income';
 import { forageScore } from './priorityScores';
-import { GOALS, INCOME_NOT_WIRED, changedYears, fieldSoilTotals, rankByGoal, rankSoil, type Scored } from './ranking';
+import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, rankSoil, type Scored } from './ranking';
 import { resilienceScore, withExposure } from './resilience';
 import { engineRules, shippedRules, toSoilRules, type EngineRules, type LoadedRules } from './rules';
 import { soilHealth, type SoilRules } from './soilHealth';
@@ -410,13 +410,6 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
     const shownIds = new Set(Object.values(ranked.shownByGoal).flat());
     const byId = new Map(candidates.map((c) => [c.id, c]));
     const shown = ranked.items.filter((r) => shownIds.has(r.id));
-    // #105 item 7: the shown cards total soil health over the indicators scored for all of them, so the totals side by
-    // side compare. The ranking above already compares each rotation with the current one on shared indicators
-    // (rankSoil). The indicators left out of a total stay on the card and a gap names them.
-    const fieldSoil = fieldSoilTotals(
-      shown.map((r) => ({ id: r.id, coverOnly: byId.get(r.id)!.soil.coverOnly, soilHealth: r.soilHealth, indicators: byId.get(r.id)!.soil.indicators })),
-      weightOf,
-    );
 
     // 9. card texts and twins
     const soilInputsMissing = (Object.keys(SOIL_INPUT_LABEL) as (keyof Soil)[])
@@ -459,7 +452,6 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           retrievedAt,
           unknownCrops,
           soilComparedOn: sharedOf.get(r.id),
-          soilTotalledOn: fieldSoil.totals[r.id]!.dropped.length > 0 ? fieldSoil.shared : undefined,
           history: r.isCurrent ? { source: historySource, years: history.map((h) => h.year), cropscape: history.some((h) => h.source === 'cropscape') } : undefined,
           incomeGaps: moneyOf.get(r.id)!.gaps,
         });
@@ -476,7 +468,10 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           totals: r.totals,
           rankByGoal: r.rankByGoal,
           belowSoilFloor: r.belowSoilFloor,
-          soilHealth: fieldSoil.totals[r.id]!.score,
+          // #124 review: the card shows the soil total the goals ranked on. Where this rotation's indicators differ from the
+          // current one's, that is the current total plus the mean difference on the shared ones (rankSoil), and the
+          // gap 'gap.soil-compared-shared' says how to rebuild it.
+          soilHealth: sharedOf.has(r.id) ? (r.rankSoil ?? r.soilHealth) : r.soilHealth,
           indicators: c.soil.indicators,
           climateResilience: r.climateResilience,
           priorityScores: r.priorityScores,
