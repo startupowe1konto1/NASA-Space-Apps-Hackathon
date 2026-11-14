@@ -81,3 +81,28 @@ describe('moneyFile economics periods', () => {
     expect(moneyFile.safeParse(file([{ ...row, pricePeriod: '' }])).success).toBe(false);
   });
 });
+
+describe('moneyFile cover-crop rows (#98 item 5, D34)', () => {
+  const costs = { title: 't', url: 'https://example.org', locator: 'direct costs: p. 1' };
+  const cover = { crop: 'cereal-rye', kind: 'cover', directCostsPerHa: 70, costsPeriod: '2026 survey', sources: [costs] };
+  const file = (economics: object[]) => ({ campaign: 'c', currency: 'USD', economics, payments: [] });
+
+  it('accepts a cover-crop row with direct costs only', () => {
+    expect(moneyFile.safeParse(file([cover])).success).toBe(true);
+  });
+
+  it('accepts a cover-crop row with a null yield and price', () => {
+    expect(moneyFile.safeParse(file([{ ...cover, referenceYieldTPerHa: null, pricePerT: null }])).success).toBe(true);
+  });
+
+  it('still needs a yield and a price on a row that is not a cover crop', () => {
+    const { kind: _kind, ...sold } = cover;
+    expect(moneyFile.safeParse(file([sold])).success).toBe(false);
+    expect(moneyFile.safeParse(file([{ ...sold, referenceYieldTPerHa: null, pricePerT: 150 }])).success).toBe(false);
+    expect(moneyFile.safeParse(file([{ ...sold, referenceYieldTPerHa: 10, pricePerT: null }])).success).toBe(false);
+  });
+
+  it('accepts no kind other than cover', () => {
+    expect(moneyFile.safeParse(file([{ ...cover, kind: 'cash' }])).success).toBe(false);
+  });
+});
