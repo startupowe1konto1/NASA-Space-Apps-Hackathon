@@ -196,6 +196,37 @@ const payment = (programme: string, amount: number | null, confirmed: boolean): 
 const rotation = [{ crop: 'a', coverCrop: 'c' }, { crop: 'n' }];
 
 describe('incomeEstimate', () => {
+  // D34: a cover crop has no revenue; it pays back through the soil scores.
+  it('never turns income into no-data for a cover crop without a price, and says the cover earns nothing directly', () => {
+    const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    expect(r.data.gaps).toContainEqual({ code: 'income.cover-no-revenue', params: { crop: 'c' } });
+    expect(r.data.gaps).toContainEqual({ code: 'gap.cover-cost-missing', params: { crop: 'c' } });
+  });
+
+  it('subtracts a cover crop cost only where it has a sourced row, spread over the rotation years', () => {
+    const econC: CropEconomics = {
+      crop: 'c',
+      referenceYieldTPerHa: src(null, 't/ha', 'none'),
+      pricePerT: src(null, 'USD/t', 'none'),
+      directCostsPerHa: src(80, 'USD/ha', 'isu-budgets'),
+    };
+    const r = incomeEstimate(rotation, crops, dryClimate, [...economics, econC], [], 'USD', 'FY2026', DROUGHT_P);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    // one cover in a 2-year rotation: 80 / 2 = 40 per ha per year off every replayed year
+    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 1210) < 1e-9)).toHaveLength(40);
+    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 610) < 1e-9)).toHaveLength(5);
+    expect(r.data.gaps).not.toContainEqual({ code: 'gap.cover-cost-missing', params: { crop: 'c' } });
+    expect(r.data.gaps).toContainEqual({ code: 'income.cover-no-revenue', params: { crop: 'c' } });
+  });
+
+  it('weights a main crop by the number of rotation years it fills', () => {
+    const r = incomeEstimate([{ crop: 'a' }, { crop: 'a' }, { crop: 'n' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    // normal year: (1000 + 1000 + 1500) / 3
+    expect(r.data.perYearMargins.filter((m) => Math.abs(m - 3500 / 3) < 1e-9)).toHaveLength(40);
+  });
+
   it('averages yield × price − direct costs over the main crops and the record years', () => {
     const r = incomeEstimate(rotation, crops, dryClimate, economics, [], 'USD', 'FY2026, check NRCS', DROUGHT_P);
     expect(r.status).toBe('ready');
@@ -236,7 +267,9 @@ describe('incomeEstimate', () => {
     if (r.status !== 'ready') throw new Error('expected ready');
     expect(r.data.confirmedPaymentsPerHa).toBe(50);
     expect(r.data.estimate.payments).toHaveLength(2); // listed, even when left out of the sum
-    expect(r.data.gaps).toEqual([{ code: 'gap.payment-unconfirmed', params: { programme: 'CSP bundle' } }]);
+    expect(r.data.gaps.filter((g) => g.code.startsWith('gap.payment'))).toEqual([
+      { code: 'gap.payment-unconfirmed', params: { programme: 'CSP bundle' } },
+    ]);
     // marginPerHa is the margin alone; payments are their own line
     expect(r.data.estimate.marginPerHa.value).toBeCloseTo((40 * 1250 + 5 * 650) / 45, 2);
   });
@@ -245,7 +278,9 @@ describe('incomeEstimate', () => {
     const r = incomeEstimate(rotation, crops, dryClimate, economics, [payment('NRCS 328', null, true)], 'USD', 'FY2026', DROUGHT_P);
     if (r.status !== 'ready') throw new Error('expected ready');
     expect(r.data.confirmedPaymentsPerHa).toBe(0);
-    expect(r.data.gaps).toEqual([{ code: 'gap.payment-no-rate', params: { programme: 'NRCS 328' } }]);
+    expect(r.data.gaps.filter((g) => g.code.startsWith('gap.payment'))).toEqual([
+      { code: 'gap.payment-no-rate', params: { programme: 'NRCS 328' } },
+    ]);
   });
 
   it('returns no-data when a main crop has no sourced price, and estimates nothing', () => {
@@ -360,7 +395,9 @@ describe('INCOME_MESSAGE_CODES', () => {
   it('lists every code the module emits', () => {
     expect([...INCOME_MESSAGE_CODES].sort()).toEqual(
       [
+        'gap.cover-cost-missing',
         'gap.income-years-left-out',
+        'income.cover-no-revenue',
         'gap.payment-no-rate',
         'gap.payment-unconfirmed',
         'income.basis.replay',

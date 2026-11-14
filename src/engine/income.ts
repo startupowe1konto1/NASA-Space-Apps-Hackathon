@@ -7,8 +7,10 @@
 //   month on this field (`shortfallVsMedian`, SPEC 7). The drought limit (D30) only decides resilience hits;
 // - heat and frost: each sensitive row (hazard + months) with a hit in any of its months adds its `lossShare`;
 // - the total loss is capped at 1; yield = reference yield × (1 − loss).
-// margin = yield × price − direct costs. The rotation's margin in a year is the mean over its main crops; cover
-// crops earn nothing here and cost nothing here (their seed cost is not in the money tables yet).
+// margin = yield × price − direct costs. The rotation's margin in a year is the mean over its rotation years (a crop
+// grown in two of three years counts twice). A cover crop has no revenue; it is there for the soil (D34). Its seed and
+// sowing cost is subtracted only where the money tables have a sourced direct-cost row for it, spread over the
+// rotation years; otherwise the cost is left out and named in the gaps. A cover crop never makes income no-data.
 import type {
   AsyncResult,
   ClimateProfile,
@@ -39,6 +41,10 @@ export const INCOME_MESSAGE_CODES = [
   'gap.payment-no-rate',
   // "{count} of {years} past years had missing climate data and were left out of the income replay."
   'gap.income-years-left-out',
+  // "{crop} earns nothing directly. It pays back through the soil health scores."
+  'income.cover-no-revenue',
+  // "No sourced seed and sowing cost for {crop}, so its cost is left out of the income."
+  'gap.cover-cost-missing',
 ] as const;
 
 const RANGE_BASIS = '10th–90th percentile year of the record, at today’s prices';
@@ -161,14 +167,30 @@ export function incomeEstimate(
   // Rotation margin per year: only years in which every main crop could be replayed.
   const record = recordYears(climate);
   const perYearMargins: number[] = [];
+  // Cover crops (D34): no revenue; a sourced direct cost is spread over the rotation years, a missing one is a gap.
+  const coverGaps: Message[] = [];
+  let coverCostPerYear = 0;
+  for (const coverId of [...new Set(years.flatMap((y) => (y.coverCrop === undefined ? [] : [y.coverCrop])))]) {
+    coverGaps.push({ code: 'income.cover-no-revenue', params: { crop: coverId } });
+    const cost = economics.find((e) => e.crop === coverId)?.directCostsPerHa;
+    if (!isSourced(cost)) {
+      coverGaps.push({ code: 'gap.cover-cost-missing', params: { crop: coverId } });
+      continue;
+    }
+    const uses = years.filter((y) => y.coverCrop === coverId).length;
+    coverCostPerYear += (cost.value * uses) / years.length;
+    cost.datasetIds.forEach((d) => datasetIds.add(d));
+    dates.push(cost.retrievedAt);
+  }
+
   for (const year of record) {
-    const margins = mainIds.map((id) => perCrop.get(id)!.get(year));
+    const margins = years.map((y) => perCrop.get(y.crop)!.get(year));
     if (margins.some((m) => m === undefined)) continue;
-    perYearMargins.push((margins as number[]).reduce((a, b) => a + b, 0) / margins.length);
+    perYearMargins.push((margins as number[]).reduce((a, b) => a + b, 0) / margins.length - coverCostPerYear);
   }
   if (perYearMargins.length === 0) return { status: 'no-data', reason: { code: 'income.no-climate-years' } };
 
-  const gaps: Message[] = [];
+  const gaps: Message[] = [...coverGaps];
   const leftOut = record.length - perYearMargins.length;
   if (leftOut > 0) {
     complete = false;
