@@ -1,6 +1,14 @@
 {
-  "map.placeholder": "The map comes with task O2-A1. Until then, pick a demo field.",
+  "map.intro": "Tap your field on the map, or pick a demo field.",
   "map.demo.iowa": "Iowa demo field",
   "map.demo.poznan": "Poznań demo field",
-  "map.fields": "Your fields"
+  "map.label": "Map. Tap a spot to add a field there.",
+  "map.hint": "A tap adds a 200 m by 200 m square (4 ha) around that spot. Tap a field you already added to select it.",
+  "map.field.atPoint": "Field at {lat}, {lon}",
+  "map.fields": "Your fields",
+  "map.fields.empty": "No fields yet.",
+  "map.fields.item": "{name}, {area} ha",
+  "map.tiles.source": "OpenStreetMap map tiles",
+  "map.tiles.reason": "The demo field buttons still work.",
+  "map.source": "The map"
 }
