@@ -35,9 +35,10 @@ describe('ReportStep', () => {
     render(<ReportStep />);
     const report = await screen.findByRole('region', { name: /Report for your advisor/ });
     const text = report.textContent ?? '';
-    const support = text.indexOf(t('app.support'));
+    const support = text.indexOf(t('steps.report.support'));
     expect(support).toBeGreaterThan(-1);
     expect(support).toBeLessThan(text.indexOf(iowaAnalysis.field.name));
+    expect(t('steps.report.support')).toMatch(/below/); // the gaps and risks come after it on this page
     expect(report).toHaveTextContent(t('steps.goal.keepSoil'));
     expect(report).toHaveTextContent('2024');
     expect(report).toHaveTextContent(t('steps.priorities.erosion'));

@@ -18,5 +18,6 @@
   "steps.report.linkLabel": "Link to this report (copy it by hand)",
   "steps.report.linkNote": "The link holds your goal, field outline, crops and priorities. It is not stored on any server; whoever opens it sees the same analysis.",
   "steps.report.analysis": "the analysis",
-  "steps.report.generated": "Analysis run on {date}."
+  "steps.report.generated": "Analysis run on {date}.",
+  "steps.report.support": "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks below against what you know about this field."
 }
