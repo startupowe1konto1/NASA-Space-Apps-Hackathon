@@ -2,11 +2,15 @@
 // Both use the same per-crop hazard checks from `yearlyHits`, so the calendar marks and the score always agree.
 //
 // Hazard checks, per record year and per (hazard, month) the crop is sensitive to:
-// - drought: the month's root-zone wetness is strictly below the crop's percentile (`threshold`, e.g. 20) of the
-//   field's own record for the same calendar month (all years, missing months left out). Percentiles use linear
-//   interpolation between closest ranks (h = (n − 1) · p). With 45 distinct values the 20th percentile lies between
-//   the 9th and 10th lowest, so exactly 9 years are hit. "Strictly below" means a month with the same wetness every
-//   year is never a drought.
+// - drought (D30): the month's root-zone wetness is strictly below `droughtLimit`, the drought percentile (rule
+//   `hazards.drought.percentile` in data/rules/hazards.json, passed in by the caller) of ALL monthly wetness values
+//   of the field's record, every month of every year pooled, missing months left out. A dry summer month is
+//   therefore a drought more often than a wet winter month. The crop's own `threshold` is not used for drought.
+//   Percentiles use linear interpolation between closest ranks (h = (n − 1) · p). "Strictly below" (D26) means a
+//   month exactly at the limit is not a drought. (The field summary in src/profile keeps a per-month anomaly.)
+//   Every drought row also carries `shortfallVsMedian` for income (SPEC section 7): the shortfall of the month's
+//   wetness against the median of the same calendar month over the record, as a share of that median, in every
+//   year below it, hit or not; 0 at or above the median.
 // - heat: the month's maximum temperature (°C) is above `threshold`.
 // - frost: the month's frost days are above `threshold`.
 // A check reads the record month of the same calendar year as the record year (a climatological frequency: for a
@@ -23,7 +27,17 @@ export const RESILIENCE_MESSAGE_CODES = [
 
 type Row = ClimateProfile['monthly'][number];
 
-export interface HazardHit { year: number; month: number; hazard: Hazard; hit: boolean; deficit: number }
+export interface HazardHit {
+  year: number;
+  month: number;
+  hazard: Hazard;
+  hit: boolean;
+  /**
+   * Drought rows: (median − wetness) / median for the same calendar month, in every year below that median, hit or
+   * not; 0 at or above it. Heat and frost rows: null (no wetness is checked).
+   */
+  shortfallVsMedian: number | null;
+}
 export interface MissingCheck { year: number; month: number; hazard: Hazard }
 
 const VARIABLE: Record<Hazard, 'rootWetness' | 'tMaxC' | 'frostDays'> = {
@@ -41,6 +55,22 @@ export function percentile(values: number[], p: number): number {
   const a = sorted[lo] as number;
   const b = sorted[hi] as number;
   return a + (h - lo) * (b - a);
+}
+
+function checkPercentile(p: number): void {
+  if (!Number.isFinite(p) || p < 0 || p > 100) {
+    throw new Error(`resilience: drought percentile must be a number in 0..100, got ${p}`);
+  }
+}
+
+/**
+ * The drought limit (D30): percentile `droughtPercentile` of every monthly root-zone wetness value in the record,
+ * all months and all years pooled, missing months left out. Null when the record has no wetness value at all.
+ */
+export function droughtLimit(climate: ClimateProfile, droughtPercentile: number): number | null {
+  checkPercentile(droughtPercentile);
+  const values = climate.monthly.map((r) => r.rootWetness).filter((v): v is number => v !== null);
+  return values.length > 0 ? percentile(values, droughtPercentile) : null;
 }
 
 const round = (x: number, digits: number) => {
@@ -70,7 +100,9 @@ const rowIndex = (climate: ClimateProfile) => {
 export function yearlyHitsDetailed(
   crop: CropTraits,
   climate: ClimateProfile,
+  droughtPercentile: number,
 ): { rows: HazardHit[]; missing: MissingCheck[] } {
+  const limit = droughtLimit(climate, droughtPercentile);
   const years = recordYears(climate);
   const get = rowIndex(climate);
   const rows: HazardHit[] = [];
@@ -81,7 +113,6 @@ export function yearlyHitsDetailed(
     for (const month of s.months) {
       const values = years.map((year) => get(year, month)?.[variable] ?? null);
       const present = values.filter((v): v is number => v !== null);
-      const limit = s.hazard === 'drought' && present.length > 0 ? percentile(present, s.threshold) : 0;
       const median = s.hazard === 'drought' && present.length > 0 ? percentile(present, 50) : 0;
 
       years.forEach((year, i) => {
@@ -90,15 +121,14 @@ export function yearlyHitsDetailed(
           missing.push({ year, month, hazard: s.hazard });
           return;
         }
-        let hit: boolean;
-        let deficit = 0;
         if (s.hazard === 'drought') {
-          hit = v < limit;
-          if (hit && median > 0) deficit = Math.max(0, (median - v) / median);
+          // `limit` is not null here: this month has a wetness value, so the pooled record has at least one.
+          const hit = v < (limit as number);
+          const shortfallVsMedian = median > 0 ? Math.max(0, (median - v) / median) : 0;
+          rows.push({ year, month, hazard: s.hazard, hit, shortfallVsMedian });
         } else {
-          hit = v > s.threshold;
+          rows.push({ year, month, hazard: s.hazard, hit: v > s.threshold, shortfallVsMedian: null });
         }
-        rows.push({ year, month, hazard: s.hazard, hit, deficit });
       });
     }
   }
@@ -106,8 +136,8 @@ export function yearlyHitsDetailed(
 }
 
 /** One row per record year × each (hazard, month) the crop is sensitive to. Missing input months are omitted. */
-export function yearlyHits(crop: CropTraits, climate: ClimateProfile): HazardHit[] {
-  return yearlyHitsDetailed(crop, climate).rows;
+export function yearlyHits(crop: CropTraits, climate: ClimateProfile, droughtPercentile: number): HazardHit[] {
+  return yearlyHitsDetailed(crop, climate, droughtPercentile).rows;
 }
 
 function cropById(crops: CropTraits[], id: CropId): CropTraits {
@@ -117,12 +147,25 @@ function cropById(crops: CropTraits[], id: CropId): CropTraits {
 }
 
 /**
+ * Share of the needed input months (record year × sensitive month of the scored crops) that may be missing before
+ * the score's confidence drops from 'moderate' to 'weak'. Our own cut-off, no published source: up to 10% missing
+ * still leaves at least 40 of 45 years per month, so the score rests on most of the record.
+ */
+export const WEAK_CONFIDENCE_MISSING_SHARE = 0.1;
+
+/**
  * Climate resilience of a rotation: the share of crop-years (main crop × record year) without a hazard hit, × 100.
  * Cover crops are not scored. A crop-year is hit when any of its checks hit; a crop-year with no hit but a missing
  * check is unknown and left out (never counted as safe). low/high = 10th and 90th percentile of the per-year share
  * of the rotation's crops without a hit.
  */
-export function resilienceScore(years: RotationOption['years'], crops: CropTraits[], climate: ClimateProfile): Score {
+export function resilienceScore(
+  years: RotationOption['years'],
+  crops: CropTraits[],
+  climate: ClimateProfile,
+  droughtPercentile: number,
+): Score {
+  checkPercentile(droughtPercentile);
   if (years.length === 0) throw new Error('resilience: empty rotation');
   const record = recordYears(climate);
   if (record.length === 0) throw new Error('resilience: empty climate record');
@@ -136,7 +179,7 @@ export function resilienceScore(years: RotationOption['years'], crops: CropTrait
 
   for (const crop of mains) {
     if (checks.has(crop.id)) continue;
-    const { rows, missing } = yearlyHitsDetailed(crop, climate);
+    const { rows, missing } = yearlyHitsDetailed(crop, climate, droughtPercentile);
     checks.set(crop.id, {
       hit: new Set(rows.filter((r) => r.hit).map((r) => r.year)),
       missing: new Set(missing.map((m) => m.year)),
@@ -176,7 +219,7 @@ export function resilienceScore(years: RotationOption['years'], crops: CropTrait
   let confidence: Score['confidence'] = 'strong';
   let basis: Message = { code: 'resilience.basis.years', params: yearsParams };
   if (count > 0) {
-    confidence = count / needed > 0.1 ? 'weak' : 'moderate';
+    confidence = count / needed > WEAK_CONFIDENCE_MISSING_SHARE ? 'weak' : 'moderate';
     basis = { code: 'resilience.basis.missing-months', params: { count, needed, ...yearsParams } };
   }
   return { value, low, high, confidence, basis };
@@ -186,18 +229,25 @@ export function resilienceScore(years: RotationOption['years'], crops: CropTrait
  * Adds hazard marks to calendar cells. A cell with a crop or cover crop in the ground gets one entry per hazard the
  * crop is sensitive to that month, when the share of record years with a hit (from `yearlyHits`) is above
  * `markShare` (rule `hazards.calendar.markShare` in data/rules/hazards.json). Other cells get no entries.
+ * `droughtPercentile` is rule `hazards.drought.percentile`, the same value the caller passes to `resilienceScore`.
+ *
+ * Cover crops are marked here but not scored by `resilienceScore`. The marks and the score agree only while cover
+ * crops have no sensitive months; a cover crop with one (e.g. red clover, drought in August) gets a mark that the
+ * score does not count.
  */
 export function withExposure(
   months: Omit<CalendarMonth, 'exposure'>[],
   crops: CropTraits[],
   climate: ClimateProfile,
   markShare: number,
+  droughtPercentile: number,
 ): CalendarMonth[] {
+  checkPercentile(droughtPercentile);
   const cache = new Map<CropId, HazardHit[]>();
   const hitsOf = (crop: CropTraits) => {
     let rows = cache.get(crop.id);
     if (!rows) {
-      rows = yearlyHits(crop, climate);
+      rows = yearlyHits(crop, climate, droughtPercentile);
       cache.set(crop.id, rows);
     }
     return rows;
