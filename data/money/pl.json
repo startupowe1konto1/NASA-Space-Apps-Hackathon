@@ -1,0 +1,190 @@
+{
+  "campaign": "campaign 2026 (rates of 2025 until the 2026 rates are published), check ARiMR",
+  "currency": "PLN",
+  "economics": [
+    {
+      "crop": "winter-wheat",
+      "referenceYieldTPerHa": 5.622,
+      "pricePerT": 887.4,
+      "directCostsPerHa": 4367.49,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "Eurostat apro_cpnhr, Crop production in national humidity by NUTS 2 regions, PL41 Wielkopolskie (updated 27 Oct 2026)",
+          "url": "https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table",
+          "locator": "yield: crops=C1111 (common winter wheat and spelt), geo=PL41, 2020-2024; yield = HPRD_THS_T / AR_THS_HA per year (1227.33/220.22, 1191.35/219.4, 1330.13/237.28, 1330.08/230.43, 1255.04/219.06), mean of the five years = 5.622 t/ha (our calculation)"
+        },
+        {
+          "title": "GUS (Statistics Poland), Ceny produktów rolnych we wrześniu 2026 r., tables (xlsx)",
+          "url": "https://stat.gov.pl/download/gfx/portalinformacyjny/pl/defaultaktualnosci/5465/4/173/1/ceny_produktow_rolnych_we_wrzesniu_2026_r._tablice.xlsx",
+          "locator": "price: Tablica 2, Wielkopolskie, pszenica, average procurement price September 2026, 88.74 PLN/dt = 887.4 PLN/t"
+        },
+        {
+          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: pszenica ozima (60 dt/ha)",
+          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/pszenica_ozima.pdf",
+          "locator": "direct costs: \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 4367,49 PLN/ha (seed, fertilizer, crop protection, variable machinery, contractor services, other variable costs)"
+        }
+      ]
+    },
+    {
+      "crop": "maize",
+      "referenceYieldTPerHa": 7.198,
+      "pricePerT": 938.5,
+      "directCostsPerHa": 7015.3,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "Eurostat apro_cpnhr, Crop production in national humidity by NUTS 2 regions, PL41 Wielkopolskie (updated 27 Oct 2026)",
+          "url": "https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table",
+          "locator": "yield: crops=C1500 (grain maize and corn-cob-mix), geo=PL41, 2020-2024; yield = HPRD_THS_T / AR_THS_HA per year (1379.28/189.57, 1365.39/186.02, 1421.73/207.56, 1495.2/211.17, 1646.39/221.15), mean of the five years = 7.198 t/ha (our calculation)"
+        },
+        {
+          "title": "GUS (Statistics Poland), Ceny produktów rolnych we wrześniu 2026 r., tables (xlsx)",
+          "url": "https://stat.gov.pl/download/gfx/portalinformacyjny/pl/defaultaktualnosci/5465/4/173/1/ceny_produktow_rolnych_we_wrzesniu_2026_r._tablice.xlsx",
+          "locator": "price: Tablica 2, Wielkopolskie, kukurydza, average procurement price September 2026, 93.85 PLN/dt = 938.5 PLN/t"
+        },
+        {
+          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: kukurydza na ziarno (85 dt/ha)",
+          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/kukurydza_na_ziarno.pdf",
+          "locator": "direct costs: \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 7015,30 PLN/ha (seed, fertilizer, crop protection, variable machinery, contractor services, other variable costs)"
+        }
+      ]
+    },
+    {
+      "crop": "potato",
+      "referenceYieldTPerHa": 33.154,
+      "pricePerT": 501.0,
+      "directCostsPerHa": 12851.53,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "Eurostat apro_cpnhr, Crop production in national humidity by NUTS 2 regions, PL41 Wielkopolskie (updated 27 Oct 2026)",
+          "url": "https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table",
+          "locator": "yield: crops=R1000 (potatoes including seed potatoes), geo=PL41, 2020-2024; yield = HPRD_THS_T / AR_THS_HA per year (1142.17/31.0, 976.03/31.28, 861.56/27.37, 904.81/27.64, 978.4/29.2), mean of the five years = 33.154 t/ha (our calculation)"
+        },
+        {
+          "title": "GUS (Statistics Poland), Ceny produktów rolnych we wrześniu 2026 r., tables (xlsx)",
+          "url": "https://stat.gov.pl/download/gfx/portalinformacyjny/pl/defaultaktualnosci/5465/4/173/1/ceny_produktow_rolnych_we_wrzesniu_2026_r._tablice.xlsx",
+          "locator": "price: Tablica 2, Wielkopolskie, ziemniaki, average procurement price September 2026, 50.10 PLN/dt = 501.0 PLN/t (footnote c: mostly industrial potatoes)"
+        },
+        {
+          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: ziemniaki przemysłowe (350 dt/ha)",
+          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/ziemniaki_przemys%C5%82owe.pdf",
+          "locator": "direct costs: \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 12851,53 PLN/ha (seed, fertilizer, crop protection, variable machinery, contractor services, other variable costs)"
+        }
+      ]
+    },
+    {
+      "crop": "sugar-beet",
+      "referenceYieldTPerHa": 65.016,
+      "pricePerT": 176.4,
+      "directCostsPerHa": 8283.87,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "Eurostat apro_cpnhr, Crop production in national humidity by NUTS 2 regions, PL41 Wielkopolskie (updated 27 Oct 2026)",
+          "url": "https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table",
+          "locator": "yield: crops=R2000 (sugar beet excluding seed), geo=PL41, 2020-2024; yield = HPRD_THS_T / AR_THS_HA per year (3465.48/55.43, 3655.49/59.15, 3329.82/51.65, 3800.17/56.09, 4066.45/59.33), mean of the five years = 65.016 t/ha (our calculation)"
+        },
+        {
+          "title": "Eurostat apri_ap_crpouta, Selling prices of crop products (absolute prices), annual, Poland, national currency (updated 15 May 2025)",
+          "url": "https://ec.europa.eu/eurostat/databrowser/view/apri_ap_crpouta/default/table",
+          "locator": "price: prod_veg=02400000 Sugar beet: unit value - prices per 1000 kg, currency NAC, 2024: 176.4 PLN/t (latest year in the table; GUS monthly tables have no sugar beet price)"
+        },
+        {
+          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: buraki cukrowe (510 dt/ha)",
+          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/buraki_cukrowe.pdf",
+          "locator": "direct costs: \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 8283,87 PLN/ha (seed, fertilizer, crop protection, variable machinery, contractor services, other variable costs)"
+        }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "id": "pl-eco-cover-crop",
+      "programme": "Eco-scheme carbon farming: winter cover crops or undersown crops",
+      "amountPerHa": 437.6,
+      "condition": "money.condition.pl-cover-crop",
+      "confirmed": false,
+      "sources": [
+        {
+          "title": "Rozporządzenie MRiRW z dnia 14 października 2025 r. w sprawie stawek płatności w ramach schematów na rzecz klimatu i środowiska za 2025 r. (Dz.U. 2025 poz. 1397)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1397/text.pdf",
+          "locator": "§ 3 ust. 1: 87,52 zł per point (2025). 5 points per ha x 87.52 = 437.60 PLN/ha. No regulation with the rates for 2026 was found in the Sejm ELI database on 14 Nov 2026, so the 2025 rate is used and marked unconfirmed"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 13 marca 2023 r. w sprawie szczegółowych warunków i szczegółowego trybu przyznawania i wypłaty płatności w ramach schematów na rzecz klimatu i środowiska (Dz.U. 2023 poz. 493)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/493/text.pdf",
+          "locator": "§ 4 ust. 2 pkt 2: 5 points per ha for \"Międzyplony ozime lub wsiewki śródplonowe\"; § 6: winter cover crop mix of at least two species, or a small-seeded legume undersown; załącznik nr 2 część II pkt 2: sown 1 July to 1 October, kept until 15 February"
+        }
+      ]
+    },
+    {
+      "id": "pl-eco-crop-diversity",
+      "programme": "Eco-scheme carbon farming: diverse crop structure",
+      "amountPerHa": 233.13,
+      "condition": "money.condition.pl-crop-diversity",
+      "confirmed": false,
+      "sources": [
+        {
+          "title": "Rozporządzenie MRiRW z dnia 14 października 2025 r. w sprawie stawek płatności w ramach schematów na rzecz klimatu i środowiska za 2025 r. (Dz.U. 2025 poz. 1397)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1397/text.pdf",
+          "locator": "§ 3 ust. 1: 87,52 zł per point; § 3 ust. 2: points coefficient 0,887902 for \"Zróżnicowana struktura upraw\" (2025). 3 x 0.887902 x 87.52 = 233.13 PLN/ha. No regulation with the rates for 2026 was found in the Sejm ELI database on 14 Nov 2026, so the 2025 rate is used and marked unconfirmed"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 13 marca 2023 r. w sprawie szczegółowych warunków i szczegółowego trybu przyznawania i wypłaty płatności w ramach schematów na rzecz klimatu i środowiska (Dz.U. 2023 poz. 493)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/493/text.pdf",
+          "locator": "§ 4 ust. 2 pkt 5: 3 points per ha; § 8 ust. 2: at least three crops, one with a positive effect on soil organic matter (załącznik nr 5, wykaz nr 1); załącznik nr 5 wykaz nr 2 (cereals) and nr 3 (crops with a negative effect: beet, potato)"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 2 października 2023 r. zmieniające rozporządzenie w sprawie ... schematów na rzecz klimatu i środowiska (Dz.U. 2023 poz. 1926)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/1926/text.pdf",
+          "locator": "§ 1 pkt 12 (załącznik nr 2 część II pkt 5): largest crop at most 65% of arable land, wykaz nr 1 crops at least 20%, wykaz nr 2 cereals at most 65%, wykaz nr 3 crops at most 30%"
+        }
+      ]
+    },
+    {
+      "id": "pl-eco-straw",
+      "programme": "Eco-scheme carbon farming: straw mixed into the soil",
+      "amountPerHa": 87.52,
+      "condition": "money.condition.pl-straw",
+      "confirmed": false,
+      "sources": [
+        {
+          "title": "Rozporządzenie MRiRW z dnia 14 października 2025 r. w sprawie stawek płatności w ramach schematów na rzecz klimatu i środowiska za 2025 r. (Dz.U. 2025 poz. 1397)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1397/text.pdf",
+          "locator": "§ 3 ust. 1: 87,52 zł per point (2025). 1 point per ha x 87.52 = 87.52 PLN/ha. No regulation with the rates for 2026 was found in the Sejm ELI database on 14 Nov 2026, so the 2025 rate is used and marked unconfirmed"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 14 marca 2025 r. zmieniające rozporządzenie w sprawie ... schematów na rzecz klimatu i środowiska (Dz.U. 2025 poz. 333)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/333/text.pdf",
+          "locator": "§ 1 pkt 3 lit. a: in § 4 ust. 2 pkt 9 the number \"2\" is replaced by \"1\" (1 point per ha for \"Wymieszanie słomy z glebą\")"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 13 marca 2023 r. w sprawie szczegółowych warunków i szczegółowego trybu przyznawania i wypłaty płatności w ramach schematów na rzecz klimatu i środowiska (Dz.U. 2023 poz. 493)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2023/493/text.pdf",
+          "locator": "§ 12 ust. 2: all straw chopped after the main crop harvest and mixed into the soil or ploughed in; straw of cereals including maize, oilseeds and legumes"
+        }
+      ]
+    },
+    {
+      "id": "pl-gaec7",
+      "programme": "GAEC 7 crop rotation rule (conditionality, no payment of its own)",
+      "amountPerHa": 0,
+      "condition": "money.condition.pl-gaec7",
+      "confirmed": true,
+      "sources": [
+        {
+          "title": "Obwieszczenie MRiRW z dnia 14 listopada 2025 r., jednolity tekst rozporządzenia w sprawie norm oraz szczegółowych warunków ich stosowania (Dz.U. 2025 poz. 1674)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1674/text.pdf",
+          "locator": "§ 5 ust. 1 pkt 2: on farms with more than 10 ha of arable land the same main crop is not grown longer than 3 years (counting from 2023); § 5 ust. 2: also met where an undersown crop or a winter or stubble cover crop follows the main crop; § 5 ust. 3: not applied to legumes, grasses, perennial crops and fallow"
+        },
+        {
+          "title": "Rozporządzenie MRiRW z dnia 10 lutego 2026 r. zmieniające rozporządzenie w sprawie norm oraz szczegółowych warunków ich stosowania (Dz.U. 2026 poz. 161)",
+          "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/161/text.pdf",
+          "locator": "§ 1: only § 5 ust. 12 (organic farms) is repealed from 15 March 2026; the rest of § 5 applies in 2026"
+        }
+      ]
+    }
+  ]
+}

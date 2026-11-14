@@ -1,0 +1,84 @@
+{
+  "campaign": "NRCS fiscal year not stated on the schedule served on 14 Nov 2026, check NRCS",
+  "currency": "USD",
+  "economics": [
+    {
+      "crop": "maize",
+      "referenceYieldTPerHa": 13.046,
+      "pricePerT": 161.41,
+      "directCostsPerHa": 1195.0,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "USDA NASS Quick Stats: CORN, GRAIN - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
+          "url": "https://quickstats.nass.usda.gov/results/B10D2BC2-6EB2-3FF4-8FE2-293E48D94415",
+          "locator": "yield: mean of 2021-2025 county yields 201.2, 207.1, 211.4, 215.5 and 204 bu/acre = 207.84 bu/acre; converted with 56 lb/bu, 0.45359237 kg/lb and 1 acre = 0.404686 ha"
+        },
+        {
+          "title": "USDA NASS Quick Stats: CORN, GRAIN - PRICE RECEIVED, MEASURED IN $ / BU, Iowa, marketing year (survey)",
+          "url": "https://quickstats.nass.usda.gov/results/845CBCD7-E35C-3B90-B6CB-07A626A7DE73",
+          "locator": "price: 2025 marketing year, $4.10/bu; converted with 56 lb/bu and 0.45359237 kg/lb"
+        },
+        {
+          "title": "Iowa State University Extension, Ag Decision Maker File A1-20: Estimated Costs of Crop Production in Iowa - 2026 (FM 1712, revised January 2026)",
+          "url": "https://www.extension.iastate.edu/agdm/crops/pdf/a1-20.pdf",
+          "locator": "direct costs: page 3, Corn Following Soybeans, 211 bushels per acre column, \"Total fixed, variable, Per acre\", variable part $483.60/acre (seed, fertilizer, chemicals, insurance, interest and variable machinery; land, labor and fixed machinery left out); divided by 0.404686 ha/acre"
+        }
+      ]
+    },
+    {
+      "crop": "soybean",
+      "referenceYieldTPerHa": 4.23,
+      "pricePerT": 385.81,
+      "directCostsPerHa": 717.12,
+      "year": 2026,
+      "sources": [
+        {
+          "title": "USDA NASS Quick Stats: SOYBEANS - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
+          "url": "https://quickstats.nass.usda.gov/results/4905117F-A885-3E1F-92FF-3F21092FA5F7",
+          "locator": "yield: mean of 2021-2025 county yields 63.6, 60, 64.1, 63.2 and 63.6 bu/acre = 62.9 bu/acre; converted with 60 lb/bu, 0.45359237 kg/lb and 1 acre = 0.404686 ha"
+        },
+        {
+          "title": "USDA NASS Quick Stats: SOYBEANS - PRICE RECEIVED, MEASURED IN $ / BU, Iowa, marketing year (survey)",
+          "url": "https://quickstats.nass.usda.gov/results/182971BF-6F05-3D02-9FE3-AFFFA95AF98A",
+          "locator": "price: 2025 marketing year, $10.50/bu; converted with 60 lb/bu and 0.45359237 kg/lb"
+        },
+        {
+          "title": "Iowa State University Extension, Ag Decision Maker File A1-20: Estimated Costs of Crop Production in Iowa - 2026 (FM 1712, revised January 2026)",
+          "url": "https://www.extension.iastate.edu/agdm/crops/pdf/a1-20.pdf",
+          "locator": "direct costs: page 5, Herbicide Tolerant Soybeans Following Corn, 61 bushels per acre column, \"Total fixed, variable, Per acre\", variable part $290.21/acre (seed, fertilizer, chemicals, insurance, interest and variable machinery; land, labor and fixed machinery left out); divided by 0.404686 ha/acre"
+        }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "id": "us-nrcs-340-cover-crop",
+      "programme": "NRCS EQIP practice 340, Cover Crop (Iowa)",
+      "amountPerHa": 184.71,
+      "condition": "money.condition.us-340",
+      "confirmed": false,
+      "sources": [
+        {
+          "title": "USDA NRCS Payment Schedules, cost list report: Iowa, Story County, payment schedule \"Iowa EQIP-1\"",
+          "url": "https://www.nrcs.usda.gov/getting-assistance/payment-schedules",
+          "locator": "practice 340 Cover Crop, component \"Any Species\", unit Ac, $74.75 per acre (not the HU or WP rows); divided by 0.404686 ha/acre. The schedule served on 14 Nov 2026 does not name its fiscal year, so the rate is not confirmed for a campaign"
+        }
+      ]
+    },
+    {
+      "id": "us-nrcs-328-crop-rotation",
+      "programme": "NRCS EQIP practice 328, Conservation Crop Rotation (Iowa)",
+      "amountPerHa": 91.03,
+      "condition": "money.condition.us-328",
+      "confirmed": false,
+      "sources": [
+        {
+          "title": "USDA NRCS Payment Schedules, cost list report: Iowa, Story County, payment schedule \"Iowa EQIP-1\"",
+          "url": "https://www.nrcs.usda.gov/getting-assistance/payment-schedules",
+          "locator": "practice 328 Conservation Crop Rotation, component \"Basic, Multiple Annual Crops\", unit Ac, $36.84 per acre (not the HU or WP rows); divided by 0.404686 ha/acre. The schedule served on 14 Nov 2026 does not name its fiscal year, so the rate is not confirmed for a campaign"
+        }
+      ]
+    }
+  ]
+}
