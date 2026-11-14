@@ -5,6 +5,10 @@ import usIa from '../../data/money/us-ia.json';
 import { datasetIdForSource, datasets, roleOf } from './datasets';
 import { PAYMENT_IDS } from './payments';
 import en from './messages/en.json';
+import cropsPl from '../../data/crops/pl.json';
+import cropsUs from '../../data/crops/us-ia.json';
+
+const cropFiles = { US: cropsUs, PL: cropsPl };
 
 const files = { 'us-ia.json': usIa, 'pl.json': pl };
 
@@ -13,21 +17,32 @@ describe.each(Object.entries(files))('data/money/%s', (_name, file) => {
     expect(moneyFile.safeParse(file).success).toBe(true);
   });
 
-  it('has one source each for the yield, the price and the direct costs of every crop', () => {
+  // A cover-crop row (kind 'cover') carries direct costs only: the crop is not sold (D34, #98 item 5).
+  const isCover = (row: object) => (row as { kind?: string }).kind === 'cover';
+
+  it('has one source each for the yield, the price and the direct costs of every crop, and costs only for a cover crop', () => {
     for (const row of file.economics) {
+      const roles = isCover(row) ? ['direct costs:'] : ['yield:', 'price:', 'direct costs:'];
       for (const role of ['yield:', 'price:', 'direct costs:']) {
-        expect(row.sources.filter((s) => s.locator.startsWith(role)), `${row.crop} ${role}`).toHaveLength(1);
+        const expected = roles.includes(role) ? 1 : 0;
+        expect(row.sources.filter((s) => s.locator.startsWith(role)), `${row.crop} ${role}`).toHaveLength(expected);
       }
     }
   });
 
   it('gives the yield, the price and the direct costs each their own period, with no single year for the row', () => {
     for (const row of file.economics as Record<string, unknown>[]) {
-      for (const key of ['yieldPeriod', 'pricePeriod', 'costsPeriod']) {
+      const keys = isCover(row) ? ['costsPeriod'] : ['yieldPeriod', 'pricePeriod', 'costsPeriod'];
+      for (const key of keys) {
         expect(typeof row[key] === 'string' && (row[key] as string).length > 0, `${String(row.crop)} ${key}`).toBe(true);
       }
       expect(row, String(row.crop)).not.toHaveProperty('year');
     }
+  });
+
+  it('has cover-crop rows only for crops that are cover crops in data/crops', () => {
+    const covers = new Set(Object.values(cropFiles).flat().filter((c) => c.kind === 'cover').map((c) => c.id));
+    for (const row of file.economics) expect(covers.has(row.crop), row.crop).toBe(isCover(row));
   });
 
   it('maps every source to a registered dataset', () => {

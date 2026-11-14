@@ -187,26 +187,26 @@
     {
       "crop": "potato",
       "referenceYieldTPerHa": 33.84,
-      "pricePerT": 501.0,
-      "directCostsPerHa": 12851.53,
+      "pricePerT": 1051.2,
+      "directCostsPerHa": 16134.91,
       "yieldPeriod": "2021–2025 mean",
-      "pricePeriod": "September 2026",
+      "pricePeriod": "2025 yearly average",
       "costsPeriod": "February 2026 budget",
       "sources": [
         {
           "title": "GUS (Statistics Poland), Produkcja upraw rolnych i ogrodniczych w 2025 r. and the 2021 to 2024 editions (final estimates, tables by voivodeship)",
           "url": "https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2025-r-,9,24.html",
-          "locator": "yield: sheet \"Tabl. 22\" (ziemniaki), row Wielkopolskie, yields 2021-2025 312, 315, 327, 335, 403 dt/ha, mean 338.4 dt/ha = 33.84 t/ha (our calculation)"
+          "locator": "yield: sheet \"Tabl. 22\" (ziemniaki), row Wielkopolskie, yields 2021-2025 312, 315, 327, 335, 403 dt/ha, mean 338.4 dt/ha = 33.84 t/ha (our calculation). GUS publishes one yield for all potatoes (table, starch and feed together); there is no separate table-potato yield for Wielkopolskie"
         },
         {
-          "title": "GUS (Statistics Poland), Ceny produktów rolnych we wrześniu 2026 r., tables (xlsx)",
-          "url": "https://stat.gov.pl/download/gfx/portalinformacyjny/pl/defaultaktualnosci/5465/4/173/1/ceny_produktow_rolnych_we_wrzesniu_2026_r._tablice.xlsx",
-          "locator": "price: Tablica 2, Wielkopolskie, ziemniaki, average procurement price September 2026, 50,10 PLN/dt = 501,0 PLN/t (footnote c: mostly industrial potatoes), paired with the starch potato costs"
+          "title": "GUS (Statistics Poland), Skup i ceny produktów rolnych w 2025 r. (28.05.2026), corrected tables of 10.06.2026",
+          "url": "https://publikacje.new.stat.gov.pl/sites/default/files/2026-06/Tablice%20skup_i_ceny_produktow_rolnych_2025_korekta_2.xls",
+          "locator": "price: sheet \"Tabl.3(28)\", row r18, Wielkopolskie (voivodeship level, D40), ziemniaki jadalne (bez wczesnych), 2025 average procurement price 105,12 PLN/dt = 1051,2 PLN/t; table potatoes, paired with the WODR table-potato budget (issue #98 item 6). No official starch-potato price exists for the other pair (WODR's 28,00 PLN/dt is a budget assumption)"
         },
         {
-          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: ziemniaki przemysłowe (350 dt/ha)",
-          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/ziemniaki_przemys%C5%82owe.pdf",
-          "locator": "direct costs: page 1, \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 12851,53 PLN/ha (seed, fertiliser, crop protection, variable costs of own machinery, contracted services, other). The sheet's \"WARTOŚĆ PRODUKCJI\" line includes payments and is not used"
+          "title": "WODR Poznań, Kalkulacje rolnicze produkcji roślinnej, luty 2026: ziemniaki jadalne (300 dt/ha)",
+          "url": "https://www.wodr.poznan.pl/images/2026/doradztwo/ekonomika/kalkulacje/luty/ziemniaki_jadalne.pdf",
+          "locator": "direct costs: page 1, \"KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)\" 16134,91 PLN/ha (seed potatoes, fertiliser, crop protection, variable costs of own machinery, contracted services, other incl. hired labour). The sheet expects 264 dt of table potatoes and 36 dt of feed potatoes per ha; we price the whole yield at the table-potato price, so the margin is on the high side. The sheet's \"WARTOŚĆ PRODUKCJI\" line includes payments and is not used"
         }
       ]
     }

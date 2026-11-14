@@ -102,7 +102,33 @@
         {
           "title": "Iowa State University Extension, Ag Decision Maker File A1-20: Estimated Costs of Crop Production in Iowa - 2026 (FM 1712, revised January 2026)",
           "url": "https://www.extension.iastate.edu/agdm/crops/pdf/a1-20.pdf",
-          "locator": "direct costs: page 10, Annual Production Costs for Established Alfalfa or Alfalfa-Grass Hay, 4 tons per acre column, \"Total fixed and variable cost using large round bales per acre\", variable part $242.56/acre. The budget assumes 4 short tons/acre against the Iowa mean of 3.68. Establishment costs (page 9) are not included; divided by 0.40468564 ha/acre"
+          "locator": "direct costs: page 10, Annual Production Costs for Established Alfalfa or Alfalfa-Grass Hay, 4 tons per acre column, \"Total fixed and variable cost using large round bales per acre\", variable part $242.56/acre. The page has two columns, 4 and 6 tons per acre; the 4-ton column is the closest to the Iowa mean of 3.68 short tons/acre (0.32 t away, the 6-ton column 2.32 t). We do not scale it down to 3.68: the page gives no budget below 4 tons, and stretching the 4-to-6-ton slope below its range would be our estimate, not ISU's. Fertiliser and harvest costs grow with tonnage, so the cost is a little high for 3.68 tons and the margin a little low. Establishment costs (page 9) are not included; divided by 0.40468564 ha/acre"
+        }
+      ]
+    },
+    {
+      "crop": "cereal-rye",
+      "kind": "cover",
+      "directCostsPerHa": 70.18,
+      "costsPeriod": "2026 survey",
+      "sources": [
+        {
+          "title": "Iowa State University Extension, Ag Decision Maker File A3-10: 2026 Iowa Farm Custom Rate Survey (PDF of March 2026)",
+          "url": "https://www.extension.iastate.edu/agdm/crops/pdf/a3-10.pdf",
+          "locator": "direct costs: operations only, seed not included (no ISU/USDA seed price found, R9 Missing). p. 1, \"Planting, Drilling, and Seeding\", row \"Drilling cover crop seed\", Average $19.05/acre (sowing in late summer or fall); p. 2, row \"Ground, broadcast, not incorporated, self-propelled\", Average $9.35/acre (one spraying pass to end the cover crop in spring; the herbicide itself is not included); $28.40/acre divided by 0.40468564 ha/acre = 70.18 USD/ha (our calculation; 47.07 + 23.10 USD/ha). Custom rates are what a farmer pays a contractor, so they include machinery, fuel and labour"
+        }
+      ]
+    },
+    {
+      "crop": "red-clover",
+      "kind": "cover",
+      "directCostsPerHa": 70.18,
+      "costsPeriod": "2026 survey",
+      "sources": [
+        {
+          "title": "Iowa State University Extension, Ag Decision Maker File A3-10: 2026 Iowa Farm Custom Rate Survey (PDF of March 2026)",
+          "url": "https://www.extension.iastate.edu/agdm/crops/pdf/a3-10.pdf",
+          "locator": "direct costs: operations only, seed not included (no ISU/USDA seed price found, R9 Missing). p. 1, \"Planting, Drilling, and Seeding\", row \"Drilling cover crop seed\", Average $19.05/acre (sowing in late summer or fall); p. 2, row \"Ground, broadcast, not incorporated, self-propelled\", Average $9.35/acre (one spraying pass to end the cover crop in spring; the herbicide itself is not included); $28.40/acre divided by 0.40468564 ha/acre = 70.18 USD/ha (our calculation; 47.07 + 23.10 USD/ha). Custom rates are what a farmer pays a contractor, so they include machinery, fuel and labour"
         }
       ]
     }
