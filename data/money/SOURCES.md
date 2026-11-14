@@ -1,48 +1,56 @@
 # Money tables: sources
 
-`us-ia.json` and `pl.json` follow the `moneyFile` schema in `src/contracts/schemas.ts`. Every number was copied from a document or API response opened on Sat 14 Nov 2026 (task O4-A4). Each economics row has one source per value, and the locator starts with the value it backs (`yield:`, `price:` or `direct costs:`); `src/money/provider.ts` reads that prefix to give each value its dataset. Raw API responses are in `data/samples/nass-quickstats`, `data/samples/eurostat`, `data/samples/gus` and `data/samples/nrcs`.
+`us-ia.json` and `pl.json` follow the `moneyFile` schema in `src/contracts/schemas.ts`. Every number was copied from a document or API response opened on Sat 14 Nov 2026 (tasks O4-A4 and O4-A4 (2), the second built on research R8 and R9, D33). Each economics row has one source per value, and the locator starts with the value it backs (`yield:`, `price:` or `direct costs:`); `src/money/provider.ts` reads that prefix to give each value its dataset. Excerpts of the documents are in `data/samples/research/us-ia/` and `data/samples/research/pl/`; older raw API responses are in `data/samples/nass-quickstats`, `data/samples/gus` and `data/samples/nrcs`. Research notes: `context/research/us-ia-economics-2026.md` (R9) and `context/research/pl-economics-2026.md` (R8).
 
-Income built on these tables is a replay of past years at today's prices. It is not a forecast and it promises no yield.
+Income built on these tables is a replay of past years at today's prices. It is not a forecast and it promises no yield. `year` in an economics row is the year of the price.
 
 ## Iowa (USD), demo field in Story County
 
-| Crop | Yield t/ha | Price USD/t | Direct costs USD/ha |
-|---|---|---|---|
-| maize | 13.046 | 161.41 | 1195.00 |
-| soybean | 4.230 | 385.81 | 717.12 |
+| Crop | Yield t/ha | Price USD/t | Direct costs USD/ha | Price year |
+|---|---|---|---|---|
+| maize | 13.046 | 161.41 | 1195.00 | MY2025 (preliminary) |
+| soybean | 4.230 | 385.81 | 717.12 | MY2025 |
+| oats | 2.963 | 244.58 | 582.25 | MY2025 |
+| alfalfa | 8.249 | 119.05 | 599.38 | MY2025 |
 
-- Yield: USDA NASS Quick Stats, Story County survey yields 2021 to 2025, mean of the five years. Maize 207.84 bu/acre, soybean 62.9 bu/acre.
-- Price: USDA NASS Quick Stats, Iowa price received, 2025 marketing year. Maize $4.10/bu, soybean $10.50/bu.
-- Direct costs: Iowa State University, Ag Decision Maker File A1-20, Estimated Costs of Crop Production in Iowa 2026. The variable part of "Total fixed, variable, Per acre" in the middle yield column: corn following soybeans $483.60/acre (page 3), herbicide tolerant soybeans following corn $290.21/acre (page 5). Variable costs are seed, fertilizer, chemicals, crop insurance, interest and variable machinery. Land, labor and fixed machinery are left out, so the margin is comparable with the Polish "nadwyżka bezpośrednia".
-- Conversions: 56 lb/bu for maize, 60 lb/bu for soybean, 0.45359237 kg/lb, 1 acre = 0.404686 ha.
+- Yield: USDA NASS Quick Stats, mean of 2021 to 2025. Maize and soybean are Story County survey yields (207.84 and 62.9 bu/acre). Story County has an oat yield only for 2023 and no alfalfa yield since 2013, so oats (82.6 bu/acre) and alfalfa (3.68 short tons/acre of dry hay) use the Iowa state yield.
+- Price: USDA NASS Quick Stats, Iowa price received, 2025 marketing year: maize $4.10/bu (preliminary; the final state value comes in the next Crop Values report), soybean $10.50/bu, oats $3.55/bu, alfalfa hay $108 per short ton. The same values are in NASS Agricultural Prices (Aug 31 and Sep 29, 2026).
+- Direct costs: Iowa State University, Ag Decision Maker A1-20 (2026), the variable part of each budget: corn following soybeans $483.60/acre (p. 3), soybeans following corn $290.21/acre (p. 5), established alfalfa hay at 4 tons per acre in large round bales $242.56/acre (p. 10), and the A1-20 oat worksheet $235.63/acre. Land, labor and machinery ownership are left out, so the margin compares with the Polish "nadwyżka bezpośrednia". The oat budget includes baling the straw while the price counts grain only, so the oat margin is on the low side. The alfalfa budget assumes 4 short tons/acre against the Iowa mean of 3.68 and leaves out establishment.
+- Conversions (our calculation): 1 acre = 0.40468564 ha, 1 lb = 0.45359237 kg, 1 short ton = 0.90718474 t; bushel weights 56 lb (maize), 60 lb (soybean), 32 lb (oats). No document we opened prints the bushel weights, so each yield locator cites the check against the metric table of USDA NASS "Crop Production 2025 Summary" (January 2026), pp. 95 and 97: US 2025 corn 186.5 bu/acre = 11.71 t/ha, soybeans 53.0 bu/acre = 3.56 t/ha, oats 73.8 bu/acre = 2.65 t/ha, alfalfa 3.42 tons/acre = 7.67 t/ha. Our factors give 11.71, 3.56, 2.65 and 7.67.
 
 ## Poland (PLN), demo field near Poznań (Wielkopolskie)
 
-| Crop | Yield t/ha | Price PLN/t | Direct costs PLN/ha |
-|---|---|---|---|
-| winter-wheat | 5.622 | 887.40 | 4367.49 |
-| maize | 7.198 | 938.50 | 7015.30 |
-| potato | 33.154 | 501.00 | 12851.53 |
-| sugar-beet | 65.016 | 176.40 | 8283.87 |
+| Crop | Yield t/ha | Price PLN/t | Direct costs PLN/ha | Price period |
+|---|---|---|---|---|
+| winter-wheat | 5.698 | 1005.59 | 4367.49 | 2–8 Nov 2026 |
+| maize | 7.372 | 943.21 | 7015.30 | 2–8 Nov 2026 |
+| winter-rapeseed | 3.404 | 2510.12 | 5564.47 | 2–8 Nov 2026 |
+| spring-barley | 3.984 | 806.50 | 3162.16 | 2–8 Nov 2026 |
+| rye | 3.858 | 731.54 | 3659.19 | 2–8 Nov 2026 |
+| field-pea | 2.797 | 1140.10 | 3933.30 | 2025 average |
+| sugar-beet | 68.155 | 138.50 | 8283.87 | 2025 average |
+| potato | 33.840 | 501.00 | 12851.53 | September 2026 |
 
-- Yield: Eurostat `apro_cpnhr`, region PL41 Wielkopolskie. Eurostat publishes no regional yield for Poland, only area (`AR_THS_HA`) and harvested production (`HPRD_THS_T`), so the yield is production divided by area for each year 2020 to 2024 and then averaged (our calculation). Crop codes: C1111 winter wheat, C1500 grain maize, R1000 potatoes, R2000 sugar beet.
-- Price: GUS, "Ceny produktów rolnych we wrześniu 2026 r.", Tablica 2, average procurement prices in Wielkopolskie for wheat, maize and potatoes (the potato price is mostly industrial potatoes, footnote c). GUS monthly tables have no sugar beet price, so sugar beet uses Eurostat `apri_ap_crpouta`, Poland, 2024 unit value in PLN per 1000 kg, the latest year in that table.
-- Direct costs: WODR Poznań, "Kalkulacje rolnicze produkcji roślinnej", February 2026, the line "KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)" for pszenica ozima, kukurydza na ziarno, ziemniaki przemysłowe and buraki cukrowe. They include seed, fertilizer, crop protection, variable machinery, contractor services and other variable costs. Industrial potatoes were picked to match the GUS price.
+- Yield: GUS "Produkcja upraw rolnych i ogrodniczych", final estimates, Wielkopolskie row, mean of 2021 to 2025 in dt/ha divided by 10 (our calculation). Field pea ("groch") has its own table only from 2023, so its mean covers 2023 to 2025. Winter rapeseed is GUS "rzepak i rzepik ozimy" (rapeseed and turnip rape together). Pages: [2021](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2021-roku,9,20.html), [2022](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2022-roku,9,21.html), [2023](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2023-roku,9,22.html), [2024](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2024-r-,9,23.html), [2025](https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/produkcja-upraw-rolnych-i-ogrodniczych-w-2025-r-,9,24.html). This replaces the Eurostat `apro_cpnhr` yields (2020 to 2024) of the first version: GUS covers every crop, pea included, and has the final 2025 values.
+- Price, the newest per crop. Grain and rapeseed: MRiRW ZSRIR weekly bulletin 45/2026 (2–8 Nov 2026), purchase prices excluding VAT, north-west macroregion (which includes Wielkopolskie) for milling wheat, dry maize, feed barley and milling rye; Poland for rapeseed, which has no regional figure. Dry maize matches the WODR budget, which includes 2125 PLN/ha of drying. Field pea and sugar beet: GUS "Skup i ceny produktów rolnych w 2025 r.", 2025 averages (pea for Poland, beet for Wielkopolskie); GUS publishes the 2026 yearly prices around May 2027. Potato: GUS September 2026, Wielkopolskie, all potatoes (mostly industrial, footnote c), as in the first version, so price, the all-potato yield and the starch-potato budget describe the same crop.
+- Direct costs: WODR Poznań "Kalkulacje rolnicze produkcji roślinnej", February 2026, the line "KOSZTY BEZPOŚREDNIE RAZEM (zł/ha)": seed, fertiliser, crop protection, variable costs of own machinery, contracted services and other. Rye is the winter rye sheet, field pea the edible pea sheet, potato the starch potato sheet. The sheets' "WARTOŚĆ PRODUKCJI" line includes payments and is not used, so payments are not counted twice. These are model budgets for the region, not survey data.
 
 ## Payments
 
 | Row | Rate | Confirmed | Rule in `src/money/payments.ts` |
 |---|---|---|---|
-| NRCS EQIP 340 Cover Crop, Iowa | $74.75/acre = 184.71 USD/ha | no | years with a cover crop, as a share of the rotation |
-| NRCS EQIP 328 Conservation Crop Rotation, Iowa | $36.84/acre = 91.03 USD/ha | no | at least two different annual main crops |
-| Eco-scheme, winter cover crops or undersown crops | 5 points x 87.52 = 437.60 PLN/ha | no | years with a cover crop, as a share of the rotation |
-| Eco-scheme, diverse crop structure | 3 points x 0.887902 x 87.52 = 233.13 PLN/ha | no | shares of annex 5, see below |
-| Eco-scheme, straw mixed into the soil | 1 point x 87.52 = 87.52 PLN/ha | no | years with a cereal, maize, oilseed or legume grain crop |
+| NRCS EQIP 340 Cover Crop, single species, Iowa FY2026 | $74.34/acre = 183.70 USD/ha | yes, for FY2026 | years with a cover crop, as a share of the rotation |
+| NRCS EQIP 328-1 Basic, Two Crop Types, Iowa FY2026 | $11.53/acre = 28.49 USD/ha | yes, for FY2026 | at least two different annual main crops, when neither row below applies |
+| NRCS EQIP 328-139 Winter or Spring Annual, Iowa FY2026 | $45.34/acre = 112.04 USD/ha | yes, for FY2026 | a small grain (oats, wheat, barley, rye) plus at least two other crops, when the perennial row does not apply |
+| NRCS EQIP 328-138 Perennial, Short-Term, Iowa FY2026 | $51.40/acre = 127.01 USD/ha | yes, for FY2026 | a perennial (alfalfa) two years in a row plus at least two other crops |
+| Eco-scheme, winter cover crops or undersown crops | 5 points x 92.76 = 463.80 PLN/ha | no, 2026 estimate | years with a cover crop, as a share of the rotation |
+| Eco-scheme, diverse crop structure | 3 points x 92.76 = 278.28 PLN/ha | no, 2026 estimate | shares of annex 5, see below |
+| Eco-scheme, straw mixed into the soil | 1 point x 92.76 = 92.76 PLN/ha | no, 2026 estimate | years with a cereal, maize, oilseed or legume grain crop |
 | GAEC 7 crop rotation rule | 0, a pass or fail condition | yes | see below |
 
-- NRCS: payment schedule tool at nrcs.usda.gov, cost list report for Iowa, Story County, schedule "Iowa EQIP-1", components "Any Species" (340) and "Basic, Multiple Annual Crops" (328), the standard rows, not HU or WP. The page does not say which fiscal year the schedule is for. NRCS fiscal year 2027 began on 1 Oct 2026, so the rate is not confirmed for a campaign and stays out of the income sum. The condition text says "only if your application is selected", because EQIP is competitive.
-- Poland, rates: Dz.U. 2025 poz. 1397, the rates for 2025 (87.52 PLN per point, coefficient 0.887902 for the diverse crop structure). A search of the Sejm ELI database on 14 Nov 2026 found no regulation with the 2026 rates, so every eco-scheme row is unconfirmed. Points per practice: Dz.U. 2023 poz. 493 § 4 ust. 2, with the straw practice cut from 2 points to 1 by Dz.U. 2025 poz. 333. Dz.U. 2026 poz. 325 does not change the points.
-- Poland, diverse crop structure: the rule is checked for the whole farm (Dz.U. 2023 poz. 493 § 8 and annex 2 part II point 5 as amended by Dz.U. 2023 poz. 1926). The tool applies the same shares to the years of one rotation: at least three crops, the largest at most 65%, crops from annex 5 list 1 (here field pea) at least 20%, cereals from list 2 (here winter wheat) at most 65%, crops from list 3 (sugar beet, potato) at most 30%.
+- NRCS: "Iowa Financial Assistance Program Scenario Booklet FY2026" (NRCS Iowa, 28 Apr 2026), regular EQIP rates (not the HU rates, not the italic CSP rates), pp. 32, 33 and 38. Practice 340 may be scheduled for up to 5 years on the same land unit; practice 328 "may be paid annually for up to 5 consecutive years". Both are paid only if the application is ranked and selected, and the condition text says so. NRCS pays one 328 scenario per field, so the rules exclude each other: perennial first, then small grain, then basic. The online payment schedule served on 14 Nov 2026 (`data/samples/research/us-ia/nrcs-payment-schedule-iowa-eqip-1-story-county.tsv`) has other scenario names and rates (340 "Any Species" $74.75, 328 "Basic, Multiple Annual Crops" $36.84) and no fiscal year. It is probably FY2027 and is not used until a dated document confirms it.
+- Poland, rates: the ministry's estimated 2026 rates for advance payments, 92.76 PLN per point (MRiRW announcement of 19.08.2026, Tabela 2). The announcement says the final rates come in separate regulations; none was in Dziennik Ustaw on 14 Nov 2026, so every eco-scheme row is unconfirmed and left out of the income sum. Each row also cites the confirmed 2025 rate (Dz.U. 2025 poz. 1397: 87.52 PLN per point, coefficient 0.887902 for the diverse crop structure). The 2026 estimate for the diverse crop structure applies no coefficient, so the final rate may be lower. Points per practice come from ARiMR's 2026 page; the eco-scheme pays only farms that reach the minimum points (the 5-point practice on 25% of the agricultural land, at most 300 ha).
+- Poland, diverse crop structure: the rule is checked for the whole farm (Dz.U. 2023 poz. 493 § 8 and annex 2 part II point 5 as amended by Dz.U. 2023 poz. 1926). The tool applies the same shares to the years of one rotation: at least three crops, the largest at most 65%, crops from annex 5 list 1 (here field pea) at least 20%, cereals from list 2 (here winter wheat) at most 65%, crops from list 3 (sugar beet, potato) at most 30%. Rye, spring barley and winter rapeseed have not been placed on the annex 5 lists from the regulation text yet, so a rotation with any of them does not claim this payment.
 - Poland, cover crops: the points need a winter cover crop mix of at least two species, sown 1 July to 1 October and kept until 15 February, or an undersown small-seeded legume (§ 6 and annex 2 part II point 2). Mustard or phacelia alone do not count; the condition text says so, because the rotation model does not record the mix.
 - GAEC 7: Dz.U. 2025 poz. 1674 (unified text) § 5, still in force in 2026 after Dz.U. 2026 poz. 161 removed only ust. 12. On farms with more than 10 ha of arable land the same main crop may stay at most 3 years in a row; a cover crop or undersown crop after the main crop meets the rule; legumes, grasses and perennial crops are exempt. The farm-wide rule that 40% of arable land changes crop each year cannot be checked on one field and is named in the condition text.
 
@@ -50,8 +58,14 @@ Income built on these tables is a replay of past years at today's prices. It is 
 
 These crops have no row in `economics`, so income for a rotation with them is `no-data` with the crop named:
 
-- Iowa, winter-wheat: Quick Stats has no Story County wheat yield after 1992, and File A1-20 has no wheat budget.
-- Iowa, alfalfa: Quick Stats has no Story County alfalfa yield (the hay series is "excluding alfalfa" and stops in 2017). The Iowa alfalfa hay price and the A1-20 alfalfa budget exist; a state-level yield could fill the gap in a later task.
-- Poland, field-pea: Eurostat `apro_cpnhr` has no field pea area or production for PL41 in 2020 to 2024. The price (Eurostat dried peas, 2024: 143.21 PLN/100 kg) and the WODR budget (groch jadalny, 3933.30 PLN/ha) exist.
-- Cover crops (cereal-rye, red-clover, white-mustard, phacelia) are not sold, so they need no row; the provider skips them. Their seed cost is not in the tables yet.
-- Polish eco-scheme rates for 2026 and the fiscal year of the NRCS Iowa schedule (see above).
+- Iowa, winter-wheat: Quick Stats has no Story County wheat yield after 1992, A1-20 has no wheat budget, and R9 did not cover wheat.
+- Iowa, spring-barley and rye as grain: not in R9.
+- Poland, oats: not in R8.
+
+Cover crops (cereal-rye, red-clover, white-mustard, phacelia) are not sold and need no row; the provider skips them (D34). Their seed and sowing cost is not counted yet:
+
+- Iowa: ISU A3-10 "2026 Iowa Farm Custom Rate Survey" gives the sowing cost (drilling cover crop seed, average $19.05/acre = 47.07 USD/ha, p. 1), but no ISU or USDA document we opened gives a cereal rye or red clover seed price.
+- Poland: WODR has no sheet for white mustard or phacelia, and seed prices appear only in seed companies' price lists.
+- The `moneyFile` schema has no place for a cost-only row (an economics row needs a positive yield and price), so a cover crop cost needs a [contract] change first.
+
+Other gaps: the final Iowa corn price for MY2025; a dated FY2027 NRCS Iowa schedule; CSP enhancement rates for 340 and 328; the final 2026 eco-scheme rates and the 2026 diversification coefficient; the annex 5 lists for rye, spring barley and winter rapeseed.

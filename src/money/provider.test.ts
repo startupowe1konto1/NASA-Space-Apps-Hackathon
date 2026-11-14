@@ -72,21 +72,36 @@ describe('getEconomics', () => {
 });
 
 describe('tableMoneyProvider on the shipped tables', () => {
-  it('is ready for the Iowa demo rotation, maize and soybean', async () => {
-    const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', 'soybean']);
-    expect(result.status).toBe('ready');
-  });
-
-  it('is ready for the Poznań crops that have a yield, a price and costs', async () => {
-    const result = await tableMoneyProvider.getEconomics(demoFields.poznan, ['winter-wheat', 'maize', 'potato', 'sugar-beet']);
+  it('is ready for the Iowa crops with a yield, a price and costs: maize, soybean, oats and alfalfa', async () => {
+    const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', 'soybean', 'oats', 'alfalfa']);
     expect(result.status).toBe('ready');
     if (result.status === 'ready') {
-      for (const e of result.data) expect(e.pricePerT.unit).toBe('PLN/t');
+      const oats = result.data.find((e) => e.crop === 'oats')!;
+      expect(oats.referenceYieldTPerHa.value).toBeCloseTo(2.963, 3);
+      expect(oats.pricePerT).toMatchObject({ unit: 'USD/t', datasetIds: ['usda-nass-quickstats'] });
     }
   });
 
-  it('names field pea as missing in Poland', async () => {
-    const result = await tableMoneyProvider.getEconomics(demoFields.poznan, ['winter-wheat', 'field-pea']);
-    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'field-pea' } } });
+  it('names winter wheat as missing in Iowa', async () => {
+    const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', 'winter-wheat']);
+    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'winter-wheat' } } });
+  });
+
+  it('is ready for every Poznań crop that R8 sourced', async () => {
+    const crops = ['winter-wheat', 'maize', 'winter-rapeseed', 'spring-barley', 'rye', 'field-pea', 'sugar-beet', 'potato'];
+    const result = await tableMoneyProvider.getEconomics(demoFields.poznan, crops);
+    expect(result.status).toBe('ready');
+    if (result.status === 'ready') {
+      expect(result.data.map((e) => e.crop)).toEqual(crops);
+      for (const e of result.data) {
+        expect(e.pricePerT.unit).toBe('PLN/t');
+        expect(e.referenceYieldTPerHa.datasetIds).toEqual(['gus-produkcja-upraw']);
+      }
+    }
+  });
+
+  it('names oats as missing in Poland', async () => {
+    const result = await tableMoneyProvider.getEconomics(demoFields.poznan, ['winter-wheat', 'oats']);
+    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'oats' } } });
   });
 });
