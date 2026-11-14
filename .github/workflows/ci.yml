@@ -17,37 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check for app code
-        id: detect
-        run: |
-          if [ -f package.json ]; then echo "node=true" >> "$GITHUB_OUTPUT"; else echo "node=false" >> "$GITHUB_OUTPUT"; fi
-
-      - name: No app yet
-        if: steps.detect.outputs.node == 'false'
-        run: echo "No package.json yet. Replace this job with the real stack's checks at T+3."
-
       - uses: actions/setup-node@v4
-        if: steps.detect.outputs.node == 'true'
         with:
-          node-version: lts/*
+          node-version: 22
           cache: npm
 
       - name: Install
-        if: steps.detect.outputs.node == 'true'
         run: npm ci
 
       - name: Typecheck
-        if: steps.detect.outputs.node == 'true'
-        run: npm run --if-present typecheck
+        run: npm run typecheck
 
       - name: Test
-        if: steps.detect.outputs.node == 'true'
-        run: npm run --if-present test
+        run: npm run test
 
       - name: Build
-        if: steps.detect.outputs.node == 'true'
-        run: npm run --if-present build
+        run: npm run build
 
       - name: Validate data
-        if: steps.detect.outputs.node == 'true'
-        run: npm run --if-present validate:data
+        run: npm run validate:data
