@@ -45,9 +45,13 @@ export function currentRotation(history: CropYear[]): Years {
  *   in `prev`'s season, the interseeding rule of calendar.ts). An interseeded cover that is not a winter cover must
  *   still be growing after `prev` is harvested, or it never covers the soil;
  * - it is ended no later than the month `next` is sown. A winter cover cannot sit before a winter crop (that crop is
- *   sown in the autumn the cover would occupy).
+ *   sown in the autumn the cover would occupy);
+ * - there is a free month for it: a perennial followed by itself stays in the ground (calendar.ts), and a winter crop
+ *   sown in the month right after the harvest leaves no month between them (potato harvested in 9, wheat sown in 10).
  */
 export function coverFits(prev: CropTraits, cover: CropTraits, next: CropTraits): boolean {
+  if (prev.kind === 'perennial' && next.id === prev.id) return false;
+  if (isWinterCrop(next) && next.sowMonth - prev.harvestMonth < 2) return false;
   const afterHarvest = cover.sowMonth >= prev.harvestMonth;
   const interseeded = !afterHarvest && inSeason(prev, cover.sowMonth);
   if (!afterHarvest && !interseeded) return false;

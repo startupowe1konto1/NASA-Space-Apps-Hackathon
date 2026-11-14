@@ -3,7 +3,7 @@ import cropsPlFile from '../../data/crops/pl.json';
 import cropsUsFile from '../../data/crops/us-ia.json';
 import type { CropTraits, CropYear, Priorities, RotationOption } from '../contracts';
 import { fixtureCrops } from '../fixtures/crops';
-import { canFollow, cropById } from './calendar';
+import { buildCalendar, canFollow, cropById } from './calendar';
 import { MAX_CANDIDATES, coverFits, currentRotation, generateCandidates } from './candidates';
 
 const us = fixtureCrops.US;
@@ -252,5 +252,27 @@ describe('generateCandidates', () => {
     expect(iowa.length).toBeGreaterThanOrEqual(20);
     expect(iowa.length).toBeLessThanOrEqual(300);
     expect(again).toEqual(iowa);
+  });
+
+  it('draws every cover it proposes: each cover variant has a cover-crop month for each of its covers (real data)', () => {
+    const cases: [CropTraits[], RotationOption['years']][] = [
+      [realUs, [{ crop: 'maize' }, { crop: 'soybean' }]],
+      [realUs, [{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }]],
+      [realPl, [{ crop: 'winter-wheat' }, { crop: 'maize' }, { crop: 'winter-wheat' }, { crop: 'sugar-beet' }]],
+      [realPl, [{ crop: 'potato' }, { crop: 'winter-wheat' }, { crop: 'sugar-beet' }]],
+    ];
+    const silent: string[] = [];
+    for (const [crops, current] of cases) {
+      for (const years of generateCandidates(current, crops, priorities())) {
+        years.forEach((y, i) => {
+          if (y.coverCrop === undefined) return;
+          const only = years.map((z, j) => (j === i ? z : { crop: z.crop }));
+          if (!buildCalendar(only, crops).months.some((m) => m.cover === 'cover-crop')) {
+            silent.push(years.map((z) => z.crop + (z.coverCrop ? `+${z.coverCrop}` : '')).join(' > '));
+          }
+        });
+      }
+    }
+    expect(silent).toEqual([]);
   });
 });
