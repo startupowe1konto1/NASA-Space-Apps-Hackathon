@@ -29,7 +29,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Soil health tables (second O4-B0 pull request)
 
-Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
+Files: `nitrogen.json` (14 rows), `humus.json` (31 rows), `erosion.json` (14 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
 
 ### Sources opened
 
@@ -46,6 +46,9 @@ Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 row
 | USDA NRCS Conservation Practice Standard 328, Conservation Crop Rotation (Sept 2014) | https://www.nrcs.usda.gov/sites/default/files/2022-09/Conservation_Crop_Rotation_328_CPS.pdf | p. 328-3: three years or longer between plantings of the same family, at least three families | `nrcs-cps-328.txt` |
 | Mohler and Johnson, eds. (2009), SARE "Crop Rotation on Organic Farms: A Planning Manual" (NRAES-177) | https://www.sare.org/wp-content/uploads/Crop-Rotation-on-Organic-Farms.pdf | Sidebar 5.4, p. 70: four to five years for most soilborne diseases; Appendix 3, pp. 125–136: return times per crop and disease | `sare-crop-rotation-organic.txt` |
 | Lundvall, Martins, Sawyer (2021), ISU final report to the Leopold Center "Integrating Rye Seed Production and Red Clover into Corn Systems and Nitrogen Management" | https://www.agronext.iastate.edu/soilfertility/info/Final%20Report%20Corn%20N%20with%20Rye-Red%20Clover-ForSFWebSite.pdf | p. 7 and p. 9: red clover supplied about 50 lb N/acre fertilizer equivalent to the following maize (`nitrogen.credit.red-clover.us-ia`) | `isu-rye-red-clover-2021.txt` |
+| Łopatka, Koza, Jadczyszyn, Stuczyński (2011), "Ocena ryzyka zagrożenia erozją wodną w Polsce na podstawie modelu USLE", Studia i Raporty IUNG-PIB 27(1) | https://iung.pl/sir/zeszyt27_13.pdf | Tabela 1, PDF p. 5 (printed p. 155): annual C factor 0.15 for 'Strączkowe' (`erosion.cAnnual.field-pea.pl`) and for 'Zboża ozime, rzepak ozimy' (`erosion.cAnnual.winter-rapeseed.pl`) | `iung-lopatka-2011-usle-c.txt` |
+| Podleśny, Leszczyńska (IUNG-PIB, 2025), slides "Międzyplony i ich znaczenie w produkcji rolniczej" | https://www.iung.pl/wp-content/uploads/2026/03/Prezentacja-miedzyplony-2025.pdf | slide 19: 'Międzyplony na zielony nawóz' +0.63 / +0.70 / +0.77 t/ha for light / medium / heavy soil (Kundler 1981), used for `humus.coef.phacelia.pl` and `humus.coef.white-mustard.pl`; slide 22 lists both among stubble catch crops | `iung-podlesny-2025-miedzyplony.txt` |
+| Körschens, Rogasik, Schulz (2005), "Bilanzierung und Richtwerte organischer Bodensubstanz", Landbauforschung Völkenrode 55(1) | https://literatur.thuenen.de/digbib_extern/bitv/zi036604.pdf | Tabelle 1, PDF p. 6: the VDLUFA (2004) table that the IUNG slide reproduces, used to check the row labels of the `humus.vdlufa.*` rows | `korschens-2005-vdlufa-table1.txt` |
 
 ### Choices the team made on top of the sources
 
@@ -57,7 +60,10 @@ Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 row
 | `humus.coef.*.pl` | the slide prints the unit column as "1ha". We read the values as tonnes of soil organic matter per hectare per crop-year, which is how the Code states them. A mentor should confirm. Rows for US crops (soybean, oats, alfalfa, red clover) borrow the Polish coefficients. |
 | `erosion.ls.slopeLength75ft` | the app does not know slope length, so we use the 75 ft column of Table 3, the one closest to the 72.6 ft unit plot. |
 | `erosion.slr.sugar-beet` | Handbook 537 has no sugar beet data and points to potatoes without the ridging credit, so the row repeats Table 5 line 159. |
-| `erosion.slr.smallGrain.conventional` | winter grain row; oats, spring barley and winter rapeseed use it as the nearest row. |
+| `erosion.slr.smallGrain.conventional` | winter grain row; oats and spring barley use it as the nearest row. The engine does not read it for winter rapeseed (`SMALL_GRAINS` in `src/engine/rules.ts`). IUNG-PIB (Łopatka et al. 2011, Tabela 1) puts winter rapeseed in one group with winter cereals ('Zboża ozime, rzepak ozimy', C 0.15), which is a sourced basis if O3 and the pitch owner decide to read the row for rapeseed. |
+| `erosion.cAnnual.*.pl` | annual C factors per crop group from the Polish USLE model, not split by crop stage like the AH 537 rows. The engine does not read them yet: using them next to the AH 537 stage values mixes two methods, so O3 and the pitch owner decide (HANDOFF-O4-soil-confidence.md, #173). |
+| `humus.coef.phacelia.pl`, `humus.coef.white-mustard.pl` | the slide row is for catch crops ploughed in as green manure in general; we use it for both species because slide 22 lists them as stubble catch crops. No black earth value on the slide, so the key is left out (the engine reads the medium class). |
+| `humus.vdlufa.stubbleCatchCrops`, `humus.vdlufa.undersownCatchCrops` | renamed from `humus.vdlufa.springMixtures` and `humus.vdlufa.fallow` (Sun 15 Nov): the IUNG slide labels these rows 'Mieszanki jare' and 'ugory', but the VDLUFA 2004 table it reproduces (Körschens et al. 2005) has 'Stoppelfrüchte' and 'Untersaaten' with the same values in the same order. No code read the old ids. Two more differences for a mentor: the slide prints sugar and fodder beet as -700, the original -760; and the slide's 'jako poplon' (300/400) is 'bei Gründeckfrucht' (sown under a green nurse crop) in the original. |
 | `pestBreak.*` | no source says "never". Every interval is a recommendation, so the engine should score a violation and not drop the rotation (SPEC section 8, step 4). |
 
 ### Missing: soil health tables
@@ -66,9 +72,10 @@ Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 row
 - Leaching adjustment of the N credit by soil texture: none of the opened sources gives numbers. The engine can only use rain in the bare months.
 - NRCS Soil Conditioning Index (USA organic matter): not opened. Iowa organic matter has only the borrowed Polish and VDLUFA coefficients.
 - Climate adjustment of the humus balance (warm and wet soils): no source with numbers opened.
-- Humus coefficients for white mustard and phacelia catch crops: the Code has no catch crop row and the VDLUFA table has no matching row. Cereal rye cover can use `humus.vdlufa.winterCatchCrops`.
+- Humus coefficients for catch crops in the Code of Good Agricultural Practice 2004: it has no catch crop row. Phacelia and white mustard now use the IUNG-PIB 2025 slide (see above). Cereal rye cover can use `humus.vdlufa.winterCatchCrops`.
+- A range for `nitrogen.credit.field-pea.pl`: no Polish source gives one (Sun 15 Nov). The nitrates programmes give one value each (30 kg in Dz.U. 2018 poz. 1339 and 2020 poz. 243, 25 kg in 2023 poz. 244). The '50–80 kg N/ha' in pea guides (KPODR 2018, COBORU Łódź 2025) is N held in the residues, not the credit, so the row stays a single value.
 - RUSLE Handbook 703: the PDF on the ARS site opened, but it is a scan with no text layer, so the C values come from Handbook 537 (the earlier USLE handbook by the same agency).
-- Erosion rows for winter rapeseed, field pea, white mustard and phacelia: Handbook 537 has none. Table 5-C rows for 80–95 % residue cover are left out because the extracted text of those rows is not clear.
+- Erosion rows for winter rapeseed, field pea, white mustard and phacelia: Handbook 537 has none. Field pea and winter rapeseed now have annual C factors from IUNG-PIB 2011 (`erosion.cAnnual.*.pl`); phacelia and white mustard as catch crops still have no sourced value (checked Sun 15 Nov: LfL Bayern ABAG 2023 Tab. 7 and IUNG-PIB 2011 have no catch crop row; Panagos et al. 2015 could not be opened). Table 5-C rows for 80–95 % residue cover are left out because the extracted text of those rows is not clear.
 - Pest-cycle break from a Polish source (rapeseed and sugar beet intervals): not opened. The Brassicaceae row comes from vegetable crucifer diseases in the northeastern United States.
 
 ## Added after the review of PR #27 (O4-B0 1b)

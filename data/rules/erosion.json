@@ -222,5 +222,25 @@
     "sourceUrl": "https://www.ars.usda.gov/ARSUserFiles/60600505/RUSLE/AH_537%20Predicting%20Rainfall%20Soil%20Losses.pdf",
     "sourceLocator": "Table 3 'Values of the topographic factor, LS, for specific combinations of slope length and steepness', column 'Slope length 75 feet', p. 12",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "erosion.cAnnual.field-pea.pl",
+    "value": 0.15,
+    "unit": "RUSLE/USLE cover-management factor C for the whole year (dimensionless, 1 = bare fallow); one value per crop group, not by crop stage",
+    "appliesTo": "Poland: field pea (crop id field-pea) as a main crop, from the IUNG-PIB group 'Strączkowe' (grain legumes) used in the Poland-wide USLE erosion model; an annual value, not split by crop stage like the erosion.slr.* rows of USDA AH 537",
+    "sourceTitle": "Łopatka A., Koza P., Jadczyszyn J., Stuczyński T. (2011). Ocena ryzyka zagrożenia erozją wodną w Polsce na podstawie modelu USLE. Studia i Raporty IUNG-PIB 27(1), doi:10.26114/sir.iung.2011.27.13",
+    "sourceUrl": "https://iung.pl/sir/zeszyt27_13.pdf",
+    "sourceLocator": "PDF page 5 (printed p. 155), Tabela 1 'Przyjęte wartości współczynnika C', row 'Strączkowe 0,15'; excerpt in data/samples/rules/iung-lopatka-2011-usle-c.txt",
+    "checkedBy": "O4, source opened Sun 15 Nov 2026"
+  },
+  {
+    "id": "erosion.cAnnual.winter-rapeseed.pl",
+    "value": 0.15,
+    "unit": "RUSLE/USLE cover-management factor C for the whole year (dimensionless, 1 = bare fallow); one value per crop group, not by crop stage",
+    "appliesTo": "Poland: winter rapeseed (crop id winter-rapeseed) as a main crop, from the IUNG-PIB group 'Zboża ozime, rzepak ozimy' (winter cereals and winter rapeseed share one value) used in the Poland-wide USLE erosion model; an annual value, not split by crop stage like the erosion.slr.* rows of USDA AH 537",
+    "sourceTitle": "Łopatka A., Koza P., Jadczyszyn J., Stuczyński T. (2011). Ocena ryzyka zagrożenia erozją wodną w Polsce na podstawie modelu USLE. Studia i Raporty IUNG-PIB 27(1), doi:10.26114/sir.iung.2011.27.13",
+    "sourceUrl": "https://iung.pl/sir/zeszyt27_13.pdf",
+    "sourceLocator": "PDF page 5 (printed p. 155), Tabela 1 'Przyjęte wartości współczynnika C', row 'Zboża ozime, rzepak ozimy 0,15'; excerpt in data/samples/rules/iung-lopatka-2011-usle-c.txt",
+    "checkedBy": "O4, source opened Sun 15 Nov 2026"
   }
 ]
