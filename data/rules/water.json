@@ -1,0 +1,32 @@
+[
+  {
+    "id": "water.needMm.low",
+    "value": 425,
+    "unit": "mm per total growing period (crop water need)",
+    "appliesTo": "water priority: seasonal water need of a crop in water need class 'low' (data/crops waterNeed). Our derivation: mean of the midpoints of the Table 14 ranges of the Table 14 crops our crop lists put in this class (Pea 350-500 (field-pea); rye and winter rapeseed have no Table 14 row) = (350+500)/2 = 425",
+    "sourceTitle": "FAO (1986). Irrigation Water Management: Irrigation Water Needs. Training Manual No. 3, chapter 3 (Brouwer and Heibloem)",
+    "sourceUrl": "https://www.fao.org/4/s2022e/s2022e07.htm",
+    "sourceLocator": "section 3.3.4 'Indicative Values of Crop Water Needs', Table 14 'Indicative values of crop water needs and sensitivity to drought', column 'Crop water need (mm/total growing period)'; excerpt in data/samples/rules/fao-tm3-table14.txt",
+    "checkedBy": "O3, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "water.needMm.medium",
+    "value": 594,
+    "unit": "mm per total growing period (crop water need)",
+    "appliesTo": "water priority: seasonal water need of a crop in water need class 'medium' (data/crops waterNeed). Our derivation: mean of the midpoints of the Table 14 ranges of the Table 14 crops our crop lists put in this class (Barley/Oats/Wheat 450-650, Soybean 450-700, Sugarbeet 550-750, Potato 500-700) = (550 + 575 + 650 + 600)/4 = 593.75, rounded to 594",
+    "sourceTitle": "FAO (1986). Irrigation Water Management: Irrigation Water Needs. Training Manual No. 3, chapter 3 (Brouwer and Heibloem)",
+    "sourceUrl": "https://www.fao.org/4/s2022e/s2022e07.htm",
+    "sourceLocator": "section 3.3.4 'Indicative Values of Crop Water Needs', Table 14 'Indicative values of crop water needs and sensitivity to drought', column 'Crop water need (mm/total growing period)'; excerpt in data/samples/rules/fao-tm3-table14.txt",
+    "checkedBy": "O3, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "water.needMm.high",
+    "value": 925,
+    "unit": "mm per total growing period (crop water need)",
+    "appliesTo": "water priority: seasonal water need of a crop in water need class 'high' (data/crops waterNeed). Our derivation: mean of the midpoints of the Table 14 ranges of the Table 14 crops our crop lists put in this class (Maize 500-800, Alfalfa 800-1600) = (650 + 1200)/2 = 925",
+    "sourceTitle": "FAO (1986). Irrigation Water Management: Irrigation Water Needs. Training Manual No. 3, chapter 3 (Brouwer and Heibloem)",
+    "sourceUrl": "https://www.fao.org/4/s2022e/s2022e07.htm",
+    "sourceLocator": "section 3.3.4 'Indicative Values of Crop Water Needs', Table 14 'Indicative values of crop water needs and sensitivity to drought', column 'Crop water need (mm/total growing period)'; excerpt in data/samples/rules/fao-tm3-table14.txt",
+    "checkedBy": "O3, source opened Sat 14 Nov 2026"
+  }
+]

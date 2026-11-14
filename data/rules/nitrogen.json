@@ -41,6 +41,16 @@
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
   },
   {
+    "id": "nitrogen.credit.red-clover.us-ia",
+    "value": 50,
+    "unit": "lb N/acre less N fertilizer needed by the following maize, fertilizer equivalent (x 1.121 = kg N/ha)",
+    "appliesTo": "Iowa: nitrogen supplied by a red clover cover crop to the following maize crop (crop ids: red-clover cover -> maize). Measured in ISU trials where red clover was interseeded into winter rye grown for seed, then maize; the source gives one approximate value, no range",
+    "sourceTitle": "Lundvall, J., Martins, C., Sawyer, J. (2021). Integrating Rye Seed Production and Red Clover into Corn Systems and Nitrogen Management. Final report to the Leopold Center for Sustainable Agriculture, Iowa State University, 30 Jun 2021",
+    "sourceUrl": "https://www.agronext.iastate.edu/soilfertility/info/Final%20Report%20Corn%20N%20with%20Rye-Red%20Clover-ForSFWebSite.pdf",
+    "sourceLocator": "p. 7, Corn Phase (Figure 4): 'The difference in AONR was used to determine N supplied by the clover, at approximately 50 lb N/acre, which reduced the corn optimal N fertilization requirement'; p. 9, Conclusions: 'supplying an average 50 lb N/acre fertilizer equivalent'; excerpt in data/samples/rules/isu-rye-red-clover-2021.txt",
+    "checkedBy": "O3, source opened Sat 14 Nov 2026"
+  },
+  {
     "id": "nitrogen.creditYears.soybean.us-ia",
     "value": 1,
     "unit": "years of maize that receive the soybean benefit",
