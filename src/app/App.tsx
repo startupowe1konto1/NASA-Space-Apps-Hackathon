@@ -138,14 +138,17 @@ export function App() {
           >
             {t('app.back')}
           </button>
-          <button
-            type="button"
-            className="min-h-11 rounded bg-emerald-700 px-4 font-medium text-white disabled:opacity-40"
-            disabled={!canContinue(state)}
-            onClick={() => state.goToStep(state.step + 1)}
-          >
-            {t('app.next')}
-          </button>
+          {/* The last step has nothing after it, so it has no Next button. */}
+          {state.step < STEP_COUNT ? (
+            <button
+              type="button"
+              className="min-h-11 rounded bg-emerald-700 px-4 font-medium text-white disabled:opacity-40"
+              disabled={!canContinue(state)}
+              onClick={() => state.goToStep(state.step + 1)}
+            >
+              {t('app.next')}
+            </button>
+          ) : null}
         </footer>
       )}
     </div>

@@ -18,6 +18,12 @@ export const useParcelTap = create<{ tap: TapState }>(() => ({ tap: { status: 'i
 
 let latestTap = 0;
 
+/** Drops the answer of a tap or search hit still waiting for ULDK, e.g. when the farmer finds a parcel by number. */
+export function cancelPendingTap(): void {
+  latestTap++;
+  useParcelTap.setState({ tap: { status: 'idle' } });
+}
+
 /** Adds the field for a tap at this point. Only the answer to the latest tap is used. */
 export async function addFieldAt(lat: number, lon: number, fetchImpl: typeof fetch = fetch): Promise<void> {
   const ticket = ++latestTap;

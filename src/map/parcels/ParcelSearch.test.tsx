@@ -176,6 +176,29 @@ describe('a tap on the map', () => {
     expect(useAppStore.getState().fields[0]).toEqual(pointToField(lat, lon));
   });
 
+  it('does not let a late tap answer replace the parcel found by its number (review finding 1)', async () => {
+    let releaseTap: (r: Response) => void = () => {};
+    fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (releaseTap = resolve)));
+    answer(found);
+    render(<ParcelSearch />);
+    const { lat, lon } = demoFields.poznan.centroid;
+
+    let pendingTap: Promise<void> = Promise.resolve();
+    act(() => {
+      pendingTap = addFieldAt(lat, lon);
+    });
+    await search(teryt);
+    await screen.findByText(`Added parcel ${teryt}.`);
+    await act(async () => {
+      releaseTap(new Response(notFoundAtPoint, { status: 200 }));
+      await pendingTap;
+    });
+
+    const { fields, selectedFieldId } = useAppStore.getState();
+    expect(fields).toHaveLength(1);
+    expect(fields.find((f) => f.id === selectedFieldId)?.parcelIds).toEqual([teryt]);
+  });
+
   it('keeps only the answer to the last tap', async () => {
     let releaseFirst: (r: Response) => void = () => {};
     fetchMock.mockReturnValueOnce(new Promise<Response>((resolve) => (releaseFirst = resolve)));

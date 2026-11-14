@@ -5,7 +5,7 @@ import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { useOnline } from '../../app/useOnline';
 import { StateBoundary } from '../../ui-kit/StateBoundary';
-import { useParcelTap } from './tap';
+import { cancelPendingTap, useParcelTap } from './tap';
 import { ULDK_SOURCE, getParcelById } from './uldk';
 
 const BUTTON =
@@ -34,7 +34,7 @@ export function ParcelSearch() {
   const find = async () => {
     const wanted = id.trim();
     if (!wanted) return;
-    useParcelTap.setState({ tap: { status: 'idle' } });
+    cancelPendingTap(); // a tap still waiting for ULDK must not replace the parcel found by number
     setSearch({ kind: 'loading' });
     try {
       const field = await getParcelById(wanted);

@@ -7,6 +7,7 @@ import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
 import { areaHa } from './area';
 import type { MapHandlers } from './leafletMap';
+import { useParcelTap } from './parcels/tap';
 import { getParcelByPoint } from './parcels/uldk';
 import { parseNominatim } from './search/nominatim';
 
@@ -345,5 +346,16 @@ describe('undo', () => {
 
     expect(useAppStore.getState().fields).toEqual([iowa]);
     await screen.findByText(`${iowa.name}, ${iowa.areaHa.toFixed(1)} ha`);
+  });
+});
+
+describe('undo while ULDK is answering (review finding 1)', () => {
+  it('keeps Undo off while a tap or search waits for its parcel', async () => {
+    render(<MapStep />);
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(screen.getByRole('button', { name: t('edit.undo.button') })).toBeEnabled());
+    act(() => useParcelTap.setState({ tap: { status: 'loading' } }));
+    expect(screen.getByRole('button', { name: t('edit.undo.button') })).toBeDisabled();
+    act(() => useParcelTap.setState({ tap: { status: 'idle' } }));
   });
 });

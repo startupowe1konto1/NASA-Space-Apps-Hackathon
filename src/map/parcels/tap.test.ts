@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { useAppStore } from '../../app/store';
 import { demoFields } from '../../fixtures';
-import { addFieldAt } from './tap';
+import { addFieldAt, cancelPendingTap, useParcelTap } from './tap';
 
 const uldkAnswer = readFileSync('data/samples/uldk/parcel-by-xy-poznan-srid4326.txt', 'utf8');
 const selected = () => {
@@ -37,5 +37,19 @@ describe('addFieldAt', () => {
     answer(new Response(uldkAnswer, { status: 200 }));
     await first;
     expect(selected()?.id).toBe(demoFields.iowa.id);
+  });
+});
+
+describe('cancelPendingTap (review finding 1)', () => {
+  it('drops the answer of a tap still waiting for ULDK and clears the loading state', async () => {
+    let answer!: (r: Response) => void;
+    const slow = vi.fn<typeof fetch>(() => new Promise<Response>((resolve) => (answer = resolve)));
+    const pending = addFieldAt(demoFields.poznan.centroid.lat, demoFields.poznan.centroid.lon, slow);
+    expect(useParcelTap.getState().tap.status).toBe('loading');
+    cancelPendingTap();
+    expect(useParcelTap.getState().tap.status).toBe('idle');
+    answer(new Response(uldkAnswer, { status: 200 }));
+    await pending;
+    expect(useAppStore.getState().fields).toHaveLength(0);
   });
 });

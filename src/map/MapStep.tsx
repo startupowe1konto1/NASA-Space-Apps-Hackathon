@@ -10,7 +10,7 @@ import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
 import { ParcelSearch } from './parcels/ParcelSearch';
 import { cutField } from './parcels/editFields';
-import { addFieldAt } from './parcels/tap';
+import { addFieldAt, useParcelTap } from './parcels/tap';
 import { SearchBox } from './search/SearchBox';
 
 const BUTTON =
@@ -20,6 +20,8 @@ export function MapStep() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
   const canUndo = useAppStore((s) => s.fieldHistory.length > 0);
+  // While ULDK answers, the newest edit is not in the store yet; an undo then would take back the one before it.
+  const tapPending = useParcelTap((s) => s.tap.status === 'loading');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapController | null>(null);
@@ -153,7 +155,7 @@ export function MapStep() {
           <button
             type="button"
             className={`${BUTTON} inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50`}
-            disabled={!canUndo || cutting}
+            disabled={!canUndo || cutting || tapPending}
             onClick={() => {
               useAppStore.getState().undoFieldEdit();
               setEditNote({ text: t('edit.undo.done'), fields: useAppStore.getState().fields });
