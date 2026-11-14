@@ -1,14 +1,14 @@
 # Handoff v1: challenge shortlist
 
-Status: Sat 14 Nov, 11:55 CET (T+0:46). Four challenges on the shortlist, none chosen yet. The idea decision is due at T+2:00 (13:10), per HACKATHON.md §5. When the team picks one, this file is rewritten as the full handoff from HACKATHON.md §7 point 1.
+Status: Sat 14 Nov, 12:05 CET (T+0:56). Five challenges on the shortlist, none chosen yet. The idea decision is due at T+2:00 (13:10), per HACKATHON.md §5. When the team picks one, this file is rewritten as the full handoff from HACKATHON.md §7 point 1.
 
-Changes since v0: the shortlist is four challenges, not six (the team dropped groups 3 and 4 whole; v0 kept group 3 by mistake). Projects are global for now: no region is assumed. Research question 1 (Martian Map) is answered.
+Changes since v0: group 4 and Health Monitoring are dropped. Flame in Freefall stays on the shortlist (team decision at 12:05), so the shortlist is five challenges. Projects are global for now: no region is assumed. Research question 1 (Martian Map) is answered.
 
 Everything below comes from the challenge Details and Resources tabs (read without logging in) and from live requests to the data sources listed there.
 
 ## What to do next
 
-1. **Now → 12:30.** Four people, one challenge each (research questions at the bottom, prompt P1 in HACKATHON.md §14). Check against real data: save a response sample in `data/samples/`, write the result in `context/<topic>.md`, report in chat. Question 1 is done ([context/martian-map-trek.md](context/martian-map-trek.md), PR #5); that person can help with question 2 or 4, which need the same Earthdata login.
+1. **Now → 12:30.** One challenge per person, five questions for four people (research questions at the bottom, prompt P1 in HACKATHON.md §14). Check against real data: save a response sample in `data/samples/`, write the result in `context/<topic>.md`, report in chat. Question 1 is done ([context/martian-map-trek.md](context/martian-map-trek.md), PR #5); that person can help with question 2 or 4, which need the same Earthdata login.
 2. **By 12:10.** Agree the idea rejection criteria (proposal at the bottom). One person creates an Earthdata login (https://urs.earthdata.nasa.gov/) and keeps the credentials in `.env` only. Trend Detective, Dancing with the SARs and Field Shift all need it.
 3. **12:30 → 13:10.** Compare the research results against the criteria. Cut to two, then pick one challenge and one idea from the "Ideas" lists. Name the project. Choose a region or area of interest only after the idea is picked, and only if the idea needs one.
 4. **13:10.** Record the decision in `docs/DECISIONS.md`, then run prompt P2: rewrite this file as the full handoff, write `docs/SPEC.md` and `docs/PLAN.md`.
@@ -34,8 +34,8 @@ Source: [2026 challenges](https://www.spaceappschallenge.org/2026/challenges/). 
 | 2. Moon, Mars, sky | [Lunar Landing Site Navigator](https://www.spaceappschallenge.org/2026/challenges/lunar-landing-site-navigator/) | Advanced, Intermediate | dropped |
 | 2. Moon, Mars, sky | [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/) | Advanced, Intermediate, Beginner | dropped |
 | 2. Moon, Mars, sky | [Planet X and SPHEREx](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/) | Advanced | dropped |
-| 3. Crew health and safety | [Create Health Monitoring Software for Astronauts on Space Missions](https://www.spaceappschallenge.org/2026/challenges/health-monitoring-software/) | Intermediate | dropped (whole group) |
-| 3. Crew health and safety | [Flame in Freefall: SI-Powered Fire Safety Insights](https://www.spaceappschallenge.org/2026/challenges/flame-in-freefall/) | Advanced, Intermediate | dropped (whole group) |
+| 3. Crew health and safety | [Create Health Monitoring Software for Astronauts on Space Missions](https://www.spaceappschallenge.org/2026/challenges/health-monitoring-software/) | Intermediate | dropped (Resources has articles only, no datasets) |
+| 3. Crew health and safety | [Flame in Freefall: SI-Powered Fire Safety Insights](https://www.spaceappschallenge.org/2026/challenges/flame-in-freefall/) | Advanced, Intermediate | **shortlist** |
 | 4. Education, games, art | [Build a Junior Astronaut Mission Trainer](https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/) | Intermediate, Beginner | dropped (whole group) |
 | 4. Education, games, art | [Space Mission Design Game](https://www.spaceappschallenge.org/2026/challenges/space-mission-design-game/) | Intermediate, Beginner | dropped (whole group) |
 | 4. Education, games, art | [Abandoned but not Forgotten](https://www.spaceappschallenge.org/2026/challenges/nasas-discarded-equipment-storytelling/) | Intermediate, Beginner | dropped (whole group) |
@@ -55,7 +55,7 @@ Real requests from the venue network, not guesses. Where a point was needed for 
 
 The built-in WebFetch tool fails on this network ("unable to get local issuer certificate"). curl and the browser work.
 
-## Analysis of the four shortlisted challenges
+## Analysis of the five shortlisted challenges
 
 Scores are a first guess, out of 5. Build = chance of a working demo on real data by T+8 (19:10). Pitch = what a judge sees in 3 minutes. Data = how well the Resources tab supports the challenge.
 
@@ -65,6 +65,20 @@ Scores are a first guess, out of 5. Build = chance of a working demo on real dat
 | Field Shift | 4 | 4 | 5 | richest data list, agronomy rules are ours |
 | Trend Detective | 5 | 3 | 4 | safest build, needs a differentiator |
 | Dancing with the SARs | 2 | 4 | 4 | new mission, heavy processing |
+| Flame in Freefall | 3 | 3 | 3 | AI is required by the brief; PSI access not checked yet |
+
+### Flame in Freefall: SI-Powered Fire Safety Insights
+
+Brief: an AI-powered web dashboard that summarizes, ranks and interprets combustion experiments for fire safety in crew habitats: spacecraft, space stations, lunar and Mars bases, pressurized rovers. Users may find the investigations relevant to a habitat, pull out data for flammability and fire modelling, and see research that informs new fire safety equipment. Earth applications are a bonus.
+
+Resources: the [PSI combustion repository](https://psi.nasa.gov/physci/repo/search?q=combustion) is named as "the source of the data upon which the NASA Space App is to be based". Background: [NASA combustion science](https://www.nasa.gov/glenn/glenn-expertise-space-exploration/physical-sciences-program/combustion-science/), [researcher's guide to ISS combustion science](https://www.nasa.gov/missions/station/a-researchers-guide-to-combustion-science/) (2015, 50+ pages), [ScienceCasts video](https://www.youtube.com/watch?v=W1oXykoz9zg), accident reports [Apollo 1](https://sma.nasa.gov/sma-disciplines/accllp/apollo-1), [Apollo 13](https://sma.nasa.gov/sma-disciplines/accllp/apollo-13), [Mir 1997](https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/), spinoffs ([air tanks](https://spinoff.nasa.gov/node/9582), [fire detector](https://spinoff.nasa.gov/node/9407), [fire attire](https://spinoff.nasa.gov/node/9918)).
+
+Ideas:
+- **Habitat fire-risk ranker.** Pick a habitat (ISS module, pressurized rover, lunar base) and a material or scenario; the app ranks PSI investigations by relevance and shows the findings that apply, each linked to its PSI page and DOI.
+- **Lessons-learned timeline.** Apollo 1, Apollo 13 and Mir mapped to the PSI investigations that later studied the same failure.
+- **Earth spinoff view.** The same findings applied to firefighting on Earth, as the brief suggests.
+
+Risk: we have not yet seen how many investigations PSI lists, what metadata comes with them, or whether files download without a login. The PSI site asks users to cite each dataset's DOI. Judges may read "chat over documents" as common, so the habitat ranking has to be the visible part.
 
 ### Interplanetary Survival Guide: Martian Map
 
@@ -126,12 +140,14 @@ Risk: HDF5 products, likely gigabytes each, Earthdata login, SAR know-how. Worka
 - Richest data and a clear user: Field Shift, starting from NASA POWER (works now) plus SMAP soil moisture.
 - Safe fallback: Trend Detective, which can reuse the NASA POWER code from Field Shift.
 - Highest risk: Dancing with the SARs (data size and processing).
+- Flame in Freefall: decide after question 5. If PSI gives a clean list of investigations with metadata, it is the only shortlisted challenge where AI is the core of the brief.
 
-## Research questions (one per person)
+## Research questions (one per challenge)
 
 1. **Martian Map:** done. See [context/martian-map-trek.md](context/martian-map-trek.md). Open follow-up: is there a radiation layer for Mars (for example from MSL RAD) we can show?
 2. **Field Shift:** SMAP soil moisture and FAO GAEZ crop suitability for any one test field. Format, size, login, time to first number. Can a web app get both for a clicked point in under 10 s?
 3. **Trend Detective:** does AppEEARS or Giovanni return a 20-year time series for a drawn box with our Earthdata login, and how long does it take? Can Mann-Kendall run in the browser on that series?
 4. **Dancing with the SARs:** one NISAR SME2 and one GCOV granule: size, download time, time to one PNG. Which change type (soil moisture, flood, subsidence) is quickest to show?
+5. **Flame in Freefall:** list the PSI combustion investigations: how many, what metadata (title, experiment, fuel, conditions, DOI), is there an API or export, do data files download without a login?
 
 Proposed idea rejection criteria (agree by 12:10): no demo on real NASA data by T+8; data needs more than 1 h of preprocessing; an existing NASA tool already does the same thing without a clear difference.
