@@ -135,6 +135,10 @@ Ideas:
 
 Research result (question 5, done): 24 combustion investigations with full metadata through a public API; 20 publish CSV experimental tables (22 files, 2,870 rows, 211 KB, CC0, each with a DOI), all downloaded without a login in 27 s. Examples: FLEX droplet tests (274 rows: fuel, pressure, O2/CO2/He, burn time, extinction), SAFFIRE large-scale fires on Cygnus (material, thickness, air flow, O2), BASS and ACME flame tests. CORS allows only psi.nasa.gov, so the app ships the data as static JSON. The PSI site asks users to cite each dataset's DOI. The AI layer must only summarize what the PSI records say, with links, so judges can check every claim.
 
+## Comparison table
+
+Data quality, data usefulness, access, existing tools and the gap each challenge leaves: [context/challenge-comparison.md](context/challenge-comparison.md). Totals out of 30: Martian Map 26, Flame in Freefall 26, Field Shift 23, Trend Detective 22, Dancing with the SARs 17 (22 with an Earthdata login and HDF5 processing).
+
 ## Recommended solution per challenge
 
 One concrete product per challenge, built only on data we have already fetched. Each is a static web app plus, where noted, a build-time script.
