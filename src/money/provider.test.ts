@@ -136,9 +136,19 @@ describe('tableMoneyProvider on the shipped tables', () => {
     if (result.status === 'ready') expect(result.data.map((e) => e.crop)).toEqual(['winter-wheat']);
   });
 
-  it('names winter wheat as missing in Iowa', async () => {
+  it('names a crop with no Iowa row as missing', async () => {
+    const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', 'potato']);
+    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'potato' } } });
+  });
+
+  // Step 6 plan, B1: the Iowa demo rotations with alfalfa and winter wheat need a winter wheat row.
+  it('is ready for winter wheat in Iowa, with its price from the US Crop Values report', async () => {
     const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', 'winter-wheat']);
-    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'winter-wheat' } } });
+    expect(result.status).toBe('ready');
+    if (result.status === 'ready') {
+      const wheat = result.data.find((e) => e.crop === 'winter-wheat')!;
+      expect(wheat.pricePerT.datasetIds).toEqual(['usda-nass-crop-values-2025']);
+    }
   });
 
   it('is ready for every Poznań crop that R8 sourced', async () => {

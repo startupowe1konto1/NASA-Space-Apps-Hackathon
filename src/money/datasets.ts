@@ -8,7 +8,8 @@ export const datasets: Dataset[] = [
   {
     id: 'usda-nass-quickstats-yields', name: 'USDA NASS Quick Stats: Story County and Iowa yields', provider: 'USDA NASS',
     url: 'https://quickstats.nass.usda.gov/', nasa: false,
-    resolution: 'county (maize and soybean), state (oats and alfalfa)', period: '2021–2025 mean',
+    resolution: 'county (maize and soybean), state (oats, alfalfa and winter wheat)',
+    period: '2021–2025 mean; winter wheat 2022 (Census of Agriculture), as NASS has no Iowa survey yield after 2018',
     kind: 'observation',
   },
   {
@@ -16,6 +17,11 @@ export const datasets: Dataset[] = [
     url: 'https://quickstats.nass.usda.gov/', nasa: false, resolution: 'state (Iowa)',
     period: '2025 marketing year (maize and soybean Sep 2025 to Aug 2026, maize preliminary; oats Jul 2025 to Jun 2026; alfalfa hay Jun 2025 to May 2026)',
     kind: 'observation',
+  },
+  {
+    id: 'usda-nass-crop-values-2025', name: 'USDA NASS Crop Values 2025 Summary: United States prices received', provider: 'USDA NASS',
+    url: 'https://esmis.nal.usda.gov/sites/default/release-files/795791/cpvl0226.pdf', nasa: false, resolution: 'United States',
+    period: '2025 marketing year (United States), winter wheat; NASS publishes no Iowa wheat price', kind: 'observation',
   },
   {
     id: 'isu-agdm-a1-20', name: 'Estimated Costs of Crop Production in Iowa – 2026 (Ag Decision Maker A1-20)', provider: 'Iowa State University Extension',
@@ -84,6 +90,7 @@ export function roleOf(locator: string): MoneyRole | undefined {
 const SOURCE_PREFIXES: { prefix: string; id: string; role?: MoneyRole }[] = [
   { prefix: 'https://quickstats.nass.usda.gov/', role: 'yield', id: 'usda-nass-quickstats-yields' },
   { prefix: 'https://quickstats.nass.usda.gov/', role: 'price', id: 'usda-nass-quickstats-prices' },
+  { prefix: 'https://esmis.nal.usda.gov/sites/default/release-files/795791/', id: 'usda-nass-crop-values-2025' },
   { prefix: 'https://www.extension.iastate.edu/agdm/crops/pdf/a3-10', id: 'isu-agdm-a3-10' },
   { prefix: 'https://www.extension.iastate.edu/agdm/', id: 'isu-agdm-a1-20' },
   { prefix: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet', id: 'nrcs-ia-fy2026-booklet' },
