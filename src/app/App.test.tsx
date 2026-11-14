@@ -1,5 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { demoFields } from '../fixtures';
+import terms from '../steps/glossary/terms.en.json';
 import { App } from './App';
 import { t } from './i18n';
 import { canContinue, useAppStore } from './store';
@@ -73,6 +75,54 @@ describe('step shell on fixtures', () => {
     useAppStore.getState().setGoal('improveSoil');
     await waitFor(() => expect(order()).not.toEqual(before));
     expect(useAppStore.getState().analysis).toBe(analysis);
+  });
+});
+
+describe('glossary link', () => {
+  it('opens the glossary from the header and goes back to the same step', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Step 2 of 7');
+
+    const link = screen.getByRole('button', { name: 'Glossary' });
+    await user.click(link);
+    expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toHaveFocus();
+    expect(await screen.findByText(terms['soil-wetness-index'].explanation)).toBeInTheDocument();
+    expect(link).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
+    // The step stays mounted but hidden, so its local state (the map view) survives.
+    expect(screen.queryByRole('button', { name: demoFields.iowa.name })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: demoFields.iowa.name, hidden: true })).not.toBeVisible();
+
+    await user.click(screen.getByRole('button', { name: 'Back to step 2' }));
+    expect(await screen.findByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(screen.queryByText('Words used in this tool')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Step 2 of 7');
+    expect(screen.getByRole('button', { name: demoFields.iowa.name })).toBeVisible();
+    expect(link).toHaveFocus();
+  });
+
+  it('closes the glossary with Escape and returns focus to the link', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const link = screen.getByRole('button', { name: 'Glossary' });
+    await user.click(link);
+    expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(await screen.findByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(screen.queryByText('Words used in this tool')).not.toBeInTheDocument();
+    expect(link).toHaveAttribute('aria-expanded', 'false');
+    expect(link).toHaveFocus();
+  });
+
+  it('opens with the keyboard', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    screen.getByRole('button', { name: 'Glossary' }).focus();
+    await user.keyboard('{Enter}');
+    expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toBeInTheDocument();
   });
 });
 
