@@ -11,7 +11,7 @@ export function cropById(crops: CropTraits[], id: CropId): CropTraits {
   return crop;
 }
 
-const isWinterCrop = (crop: CropTraits) => crop.harvestMonth < crop.sowMonth;
+export const isWinterCrop = (crop: CropTraits) => crop.harvestMonth < crop.sowMonth;
 
 /**
  * True when `next` can be sown after `prev` is harvested. A spring crop is sown the calendar year after `prev`'s
@@ -24,7 +24,7 @@ export function canFollow(prev: CropTraits, next: CropTraits): boolean {
 }
 
 /** True when `month` lies between the crop's sowing and harvest months, wrapping over the new year. */
-const inSeason = (crop: CropTraits, month: number) =>
+export const inSeason = (crop: CropTraits, month: number) =>
   isWinterCrop(crop) ? month >= crop.sowMonth || month <= crop.harvestMonth : month >= crop.sowMonth && month <= crop.harvestMonth;
 
 const residueState = (crop: CropTraits): CoverState => (crop.residueCover === 'low' ? 'bare' : 'residue');
