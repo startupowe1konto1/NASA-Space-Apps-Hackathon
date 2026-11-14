@@ -4,8 +4,8 @@ NASA Space Apps Challenge 2026 (14–15 Nov 2026), theme "The Next Frontier".
 
 | | |
 |---|---|
-| Team | <team name> |
-| Local event | <local event> |
+| Team | Vibecodersi |
+| Local event | Poznań, Poland |
 | Challenge | <challenge number and name> |
 | App | <production URL> |
 | Presentation | <link> |

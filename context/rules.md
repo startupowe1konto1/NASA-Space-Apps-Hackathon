@@ -23,7 +23,7 @@ Sources:
 
 ## Still to check (open questions)
 
-- [ ] Exact submission deadline of our Local Event (hour on Sun 15 Nov).
+- [x] Submission deadline: Sun 15 Nov 2026, 23:59 Poznań time (CET).
 - [ ] Required submission fields (demo video length, slides, repo link, public visibility) from the Project Submission Guide.
 - [ ] Judging criteria and weights from the Judging and Awards Guide.
 - [ ] License / IP terms from the Participant Terms & Conditions.
