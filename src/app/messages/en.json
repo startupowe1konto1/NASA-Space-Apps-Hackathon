@@ -6,7 +6,7 @@
   "app.step.crops": "What grew there",
   "app.step.priorities": "Your priorities",
   "app.step.rotations": "Rotations for this field",
-  "app.step.money": "Money",
+  "app.step.money": "Income",
   "app.intro.text": "Find a crop rotation that keeps your soil healthy and copes with your local climate.",
   "app.intro.start": "Start",
   "app.back": "Back",
@@ -21,6 +21,6 @@
   "app.stepShort.crops": "Crops",
   "app.stepShort.priorities": "Priorities",
   "app.stepShort.rotations": "Rotations",
-  "app.stepShort.money": "Money",
+  "app.stepShort.money": "Income",
   "app.intro.eyebrow": "Crop rotation planner"
 }

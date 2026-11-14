@@ -103,6 +103,13 @@ describe('step order', () => {
     expect(screen.queryByText('Report for your advisor')).not.toBeInTheDocument();
   });
 
+  it('calls step 6 "Income" / "Dochody", not "Money" (the user named it in the review of the O4 redesign)', () => {
+    for (const key of ['app.step.money', 'app.stepShort.money'] as const) {
+      expect(textFor(key, 'en'), key).toBe('Income');
+      expect(textFor(key, 'pl'), key).toBe('Dochody');
+    }
+  });
+
   it('puts the goal after the field', async () => {
     const user = userEvent.setup();
     useAppStore.getState().addField(demoFields.iowa);
