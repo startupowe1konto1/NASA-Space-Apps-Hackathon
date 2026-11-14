@@ -5,6 +5,7 @@ import { t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { ConfidenceBadge, ScoreBar, SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName } from '../shared/cropName';
+import { TermText } from './TermText';
 
 export function ordinal(n: number): string {
   const tens = n % 100;
@@ -82,6 +83,9 @@ export function RotationCard(props: {
       <div className="grid gap-4">
         <ScoreBar label={t('steps.rotations.soilHealth')} score={r.soilHealth} basisText={t(r.soilHealth.basis)} />
         <ScoreBar label={t('steps.rotations.climate')} score={r.climateResilience} basisText={t(r.climateResilience.basis)} />
+        <p className="text-sm leading-relaxed text-slate-700">
+          <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
+        </p>
         {goal !== 'keepSoil' ? (
           total.status === 'ready' ? (
             <ScoreBar label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} basisText={t(total.data.basis)} />

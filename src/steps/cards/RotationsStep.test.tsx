@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { cropName } from '../shared/cropName';
+import { term } from '../glossary/useTerm';
 import type { Analysis, RotationOption } from '../../contracts';
 import { iowaAnalysis, poznanAnalysis } from '../../fixtures';
 import { RotationCard } from './RotationCard';
@@ -205,4 +206,18 @@ describe('RotationsStep', () => {
     const summary = await screen.findByRole('region', { name: /This field/ });
     expect(within(summary).getByText(new RegExp(reason))).toBeInTheDocument();
   });
+
+  it('explains the terms behind the numbers with glossary tooltips, in the summary and on every card', async () => {
+    readyWith(iowaAnalysis);
+    render(<RotationsStep />);
+    const about = (id: Parameters<typeof term>[0]) => t('ui.term.about', { label: term(id).label });
+    const summary = await screen.findByRole('region', { name: /This field/ });
+    for (const id of ['root-zone', 'soil-wetness-index', 'model-estimate'] as const) {
+      expect(within(summary).getByRole('button', { name: about(id) })).toBeInTheDocument();
+    }
+    for (const card of screen.getAllByRole('article')) {
+      expect(within(card).getByRole('button', { name: about('percentile-range') })).toBeInTheDocument();
+    }
+  });
 });
+

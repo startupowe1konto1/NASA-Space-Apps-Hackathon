@@ -2,6 +2,7 @@
 import { t } from '../../app/i18n';
 import type { Analysis, Dataset, Hazard, Sourced } from '../../contracts';
 import { SourcedNumber } from '../../ui-kit';
+import { TermText } from './TermText';
 
 const hazards: Hazard[] = ['drought', 'heat', 'frost'];
 
@@ -50,6 +51,12 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
       <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
         {t('steps.rotations.summary.title')}: {field.name}
       </h2>
+      <p className="text-sm leading-relaxed text-slate-700">
+        <TermText
+          code="steps.rotations.summary.droughtNote"
+          terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
+        />
+      </p>
       <dl>
         <Row label={t('steps.rotations.summary.droughtYears')} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
