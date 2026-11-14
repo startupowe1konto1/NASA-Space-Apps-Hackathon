@@ -1,4 +1,3 @@
 {
-  "steps.money.notLoaded": "Prices and payment rates are not loaded yet.",
-  "steps.report.placeholder": "Report for {field}, goal: {goal}. The printable report comes with task O2-B7."
+  "steps.money.notLoaded": "Prices and payment rates are not loaded yet."
 }
