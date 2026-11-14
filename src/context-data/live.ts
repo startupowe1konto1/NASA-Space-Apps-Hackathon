@@ -30,7 +30,7 @@ export interface LiveContextOptions {
   fetchImpl?: typeof fetch;
   /** Per request, for SSURGO, GAEZ and CropScape. Default 20 s. */
   timeoutMs?: number;
-  /** Per request, for SoilGrids. It took 13–102 s per point on 2026-11-14, so the default is 60 s. */
+  /** Per request, for SoilGrids. It took 13–102 s per point on 2026-11-14, so the default is 120 s (#122). */
   soilgridsTimeoutMs?: number;
   /** Our CropScape proxy, e.g. '/api/cropscape'. Without it a live field has no crop history (no-data). */
   cropscapeProxyUrl?: string;
@@ -168,7 +168,7 @@ export function createLiveContextProvider(options: LiveContextOptions): ContextP
 
   /**
    * Start the soil and suitability requests in the background, so their answers are cached by the time the engine
-   * asks (SoilGrids can take a minute). Errors are dropped here: they are not cached and the engine's own call retries.
+   * asks (SoilGrids can take up to two minutes). Errors are dropped here: they are not cached and the engine's own call retries.
    */
   function warm(field: Field): void {
     void (async () => {
