@@ -8,5 +8,7 @@
   "parcels.added": "Added parcel {teryt}.",
   "parcels.notFound": "No parcel has this number. Check it against your land register extract, including the region code before the dot.",
   "parcels.tap.none": "No parcel was found at that spot, so a 4 ha square was added instead.",
-  "parcels.tap.error": "GUGiK ULDK did not answer, so a 4 ha square was added instead."
+  "parcels.tap.error": "GUGiK ULDK did not answer, so a 4 ha square was added instead.",
+  "split.field.name": "{name} ({n})",
+  "merge.field.name": "{a} + {b}"
 }
