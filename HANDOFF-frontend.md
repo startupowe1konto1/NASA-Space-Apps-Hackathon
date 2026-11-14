@@ -1,6 +1,6 @@
 # Handoff v2: frontend changes after the Sat 14 Nov team call
 
-v1 (#155, Sat 22:30) was written from the Fathom transcript of the team call. This v2 (Sat 22:40 CET) adds the user's decisions, written after the call, step by step; where they differ from the transcript, the decisions win. The transcript is `context/meetings/2026-11-14-fathom-transcript.md` in PR #150 (still open; read it with `git show origin/o2/contract-fathom-transcript:context/meetings/2026-11-14-fathom-transcript.md`). Times in brackets, like (1:49), point to it.
+v1 (#155, Sat 22:30) was written from the Fathom transcript of the team call. This v2 (Sat 22:40 CET) adds the user's decisions, written after the call, step by step; where they differ from the transcript, the decisions win. The transcript is `context/meetings/2026-11-14-fathom-transcript.md` (merged in #160, which replaced #150). Times in brackets, like (1:49), point to it.
 
 This file covers the app UI only; the pitch part of the call is left out. `HANDOFF.md` (O1's state and working rules) still applies. Its v8 (#154) has the full analysis of step 6.
 
