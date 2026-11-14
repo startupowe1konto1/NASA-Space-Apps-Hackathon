@@ -88,12 +88,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   setGoal: (goal) => set({ goal }),
 
   addField: (field) =>
-    set((s) => ({
-      ...remember(s),
-      fields: [...s.fields.filter((f) => f.id !== field.id), field],
-      selectedFieldId: field.id,
-      analysis: { status: 'idle' },
-    })),
+    set((s) => {
+      // The same field, already selected (a second search near the Iowa demo field): nothing changes, so no undo
+      // step and no new analysis.
+      const existing = s.fields.find((f) => f.id === field.id);
+      if (s.selectedFieldId === field.id && existing && JSON.stringify(existing) === JSON.stringify(field)) return {};
+      return {
+        ...remember(s),
+        fields: [...s.fields.filter((f) => f.id !== field.id), field],
+        selectedFieldId: field.id,
+        analysis: { status: 'idle' },
+      };
+    }),
   updateField: (field) =>
     set((s) => ({
       ...remember(s),

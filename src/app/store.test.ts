@@ -77,6 +77,15 @@ describe('undo for field edits (the user, Sat 14 Nov: undo adding, selecting, cu
     expect(s().selectedFieldId).toBeNull();
   });
 
+  it('adds no undo step when the same field, already selected, is added again (a second search near Iowa)', () => {
+    s().addField(iowa);
+    s().addField(iowa);
+    s().addField({ ...iowa }); // same field from a new answer
+    expect(s().fieldHistory).toHaveLength(1);
+    s().undoFieldEdit();
+    expect(ids()).toEqual([]);
+  });
+
   it('takes back a selection, but a tap on the field already selected is not a step', () => {
     s().addField(iowa);
     s().addField(poznan);
