@@ -48,6 +48,8 @@ Team rules (from the discussion, see team notes):
 - Soil health is the core. Money (payments, costs, revenue) is an add-on and must not reorder the ranking by default. The team explicitly does not want a price or subsidy comparison site.
 - Recommendations come from the field's history, NASA climate risk, soil-health effects and, last, the money.
 - Show 3 best rotations plus the current one. The engine may score more.
+- **Data transparency** (added by O1, not yet covered by the concept). Every number on screen shows its source dataset, native resolution, time period and retrieval date, and says whether it is an observation, a model estimate or our own calculation. Missing data is shown as missing, never filled with invented values.
+- **The tool supports the farmer and does not replace them** (added by O1; the brief asks for this explicitly, see "What the challenge asks"). Each rotation card and the advisor report say so in plain words, and the information gaps and risks that need local review are part of every card, not a footnote.
 
 ### Farmer journey (7 steps)
 
