@@ -7,6 +7,9 @@
 import type { ClimateProfile, CropTraits, RotationOption, Score } from '../contracts';
 import { cropById } from './calendar';
 
+/** Water need class of a crop; optional on cover crops once [contract] #44 lands. */
+export type WaterNeed = NonNullable<CropTraits['waterNeed']>;
+
 /** Every message code this module emits, with the intended English text (task O3-B6 writes messages/en.json). */
 export const PRIORITY_MESSAGE_CODES = [
   'priority.basis.forage', //        "{forageYears} of {years} rotation years give forage: a forage crop or a grazed cover crop. Counted from crop traits."
@@ -39,7 +42,7 @@ export function waterScore(
   years: Years,
   crops: CropTraits[],
   climate: ClimateProfile,
-  waterNeedMm: Record<CropTraits['waterNeed'], number>,
+  waterNeedMm: Record<WaterNeed, number>,
 ): Score {
   const rain = new Map<string, number | null>();
   for (const m of climate.monthly) rain.set(`${m.year}-${m.month}`, m.rainMm);
@@ -54,6 +57,8 @@ export function waterScore(
     let yearCovered = 0;
     for (const y of years) {
       const crop = cropById(crops, y.crop);
+      const need = crop.waterNeed;
+      if (need === undefined) continue; // cover crops may carry no water need class (#44)
       const months: [number, number][] = [];
       if (crop.harvestMonth < crop.sowMonth) {
         for (let m = crop.sowMonth; m <= 12; m++) months.push([year - 1, m]);
@@ -69,7 +74,7 @@ export function waterScore(
       }
       const seasonRain = values.reduce<number>((a, b) => a + (b ?? 0), 0);
       yearChecked++;
-      if (seasonRain >= waterNeedMm[crop.waterNeed]) yearCovered++;
+      if (seasonRain >= waterNeedMm[need]) yearCovered++;
     }
     if (yearChecked > 0) perYear.push(yearCovered / yearChecked);
     checked += yearChecked;
