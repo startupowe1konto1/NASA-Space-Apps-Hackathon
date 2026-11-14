@@ -41,7 +41,7 @@
   },
   "percentile-range": {
     "label": "percentile range",
-    "explanation": "The spread from a bad year to a good year: one past year in ten fell below the low end, one above the high end."
+    "explanation": "A low and a high value that most years or soil samples fall between, leaving out the few most extreme cases at each end."
   },
   "model-estimate": {
     "label": "model estimate",

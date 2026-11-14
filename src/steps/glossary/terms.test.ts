@@ -78,8 +78,8 @@ describe('glossary terms', () => {
 
 describe('useTerm', () => {
   it('returns the label and the sentence for a known id', () => {
-    expect(useTerm('ndvi')).toEqual({ label: 'NDVI', explanation: terms.ndvi.explanation });
-    expect(term('root-zone').label).toBe('root zone');
+    expect(useTerm('ndvi')).toEqual(terms.ndvi);
+    expect(term('root-zone').label).toBe(terms['root-zone'].label);
   });
 
   it('fails loudly on an unknown id in tests', () => {

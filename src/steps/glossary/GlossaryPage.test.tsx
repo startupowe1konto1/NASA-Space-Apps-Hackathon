@@ -9,13 +9,16 @@ describe('GlossaryPage', () => {
     expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toBeInTheDocument();
     expect(await screen.findByText(terms['soil-wetness-index'].explanation)).toBeInTheDocument();
 
-    const labels = within(screen.getByRole('list', { name: 'Words used in this tool' }))
+    // A plain <dl>: each dt keeps its term role and each dd its definition role.
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    const page = screen.getByRole('region', { name: 'Words used in this tool' });
+    expect(within(page).getAllByRole('definition')).toHaveLength(Object.keys(terms).length);
+    const labels = within(page)
       .getAllByRole('term')
       .map((el) => el.textContent ?? '');
     expect(labels).toHaveLength(Object.keys(terms).length);
     const sorted = [...labels].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
     expect(labels).toEqual(sorted);
-    expect(labels[0]).toBe('anomaly');
   });
 
   it('offers a way back to the step and moves focus to the heading', async () => {

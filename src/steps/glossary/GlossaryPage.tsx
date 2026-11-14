@@ -23,9 +23,9 @@ export function GlossaryPage(props: { onBack?: () => void; backToStep?: number }
         {t('steps.glossary.title')}
       </h2>
       <p className="mt-2 text-slate-700">{t('steps.glossary.intro')}</p>
-      <dl aria-labelledby={headingId} role="list" className="mt-4 divide-y divide-slate-200">
+      <dl className="mt-4 divide-y divide-slate-200">
         {entries.map((entry) => (
-          <div key={entry.id} id={`term-${entry.id}`} role="listitem" className="py-3">
+          <div key={entry.id} id={`term-${entry.id}`} className="py-3">
             <dt className="font-semibold first-letter:uppercase">{entry.label}</dt>
             <dd className="mt-1 leading-relaxed">{entry.explanation}</dd>
           </div>
