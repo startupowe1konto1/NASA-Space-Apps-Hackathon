@@ -154,13 +154,28 @@ export interface Priorities { goal: GoalId; on: PriorityId[]; excludedCrops: Cro
 // ---------- field profile (NASA data) ----------
 export type Hazard = 'drought' | 'heat' | 'frost';
 export interface MonthlyRisk { month: number; hazard: Hazard; probability: Sourced } // share of the 45 years, 0–1
-export interface FieldProfile {
+export interface ClimateProfile {                    // what the ProfileProvider returns (NASA POWER, later SMAP)
+  monthly: { year: number; month: number; rootWetness: Sourced; rainMm: Sourced; tMaxC: Sourced; frostDays: Sourced; evapotranspirationMm: Sourced }[];
   monthlyRisk: MonthlyRisk[];                       // 12 months x 3 hazards
   yearly: { year: number; growingSeasonWetness: Sourced; hotDays: Sourced; frostDays: Sourced; rainMm: Sourced }[];
   droughtYears: number[];
   trends: { variable: string; direction: 'up' | 'down' | 'none'; perDecade: Sourced; significant: boolean }[];
-  soil: { sandPct: Sourced; clayPct: Sourced; organicCarbon: Sourced; ph: Sourced };
-  slopePct: Sourced;
+}
+export interface Soil { sandPct: Sourced; clayPct: Sourced; organicCarbon: Sourced; ph: Sourced }
+export interface FieldProfile extends ClimateProfile { soil: Soil; slopePct: Sourced } // joined by the engine
+
+// ---------- crop traits (data/crops/<country>.json, owner O4) ----------
+export interface SourceRef { title: string; url: string; locator: string }       // locator = page, table or section
+export interface CropTraits {
+  id: CropId; family: string; legume: boolean;
+  kind: 'cash' | 'cover' | 'perennial';
+  sowMonth: number; harvestMonth: number;          // harvestMonth < sowMonth means harvest in the next calendar year
+  sensitive: { hazard: Hazard; months: number[]; threshold: number; lossShare: number }[]; // lossShare 0-1 when the hazard hits
+  waterNeed: 'low' | 'medium' | 'high';
+  yieldResponseFactor: number;                     // FAO Ky
+  forage: boolean;
+  residueCover: 'low' | 'medium' | 'high';
+  sources: SourceRef[];                            // min 1
 }
 
 // ---------- rotations ----------
@@ -233,11 +248,12 @@ export type AsyncResult<T> =
 
 // ---------- providers (implemented by lanes, wired in src/app/providers.ts) ----------
 export interface AnalyzeInput { field: Field; cropHistory: CropYear[]; priorities: Priorities }
-export interface ProfileProvider { getProfile(field: Field): Promise<FieldProfile> }
+export interface ProfileProvider { getClimate(field: Field): Promise<ClimateProfile> }
 export interface ContextProvider {
+  getCrops(country: Country): Promise<CropTraits[]>;
   getCropHistory(field: Field): Promise<AsyncResult<CropYear[]>>;
   getSuitability(field: Field, crops: CropId[]): Promise<Record<CropId, Sourced>>;
-  getSoil(field: Field): Promise<FieldProfile['soil']>;
+  getSoil(field: Field): Promise<Soil>;
   getSlope(field: Field): Promise<Sourced>;
 }
 export interface TwinsProvider { getTwins(field: Field, profile: FieldProfile, rotation: RotationOption['years']): Promise<AsyncResult<TwinEvidence>> }
