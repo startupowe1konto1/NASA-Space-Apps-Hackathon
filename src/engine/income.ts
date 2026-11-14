@@ -55,7 +55,29 @@ export const INCOME_MESSAGE_CODES = [
   'gap.crop-after-itself-not-priced',
   // "No sourced seed and sowing cost for {crop}, so its cost is left out of the income."
   'gap.cover-cost-missing',
+  // "Every past year is a total loss for {crop} under its hazard checks, so its income cannot be replayed."
+  'income.total-loss-every-year',
+  // "{crop}: the hazard checks lose much more than the recent harvests show, so each replayed year is scaled up {factor}
+  // times ..."
+  'gap.income-calibration-large',
 ] as const;
+
+/**
+ * Team guard (not a sourced value, #100 review): above this calibration factor (reference yield / mean relative
+ * yield) the income names a gap for the crop. The yields are never capped.
+ */
+export const CALIBRATION_GAP_FACTOR = 1.25;
+
+/** Thrown by `yearlyYield` when every replayed year is a total loss, so there is nothing to calibrate. */
+export class TotalLossError extends Error {
+  constructor(readonly crop: CropId) {
+    super(`income: every replayed year is a total loss for '${crop}'`);
+    this.name = 'TotalLossError';
+  }
+}
+
+/** Mean relative yield (1 - loss) over the replayed years, before calibration. */
+const meanRelativeYield = (rows: { loss: number }[]) => rows.reduce((a, r) => a + (1 - r.loss), 0) / rows.length;
 
 const RANGE_BASIS = '10th–90th percentile year of the record, at today’s prices';
 
@@ -74,7 +96,7 @@ export interface YearYield {
 /**
  * Yield of one crop in each record year, calibrated so the mean over the replayed years is the reference yield. A
  * year in which every check of the crop is missing is left out (never filled). A crop with no sensitive months gets
- * the reference yield in every record year. When every replayed year is a total loss the yields stay 0. Throws when the
+ * the reference yield in every record year. Throws a TotalLossError when every replayed year is a total loss, and when the
  * crop is drought-sensitive and has no yield response factor (cover crops may lack one; income uses main crops only).
  * `hits` is the crop's `yearlyHitsDetailed` result when the caller already has it.
  */
@@ -83,7 +105,7 @@ export function yearlyYield(
   climate: ClimateProfile,
   referenceYieldTPerHa: number,
   droughtPercentile: number,
-  heatMinDays = 1,
+  heatMinDays: number,
   hits: ReturnType<typeof yearlyHitsDetailed> = yearlyHitsDetailed(crop, climate, droughtPercentile, heatMinDays),
 ): YearYield[] {
   const years = recordYears(climate);
@@ -113,8 +135,10 @@ export function yearlyYield(
     const loss = Math.min(1, drought + other);
     out.push({ year, yieldTPerHa: 1 - loss, loss }); // relative yield until calibrated below
   }
-  const meanRelative = out.reduce((a, r) => a + r.yieldTPerHa, 0) / (out.length || 1);
-  const scale = meanRelative > 0 ? referenceYieldTPerHa / meanRelative : 0;
+  if (out.length === 0) return out;
+  const meanRelative = meanRelativeYield(out);
+  if (meanRelative <= 0) throw new TotalLossError(crop.id);
+  const scale = referenceYieldTPerHa / meanRelative;
   for (const r of out) r.yieldTPerHa *= scale;
   return out;
 }
@@ -149,7 +173,7 @@ export function incomeEstimate(
   currency: MoneyEstimate['currency'],
   campaign: string,
   droughtPercentile: number,
-  heatMinDays = 1,
+  heatMinDays: number,
 ): AsyncResult<IncomeResult> {
   const mainIds: CropId[] = [...new Set(years.map((y) => y.crop))];
 
@@ -157,6 +181,7 @@ export function incomeEstimate(
   const datasetIds = new Set<string>(climate.source.datasetIds);
   const dates: string[] = [climate.source.retrievedAt];
   let complete = true;
+  const calibrationGaps: Message[] = [];
 
   for (const id of mainIds) {
     const econ = economics.find((e) => e.crop === id);
@@ -170,8 +195,13 @@ export function incomeEstimate(
     let rows: YearYield[];
     try {
       rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile, heatMinDays, hits);
-    } catch {
+    } catch (e) {
+      if (e instanceof TotalLossError) return { status: 'no-data', reason: { code: 'income.total-loss-every-year', params: { crop: id } } };
       return { status: 'no-data', reason: { code: 'income.no-yield-response', params: { crop: id } } };
+    }
+    if (rows.length > 0) {
+      const factor = 1 / meanRelativeYield(rows);
+      if (factor > CALIBRATION_GAP_FACTOR) calibrationGaps.push({ code: 'gap.income-calibration-large', params: { crop: id, factor: round(factor, 2) } });
     }
     if (hits.missing.length > 0) complete = false;
 
@@ -210,7 +240,7 @@ export function incomeEstimate(
   }
   if (perYearMargins.length === 0) return { status: 'no-data', reason: { code: 'income.no-climate-years' } };
 
-  const gaps: Message[] = [...coverGaps];
+  const gaps: Message[] = [...coverGaps, ...calibrationGaps];
   // A main crop right after itself, wrapping round the rotation (issue #98): priced as if it followed another crop.
   const afterItself = new Set<CropId>();
   years.forEach((y, i) => {
