@@ -32,9 +32,11 @@ export const demoFields: { iowa: Field; poznan: Field } = {
     id: 'demo-iowa',
     name: 'Iowa demo field',
     country: 'US',
-    polygon: rectangle(42.03, -93.63, 750, 400), // 750 m x 400 m = 30 ha
-    centroid: { lat: 42.03, lon: -93.63 },
-    areaHa: 30,
+    // Story County, Iowa, between Ames and Nevada. CropScape CDL at the centroid: corn in even years and soybeans in
+    // odd years, 2008-2025 (task O4-A1). The rectangle stays inside one CDL field in 2021 and 2025.
+    polygon: rectangle(42.0305, -93.497, 600, 400), // 600 m x 400 m = 24 ha
+    centroid: { lat: 42.0305, lon: -93.497 },
+    areaHa: 24,
   },
   poznan: {
     id: 'demo-poznan',
