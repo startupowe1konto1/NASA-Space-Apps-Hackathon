@@ -51,7 +51,11 @@ export function MapStep() {
     if (field) mapRef.current?.flyTo(field);
   }, [selectedFieldId]);
 
-  const pickDemo = (field: Field) => addField(field);
+  // A second tap on the same demo button does not change the selection, so fly here as well.
+  const pickDemo = (field: Field) => {
+    addField(field);
+    mapRef.current?.flyTo(field);
+  };
 
   const retryTiles = () => {
     setTilesFailed(false);

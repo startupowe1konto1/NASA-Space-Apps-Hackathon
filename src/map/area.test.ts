@@ -28,9 +28,10 @@ describe('areaHa', () => {
     expect(Math.abs(areaHa(square(52, 17, 100)) - 1)).toBeLessThan(0.01);
   });
 
-  it('matches the demo fields: Iowa about 30 ha, Poznań about 8 ha', () => {
-    expect(Math.abs(areaHa(demoFields.iowa.polygon) - 30) / 30).toBeLessThan(0.01);
-    expect(Math.abs(areaHa(demoFields.poznan.polygon) - 8) / 8).toBeLessThan(0.01);
+  it('matches the stated area of each demo field within 1%', () => {
+    for (const field of Object.values(demoFields)) {
+      expect(Math.abs(areaHa(field.polygon) - field.areaHa) / field.areaHa).toBeLessThan(0.01);
+    }
   });
 
   it('gives the same area for a clockwise ring', () => {

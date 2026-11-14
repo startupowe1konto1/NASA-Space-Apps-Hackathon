@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { canContinue, useAppStore } from '../app/store';
+import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
 import type { MapHandlers } from './leafletMap';
 
@@ -44,19 +45,29 @@ describe('MapStep', () => {
     await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
 
     const fields = screen.getByRole('list', { name: 'Your fields' });
-    await within(fields).findByText('Iowa demo field, 30.0 ha');
+    await within(fields).findByText(`${demoFields.iowa.name}, ${demoFields.iowa.areaHa.toFixed(1)} ha`);
     expect(useAppStore.getState().addField).toHaveBeenCalledWith(
       expect.objectContaining({ country: 'US', polygon: expect.objectContaining({ type: 'Polygon' }) }),
     );
     expect(canContinue(useAppStore.getState())).toBe(true);
-    await waitFor(() => expect(leaflet.controller.flyTo).toHaveBeenCalledWith(expect.objectContaining({ id: 'demo-iowa' })));
+    await waitFor(() => expect(leaflet.controller.flyTo).toHaveBeenCalledWith(expect.objectContaining({ id: demoFields.iowa.id })));
+  });
+
+  it('flies to the demo field again when its button is tapped a second time', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    await waitFor(() => expect(leaflet.controller.flyTo).toHaveBeenCalled());
+    const before = leaflet.controller.flyTo.mock.calls.length;
+    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    expect(leaflet.controller.flyTo.mock.calls.length).toBeGreaterThan(before);
   });
 
   it('adds the Poznań demo field with country PL', async () => {
     const user = userEvent.setup();
     render(<MapStep />);
     await user.click(screen.getByRole('button', { name: 'Poznań demo field' }));
-    await screen.findByText('Poznań demo field, 8.0 ha');
+    await screen.findByText(`${demoFields.poznan.name}, ${demoFields.poznan.areaHa.toFixed(1)} ha`);
     expect(useAppStore.getState().addField).toHaveBeenCalledWith(expect.objectContaining({ country: 'PL' }));
     expect(canContinue(useAppStore.getState())).toBe(true);
   });
@@ -83,7 +94,7 @@ describe('MapStep', () => {
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/map tiles did not answer/);
     await user.click(screen.getByRole('button', { name: 'Poznań demo field' }));
-    await screen.findByText('Poznań demo field, 8.0 ha');
+    await screen.findByText(`${demoFields.poznan.name}, ${demoFields.poznan.areaHa.toFixed(1)} ha`);
 
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(leaflet.controller.retryTiles).toHaveBeenCalled();
