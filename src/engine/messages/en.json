@@ -56,6 +56,7 @@
   "gap.suitability-error": "FAO GAEZ suitability could not be loaded, so no crop was checked for suitability.",
   "gap.rule-missing": "Not scored for this rotation: {indicator}. No sourced rule covers every crop in it yet.",
   "gap.soil-compared-shared": "Ranked on {shared}, the indicators scored for both this rotation and yours.",
+  "gap.soil-totalled-shared": "The soil health total counts only {shared}, the indicators scored for every rotation on this field, so the cards can be compared. {left} is scored here but left out of the total.",
   "gap.humus-medium-class": "Organic matter uses the coefficients for medium soil. Your soil class may differ.",
   "gap.erosion-rye-row": "For the cereal rye cover, erosion uses the soil loss rate for maize sown without tillage into a rye cover.",
   "gap.leaching-not-counted": "Nitrogen does not count nitrate lost to leaching in bare months. No sourced leaching rule yet.",

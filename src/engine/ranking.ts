@@ -1,6 +1,7 @@
 // Totals per goal and the shown rotations (SPEC section 7 "Total and ranking by goal", section 8, DECISIONS D9, D20 a).
 // Pure functions: the scores come in, the ranks, the soil floor and the shown lists go out.
 import type { AsyncResult, GoalId, IndicatorId, PriorityId, RotationOption, Score } from '../contracts';
+import { INDICATOR_LABEL } from './messages';
 import type { EngineRules, GoalWeights } from './rules';
 
 type Years = RotationOption['years'];
@@ -214,4 +215,49 @@ export function rankSoil(c: SoilParts, cur: SoilParts, weightOf: (id: IndicatorI
     shared,
     partial,
   };
+}
+
+const INDICATOR_ORDER: IndicatorId[] = ['nitrogen', 'organicMatter', 'erosion', 'pestBreak'];
+
+/**
+ * Soil-health totals for the cards of one field over one indicator set (#105 item 7). A crop without a sourced rule
+ * leaves an indicator out of its rotation, so the own totals would average different sets (nitrogen drops out for
+ * red clover) and two cards side by side could not be compared. `shared` = the indicators scored for every card that
+ * is not the cover-only stand-in; each such card's total is the weighted mean over them (`weightOf` gives the priority
+ * doubling), and `dropped` names the card's own indicators left out of it. A card whose set already equals `shared`
+ * keeps its total. With no shared indicator, each card keeps its own total, marked weak.
+ */
+export function fieldSoilTotals(
+  cands: { id: string; coverOnly: boolean; soilHealth: Score; indicators: Partial<Record<IndicatorId, Score>> }[],
+  weightOf: (id: IndicatorId) => number,
+): { shared: IndicatorId[]; totals: Record<string, { score: Score; dropped: IndicatorId[] }> } {
+  const scored = cands.filter((c) => !c.coverOnly);
+  const shared = INDICATOR_ORDER.filter((id) => scored.length > 0 && scored.every((c) => c.indicators[id] !== undefined));
+  const totals: Record<string, { score: Score; dropped: IndicatorId[] }> = {};
+  for (const c of cands) {
+    const own = INDICATOR_ORDER.filter((id) => c.indicators[id] !== undefined);
+    const dropped = own.filter((id) => !shared.includes(id));
+    if (c.coverOnly || dropped.length === 0) {
+      totals[c.id] = { score: c.soilHealth, dropped: [] };
+      continue;
+    }
+    if (shared.length === 0) {
+      totals[c.id] = { score: { ...c.soilHealth, confidence: 'weak' }, dropped: [] };
+      continue;
+    }
+    const ws = shared.reduce((a, id) => a + weightOf(id), 0);
+    const mean = (k: 'value' | 'low' | 'high') => round1(shared.reduce((a, id) => a + weightOf(id) * c.indicators[id]![k], 0) / ws);
+    const notCounted = INDICATOR_ORDER.filter((id) => !shared.includes(id)).map((id) => INDICATOR_LABEL[id]);
+    totals[c.id] = {
+      score: {
+        ...c.soilHealth,
+        value: mean('value'),
+        low: mean('low'),
+        high: mean('high'),
+        basis: { code: 'soil.basis.total', params: { indicators: shared.length, missing: notCounted.join(', ') } },
+      },
+      dropped,
+    };
+  }
+  return { shared, totals };
 }

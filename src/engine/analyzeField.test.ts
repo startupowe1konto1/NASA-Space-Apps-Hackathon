@@ -231,15 +231,18 @@ describe('analyzeField with fixture providers', () => {
     expect(emptyReason(await analyzeField(none, fixtureProviders), none)?.code).toBe('empty.no-history');
   });
 
-  it('ranks soil over the indicators a rotation shares with the current one, and says so', async () => {
+  // #105 item 7: every card of a field totals soil health over the same indicators, so the totals compare.
+  it('totals soil health over the indicators every rotation has, and names the ones left out', async () => {
     const withRules = createAnalyzeField({ rules: shippedRules });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const current = a.rotations.find((r) => r.isCurrent)!;
-    const currentSet = Object.keys(current.indicators);
-    for (const r of a.rotations.filter((x) => !x.isCurrent)) {
-      const own = Object.keys(r.indicators);
-      const partial = currentSet.some((id) => !own.includes(id)) || own.some((id) => !currentSet.includes(id));
-      expect(r.gaps.some((g) => g.code === 'gap.soil-compared-shared')).toBe(partial);
+    const sets = a.rotations.map((r) => Object.keys(r.indicators));
+    const shared = sets[0]!.filter((id) => sets.every((s) => s.includes(id)));
+    expect(shared.length).toBeGreaterThan(0);
+    for (const r of a.rotations) {
+      expect(r.soilHealth.basis.params?.indicators).toBe(shared.length);
+      const dropped = Object.keys(r.indicators).length > shared.length;
+      expect(r.gaps.some((g) => g.code === 'gap.soil-totalled-shared')).toBe(dropped);
     }
     const missing = [...codes(a)].filter((c) => !(c in en) && !c.startsWith('fx.'));
     expect(missing).toEqual([]);

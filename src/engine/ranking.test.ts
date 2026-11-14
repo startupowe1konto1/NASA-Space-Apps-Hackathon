@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Score } from '../contracts';
-import { changedYears, goalTotal, mainCropKey, rankByGoal, rankSoil, type Scored } from './ranking';
+import { changedYears, fieldSoilTotals, goalTotal, mainCropKey, rankByGoal, rankSoil, type Scored } from './ranking';
 import { engineRules, shippedRules } from './rules';
 
 const rules = engineRules(shippedRules);
+const round1 = (x: number) => Math.round(x * 10) / 10;
 const s = (value: number): Score => ({ value, low: value, high: value, confidence: 'strong', basis: { code: 'test' } });
 
 const item = (id: string, years: Scored['years'], soil: number, climate: number, isCurrent = false): Scored => ({
@@ -194,5 +195,37 @@ describe('rankSoil: soil compared with the current rotation over shared indicato
     expect(r.items.find((x) => x.id === 'a')!.belowSoilFloor).toBe(true);
     const t = r.items.find((x) => x.id === 'a')!.totals.keepSoil;
     expect(t.status === 'ready' && t.data.value).toBeCloseTo((0.4 * 30 + 0.45 * 60) / 0.85, 1);
+  });
+});
+
+// #105 item 7: the totals on the cards of one field average the same indicators, so they can be compared.
+describe('fieldSoilTotals: one indicator set for every card of a field', () => {
+  const sc = (value: number, low = value, high = value): Score => ({ value, low, high, confidence: 'moderate', basis: { code: 'soil.basis.total-complete' } });
+  const a = { id: 'a', coverOnly: false, soilHealth: sc(40), indicators: { nitrogen: sc(10), erosion: sc(50, 40, 60), pestBreak: sc(60, 50, 70) } };
+  const b = { id: 'b', coverOnly: false, soilHealth: sc(70), indicators: { erosion: sc(60, 55, 65), pestBreak: sc(80, 70, 90) } };
+
+  it('totals every card over the indicators scored for all of them, with the priority weights', () => {
+    const r = fieldSoilTotals([a, b], (id) => (id === 'erosion' ? 2 : 1));
+    expect(r.shared).toEqual(['erosion', 'pestBreak']);
+    expect(r.totals.a!.score).toMatchObject({ value: round1((2 * 50 + 60) / 3), low: round1((2 * 40 + 50) / 3), high: round1((2 * 60 + 70) / 3) });
+    expect(r.totals.a!.dropped).toEqual(['nitrogen']);
+    expect(r.totals.a!.score.basis).toEqual({ code: 'soil.basis.total', params: { indicators: 2, missing: 'nitrogen, organic matter' } });
+    expect(r.totals.b!.dropped).toEqual([]);
+    expect(r.totals.b!.score).toEqual(b.soilHealth); // its own set is the shared set: its total already is over it
+  });
+
+  it('leaves the totals alone when every card has the same indicators', () => {
+    const r = fieldSoilTotals([b, { ...b, id: 'c' }], () => 1);
+    expect(r.totals.b!.score).toEqual(b.soilHealth);
+    expect(r.totals.b!.dropped).toEqual([]);
+  });
+
+  it('never touches a cover-only stand-in, and keeps the own total, weak, when no indicator is shared', () => {
+    const cover = { id: 'k', coverOnly: true, soilHealth: sc(33), indicators: {} };
+    const n = { id: 'n', coverOnly: false, soilHealth: sc(20), indicators: { nitrogen: sc(20) } };
+    const r = fieldSoilTotals([cover, n, b], () => 1);
+    expect(r.totals.k!.score).toEqual(cover.soilHealth);
+    expect(r.shared).toEqual([]);
+    expect(r.totals.n!.score).toMatchObject({ value: 20, confidence: 'weak' });
   });
 });
