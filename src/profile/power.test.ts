@@ -151,7 +151,7 @@ describe('fetchPowerMonthly', () => {
   it('fetches the URL and parses the body', async () => {
     const fetchImpl = vi.fn(async () => new Response(JSON.stringify(sample), { status: 200 }));
     const p = await fetchPowerMonthly(42.0, -93.6, fetchImpl as unknown as typeof fetch);
-    expect(fetchImpl).toHaveBeenCalledWith(powerMonthlyUrl(42.0, -93.6));
+    expect(fetchImpl).toHaveBeenCalledWith(powerMonthlyUrl(42.0, -93.6), expect.objectContaining({ signal: expect.anything() }));
     expect(p.months).toHaveLength(540);
     expect(p.retrievedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
@@ -175,6 +175,47 @@ describe('fetchPowerMonthly', () => {
     const err = await fetchPowerMonthly(42.0, -93.6, fetchImpl as unknown as typeof fetch).catch((e) => e);
     expect(err).toBeInstanceOf(SourceError);
     expect(err.source).toBe('NASA POWER');
+  });
+});
+
+describe('review fixes', () => {
+  it('keeps the full 1981-2025 grid: a month missing from every parameter is a row of nulls', () => {
+    const body = clone();
+    for (const name of POWER_PARAMETERS) delete body.properties.parameter[name]['200007'];
+    const p = parsePowerMonthly(body, RETRIEVED);
+    expect(p.months).toHaveLength(540);
+    const m = p.months.find((r) => r.year === 2000 && r.month === 7)!;
+    expect(POWER_PARAMETERS.every((name) => m[name] === null)).toBe(true);
+  });
+
+  it('ignores years outside 1981-2025', () => {
+    const body = clone();
+    for (const name of POWER_PARAMETERS) body.properties.parameter[name]['198001'] = 1;
+    expect(parsePowerMonthly(body, RETRIEVED).months).toHaveLength(540);
+  });
+
+  it('throws SourceError when the units are not the ones the conversions assume', () => {
+    const body = clone();
+    body.parameters.PRECTOTCORR.units = 'mm/hour';
+    expect(() => parsePowerMonthly(body, RETRIEVED)).toThrow(SourceError);
+    const body2 = clone();
+    body2.parameters.EVPTRNS.units = 'W/m^2';
+    expect(() => parsePowerMonthly(body2, RETRIEVED)).toThrow(SourceError);
+  });
+
+  it('puts the first POWER message into the error when the body has no data', async () => {
+    const body = { messages: ['The POWER API is down for maintenance'], header: {} };
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify(body), { status: 200 }));
+    const err = await fetchPowerMonthly(42.0, -93.6, fetchImpl as unknown as typeof fetch).catch((e) => e);
+    expect(err).toBeInstanceOf(SourceError);
+    expect(err.message).toContain('down for maintenance');
+  });
+
+  it('maps a timeout to SourceError', async () => {
+    const fetchImpl = vi.fn(async () => { throw new DOMException('The operation timed out.', 'TimeoutError'); });
+    const err = await fetchPowerMonthly(42.0, -93.6, fetchImpl as unknown as typeof fetch).catch((e) => e);
+    expect(err).toBeInstanceOf(SourceError);
+    expect(err.message).toMatch(/did not answer within/);
   });
 });
 
