@@ -23,20 +23,29 @@ const YEARS = Array.from({ length: LAST - FIRST + 1 }, (_, i) => FIRST + i);
 const julyWetness = (year: number) => (((year - FIRST) * 17) % 45) + 1;
 const julyOf = (year: number) => julyWetness(year) / 100;
 
-/** The drought percentile of data/rules/hazards.json `hazards.drought.percentile` (D30). */
+/** The drought percentile of data/rules/hazards.json `hazards.drought.percentile` (D42). */
 const P20 = 20;
 
-// Iowa maize–soybean, computed once with the D30 rule and locked in.
-const IOWA_VALUE = 8.9;
+// Iowa maize–soybean, computed once with the D42 rule and locked in.
+const IOWA_VALUE = 57.8;
 const IOWA_LOW = 0;
-const IOWA_HIGH = 30;
+const IOWA_HIGH = 100;
+// 7 Julys (tied wetness values sit at the limit, which is not below it) and 9 Augusts of 45
+const IOWA_DROUGHT_JULY = 7;
+const IOWA_DROUGHT_AUGUST = 9;
+const IOWA_DROUGHT_MARKS: unknown[] = [
+  ['maize', 7, 0.156],
+  ['maize', 8, 0.2],
+  ['soybean', 8, 0.2],
+];
+const round3 = (x: number) => Math.round(x * 1000) / 1000;
 
 /**
  * A hand-made 45-year record with a dry summer. June and August wetness is 0.005 every year, July wetness is
  * distinct per year (0.01..0.45), every other month 0.5. tMax 20 °C and no frost days, unless `edit` changes them.
  *
- * Pooled over all 540 months (D30), the 20th percentile lies between the 108th and 109th lowest values: 90 dry
- * June/August months come first, so it falls between the 18th and 19th driest July (0.18 and 0.19), at 0.188.
+ * Per calendar month (D42), July's 20th percentile lies between its 9th and 10th lowest values (0.09 and 0.10), at
+ * 0.098, so 9 Julys are droughts. June and August are 0.005 every year, so their limit is 0.005 and none is.
  */
 function makeClimate(edit: (row: Row) => Row = (row) => row): ClimateProfile {
   const monthly: Row[] = [];
@@ -92,11 +101,12 @@ const coverC = testCrop({
 });
 const crops = [cropA, cropB, cropN, coverC];
 
-const dryJulyYears = YEARS.filter((y) => julyWetness(y) <= 18); // the 18 driest Julys, below 0.188
+const dryJulyYears = YEARS.filter((y) => julyWetness(y) <= 9); // the 9 driest Julys, below 0.098
 
-/** Independent check of D30: linear-interpolation percentile of every monthly wetness value in the record. */
-function pooledLimit(climate: ClimateProfile, p: number): number {
+/** Independent check of D42: linear-interpolation percentile of one calendar month's wetness over the record. */
+function monthLimit(climate: ClimateProfile, month: number, p: number): number {
   const sorted = climate.monthly
+    .filter((r) => r.month === month)
     .map((r) => r.rootWetness)
     .filter((v): v is number => v !== null)
     .sort((a, b) => a - b);
@@ -118,33 +128,35 @@ describe('RESILIENCE_MESSAGE_CODES', () => {
 });
 
 describe('droughtLimit', () => {
-  it('is the percentile of all monthly wetness values of the record, all months and years pooled (D30)', () => {
+  it('is the percentile of the same calendar month over every year of the record (D42)', () => {
     const climate = makeClimate();
-    expect(droughtLimit(climate, P20)).toBeCloseTo(0.188, 9);
-    expect(droughtLimit(climate, P20)).toBeCloseTo(pooledLimit(climate, P20), 12);
+    expect(droughtLimit(climate, 7, P20)).toBeCloseTo(0.098, 9);
+    expect(droughtLimit(climate, 7, P20)).toBeCloseTo(monthLimit(climate, 7, P20), 12);
+    expect(droughtLimit(climate, 6, P20)).toBe(0.005);
+    expect(droughtLimit(climate, 1, P20)).toBe(0.5);
   });
 
-  it('leaves missing months out and is null when the record has no wetness at all', () => {
-    const climate = makeClimate((row) => (row.month === 6 && row.year < 1991 ? { ...row, rootWetness: null } : row));
-    expect(droughtLimit(climate, P20)).toBeCloseTo(pooledLimit(climate, P20), 12);
-    expect(droughtLimit(makeClimate((row) => ({ ...row, rootWetness: null })), P20)).toBeNull();
+  it('leaves missing years out and is null when the month has no wetness in the record', () => {
+    const climate = makeClimate((row) => (row.month === 7 && row.year < 1991 ? { ...row, rootWetness: null } : row));
+    expect(droughtLimit(climate, 7, P20)).toBeCloseTo(monthLimit(climate, 7, P20), 12);
+    expect(droughtLimit(makeClimate((row) => (row.month === 7 ? { ...row, rootWetness: null } : row)), 7, P20)).toBeNull();
   });
 
   it('throws on a percentile outside 0..100 instead of falling back to a default', () => {
-    for (const p of [Number.NaN, -1, 101]) expect(() => droughtLimit(makeClimate(), p)).toThrow(/percentile/);
+    for (const p of [Number.NaN, -1, 101]) expect(() => droughtLimit(makeClimate(), 7, p)).toThrow(/percentile/);
   });
 });
 
 describe('yearlyHits', () => {
-  it('drought in July hits exactly the years below the 20th percentile of the whole record (D30)', () => {
+  it('drought in July hits exactly the years below the 20th percentile of all Julys (D42)', () => {
     const climate = makeClimate();
     const rows = yearlyHits(cropA, climate, P20);
     expect(rows).toHaveLength(45);
     expect(rows.every((r) => r.month === 7 && r.hazard === 'drought')).toBe(true);
 
-    const limit = pooledLimit(climate, P20);
+    const limit = monthLimit(climate, 7, P20);
     const expected = YEARS.filter((y) => julyOf(y) < limit);
-    expect(expected).toHaveLength(18);
+    expect(expected).toHaveLength(9);
 
     const hitYears = rows.filter((r) => r.hit).map((r) => r.year).sort((a, b) => a - b);
     expect(hitYears).toEqual(expected);
@@ -152,9 +164,9 @@ describe('yearlyHits', () => {
   });
 
   it('the percentile comes from the argument, not from the crop threshold', () => {
-    // 17th percentile pooled: h = 91.63, between the 92nd and 93rd lowest = July 0.02 and 0.03 → 2 years
+    // 17th percentile of the 45 Julys: h = 7.48, between the 8th and 9th lowest (0.08 and 0.09) → 8 years
     const rows = yearlyHits(cropA, makeClimate(), 17);
-    expect(rows.filter((r) => r.hit).map((r) => julyWetness(r.year)).sort((a, b) => a - b)).toEqual([1, 2]);
+    expect(rows.filter((r) => r.hit).map((r) => julyWetness(r.year)).sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
   });
 
   it('shortfallVsMedian is the shortfall against the July median in every year below it, hit or not', () => {
@@ -163,14 +175,14 @@ describe('yearlyHits', () => {
     const byWetness = (w: number) => rows.find((r) => julyWetness(r.year) === w)!;
     expect(byWetness(1).hit).toBe(true);
     expect(byWetness(1).shortfallVsMedian).toBeCloseTo((median - 0.01) / median, 9);
-    // 0.20 is above the drought limit 0.188 but below the median: no hit, still a shortfall
+    // 0.20 is above the drought limit 0.098 but below the median: no hit, still a shortfall
     expect(byWetness(20).hit).toBe(false);
     expect(byWetness(20).shortfallVsMedian).toBeCloseTo((median - 0.2) / median, 9);
     for (const r of rows.filter((x) => julyOf(x.year) >= median)) expect(r.shortfallVsMedian).toBe(0);
     expect(rows.filter((r) => (r.shortfallVsMedian ?? 0) > 0)).toHaveLength(22);
   });
 
-  it('heat hits when tMax is above the threshold, frost when frost days are above it; no shortfall', () => {
+  it('without daily values, heat hits when the monthly tMax is above the threshold; frost when frost days are above it', () => {
     const climate = makeClimate((row) => {
       if (row.month === 8 && row.year === 1990) return { ...row, tMaxC: 30.5 };
       if (row.month === 8 && row.year === 1991) return { ...row, tMaxC: 30 }; // equal: no hit
@@ -195,9 +207,9 @@ describe('yearlyHits', () => {
   });
 
   it('a month exactly at the limit is not a drought (strictly below the percentile, D26)', () => {
-    // no dry June/August: 495 of 540 values are 0.5, so the pooled 20th percentile is exactly 0.5
-    const climate = makeClimate((row) => (row.month === 7 ? row : { ...row, rootWetness: 0.5 }));
-    expect(droughtLimit(climate, P20)).toBe(0.5);
+    // every June is 0.5, so June's 20th percentile is exactly 0.5
+    const climate = makeClimate((row) => (row.month === 6 ? { ...row, rootWetness: 0.5 } : row));
+    expect(droughtLimit(climate, 6, P20)).toBe(0.5);
     const june = testCrop({ id: 'j', sensitive: [{ hazard: 'drought', months: [6], threshold: 20, lossShare: 0.3 }] });
     expect(yearlyHits(june, climate, P20).some((r) => r.hit)).toBe(false);
   });
@@ -210,27 +222,103 @@ describe('yearlyHits', () => {
     const rows = yearlyHits(cropA, climate, P20);
     expect(rows).toHaveLength(43);
     expect(rows.some((r) => missing.includes(r.year))).toBe(false);
-    const limit = pooledLimit(climate, P20);
+    const limit = monthLimit(climate, 7, P20);
     expect(rows.filter((r) => r.hit).map((r) => r.year)).toEqual(
       YEARS.filter((y) => !missing.includes(y) && julyOf(y) < limit),
     );
   });
 
-  it('fixture Iowa maize: drought in 25 of 45 Julys and 37 of 45 Augusts (D30)', () => {
+  it('fixture Iowa maize: drought in IOWA_DROUGHT_JULY of 45 Julys and IOWA_DROUGHT_AUGUST of 45 Augusts (D42)', () => {
     const rows = yearlyHits(fixtureCrops.US.find((c) => c.id === 'maize')!, iowaClimate, P20);
     const drought = (month: number) => rows.filter((r) => r.hazard === 'drought' && r.month === month);
     expect(drought(7)).toHaveLength(45);
-    expect(drought(7).filter((r) => r.hit)).toHaveLength(25);
-    expect(drought(8).filter((r) => r.hit)).toHaveLength(37);
+    expect(drought(7).filter((r) => r.hit)).toHaveLength(IOWA_DROUGHT_JULY);
+    expect(drought(8).filter((r) => r.hit)).toHaveLength(IOWA_DROUGHT_AUGUST);
+  });
+
+  it('a spring month can be a drought: dry Mays count against other Mays, not against the whole year (D42)', () => {
+    // every May is wetter than any other month, yet its driest years are droughts
+    const climate = makeClimate((row) => (row.month === 5 ? { ...row, rootWetness: 0.6 + julyOf(row.year) / 10 } : row));
+    const may = testCrop({ id: 'm', sensitive: [{ hazard: 'drought', months: [5], threshold: 20, lossShare: 0.3 }] });
+    expect(yearlyHits(may, climate, P20).filter((r) => r.hit)).toHaveLength(9);
+  });
+});
+
+describe('heat from daily maxima (D43)', () => {
+  /** August daily maxima: `hot` days at `t` °C, the rest of the 31 days at 25 °C. */
+  const august = (hot: number, t: number) => [...Array<number>(hot).fill(t), ...Array<number>(31 - hot).fill(25)];
+  const daily = (edit: (row: Row) => (number | null)[] | undefined) =>
+    makeClimate((row) => {
+      const d = edit(row);
+      return d === undefined ? row : { ...row, tMaxDailyC: d };
+    });
+
+  it('a month is hit when at least heatMinDays days are above the threshold', () => {
+    const climate = daily((row) => {
+      if (row.month !== 8) return undefined;
+      if (row.year === 1990) return august(3, 31); // 3 days above 30: hit
+      if (row.year === 1991) return august(2, 33); // only 2 days: no hit
+      if (row.year === 1992) return august(5, 30); // at the threshold, not above: no hit
+      return august(0, 25);
+    });
+    const hits = yearlyHits(cropB, climate, P20, 3);
+    expect(hits).toHaveLength(45);
+    expect(hits.filter((r) => r.hit).map((r) => r.year)).toEqual([1990]);
+    expect(yearlyHits(cropB, climate, P20, 2).filter((r) => r.hit).map((r) => r.year)).toEqual([1990, 1991]);
+  });
+
+  it('daily values win over the monthly maximum when both are there', () => {
+    const climate = daily((row) => (row.month === 8 ? august(1, 34) : undefined));
+    for (const row of climate.monthly) if (row.month === 8) row.tMaxC = 34;
+    expect(yearlyHits(cropB, climate, P20, 3).some((r) => r.hit)).toBe(false);
+    expect(yearlyHits(cropB, climate, P20, 1).every((r) => r.hit)).toBe(true);
+  });
+
+  it('a month whose daily list holds no value is missing, never safe', () => {
+    const climate = daily((row) => (row.month === 8 ? (row.year === 2000 ? [null, null] : august(0, 25)) : undefined));
+    const score = resilienceScore([{ crop: 'b' }], crops, climate, P20, 3);
+    expect(score.basis.params).toMatchObject({ count: 1, needed: 45 });
+    expect(yearlyHits(cropB, climate, P20, 3)).toHaveLength(44);
+  });
+
+  it('a daily list with some missing days counts the days it has', () => {
+    const climate = daily((row) => (row.month === 8 ? [31, 31, null, 31, ...Array<number | null>(27).fill(null)] : undefined));
+    expect(yearlyHits(cropB, climate, P20, 3).every((r) => r.hit)).toBe(true);
+    expect(yearlyHits(cropB, climate, P20, 4).some((r) => r.hit)).toBe(false);
+  });
+
+  it('heat marks cite the daily dataset; drought marks cite only the monthly one', () => {
+    const climate = daily((row) => (row.month === 8 ? august(4, 31) : undefined));
+    climate.source.datasetIds = ['nasa-power-monthly', 'nasa-power-daily'];
+    const cells: Cell[] = [
+      { yearIndex: 0, month: 7, crop: 'a', cover: 'crop' },
+      { yearIndex: 0, month: 8, crop: 'b', cover: 'crop' },
+    ];
+    const [july, aug] = withExposure(cells, crops, climate, 0.2, P20, 3);
+    expect(july!.exposure[0]!.probability.datasetIds).toEqual(['nasa-power-monthly']);
+    expect(aug!.exposure[0]!.probability.datasetIds).toEqual(['nasa-power-monthly', 'nasa-power-daily']);
+  });
+
+  it('throws on a minimum that is not a whole number of at least 1', () => {
+    for (const d of [0, 1.5, Number.NaN]) expect(() => yearlyHits(cropB, makeClimate(), P20, d)).toThrow(/minimum days/);
+  });
+
+  it('the calendar uses the same check, so marks and score agree', () => {
+    const hot = YEARS.slice(0, 12);
+    const climate = daily((row) => (row.month === 8 ? august(hot.includes(row.year) ? 4 : 1, 31) : undefined));
+    const cell: Cell = { yearIndex: 0, month: 8, crop: 'b', cover: 'crop' };
+    const [out] = withExposure([cell], crops, climate, 0.2, P20, 3);
+    expect(out!.exposure).toEqual([expect.objectContaining({ hazard: 'heat', probability: expect.objectContaining({ value: round3(12 / 45) }) })]);
+    expect(resilienceScore([{ crop: 'b' }], crops, climate, P20, 3).value).toBeCloseTo((33 / 45) * 100, 1);
   });
 });
 
 describe('resilienceScore', () => {
   it('value is the share of crop-years without a hit; low and high are the 10th and 90th percentile years', () => {
     const score = resilienceScore([{ crop: 'a' }, { crop: 'b' }], crops, scoreClimate(), P20);
-    // 90 crop-years, 18 drought hits for A and 10 heat hits for B, never in the same year: 62 / 90
-    expect(score.value).toBe(68.9);
-    // per-year shares: 28 years at 0.5, 17 years at 1.0 -> 10th pct 0.5, 90th pct 1.0
+    // 90 crop-years, 9 drought hits for A and 10 heat hits for B, never in the same year: 71 / 90
+    expect(score.value).toBe(78.9);
+    // per-year shares: 19 years at 0.5, 26 years at 1.0 -> 10th pct 0.5, 90th pct 1.0
     expect(score.low).toBe(50);
     expect(score.high).toBe(100);
     expect(score.confidence).toBe('strong');
@@ -254,7 +342,7 @@ describe('resilienceScore', () => {
       ],
     });
     const score = resilienceScore([{ crop: 'ab' }], [both], scoreClimate(), P20);
-    expect(score.value).toBe(37.8); // 17 of 45 years without drought or heat
+    expect(score.value).toBe(57.8); // 26 of 45 years without drought or heat
     expect(score.low).toBe(0);
     expect(score.high).toBe(100);
   });
@@ -328,12 +416,12 @@ describe('withExposure', () => {
 
     const rows = yearlyHits(cropA, climate, P20).filter((r) => r.month === 7 && r.hazard === 'drought');
     const share = rows.filter((r) => r.hit).length / rows.length;
-    expect(share).toBeCloseTo(0.4, 6);
+    expect(share).toBeCloseTo(0.2, 6);
     expect(marked[0]!.exposure).toEqual([
       {
         hazard: 'drought',
         probability: {
-          value: 0.4,
+          value: 0.2,
           unit: 'share of years',
           datasetIds: ['nasa-power-monthly'],
           kind: 'derived',
@@ -351,7 +439,7 @@ describe('withExposure', () => {
     expect(resilienceScore([{ crop: 'a' }], crops, climate, P20).value).toBeCloseTo((1 - share) * 100, 6);
   });
 
-  it('with markShare 0.2 a summer-sensitive crop gets a drought mark and a winter-sensitive crop does not (D30)', () => {
+  it('drought marks do not depend on markShare; a month with no drought year gets none (D42)', () => {
     const winter = testCrop({
       id: 'w',
       sowMonth: 10,
@@ -363,19 +451,22 @@ describe('withExposure', () => {
       { yearIndex: 0, month: 2, crop: 'w', cover: 'crop' },
       { yearIndex: 1, month: 7, crop: 'a', cover: 'crop' },
     ];
+    // January and February are 0.5 in every year: at the limit, so never a drought
     const out = withExposure(input, [...crops, winter], scoreClimate(), 0.2, P20);
     expect(out[0]!.exposure).toEqual([]);
     expect(out[1]!.exposure).toEqual([]);
-    expect(out[2]!.exposure.map((e) => [e.hazard, e.probability.value])).toEqual([['drought', 0.4]]);
+    expect(out[2]!.exposure.map((e) => [e.hazard, e.probability.value])).toEqual([['drought', 0.2]]);
+    expect(withExposure(input, [...crops, winter], scoreClimate(), 0.9, P20)[2]!.exposure).toHaveLength(1);
   });
 
-  it('no mark when the share equals markShare (strictly above)', () => {
-    const out = withExposure(cells(), crops, scoreClimate(), 0.4, P20);
-    expect(out.every((m) => m.exposure.length === 0)).toBe(true);
+  it('no heat or frost mark when the share equals markShare (strictly above)', () => {
+    const cell: Cell = { yearIndex: 0, month: 8, crop: 'b', cover: 'crop' };
+    expect(withExposure([cell], crops, scoreClimate(), 10 / 45, P20)[0]!.exposure).toEqual([]);
+    expect(withExposure([cell], crops, scoreClimate(), 9 / 45, P20)[0]!.exposure).toHaveLength(1);
   });
 
   it('marks a cover crop in a sensitive month; residue, bare and insensitive cells get none', () => {
-    // September as dry as July: 180 low values pooled, the limit falls between 0.09 and 0.10, 9 of 45 years
+    // September as dry as July: its own limit falls between 0.09 and 0.10, 9 of 45 years
     const climate = makeClimate((row) => (row.month === 9 ? { ...row, rootWetness: julyOf(row.year) } : row));
     const input: Cell[] = [
       { yearIndex: 0, month: 9, crop: 'c', cover: 'cover-crop' },
@@ -391,14 +482,14 @@ describe('withExposure', () => {
   });
 
   it('works on a real calendar with fixture crops and the Iowa climate', () => {
-    // maize drought: July 25/45 = 0.556, August 37/45 = 0.822; soybean drought in August 37/45
+    // drought is marked wherever a sensitive month has a drought year (D42); heat and frost above markShare
     const { months } = buildCalendar([{ crop: 'maize' }, { crop: 'soybean', coverCrop: 'cereal-rye' }], fixtureCrops.US);
     const out = withExposure(months, fixtureCrops.US, iowaClimate, 0.2, P20);
     expect(out).toHaveLength(24);
     for (const m of out) {
       for (const e of m.exposure) {
         expect(m.crop).toBeDefined();
-        expect(e.probability.value!).toBeGreaterThan(0.2);
+        expect(e.probability.value!).toBeGreaterThan(e.hazard === 'drought' ? 0 : 0.2);
         const crop = fixtureCrops.US.find((c) => c.id === m.crop)!;
         expect(crop.sensitive.some((s) => s.hazard === e.hazard && s.months.includes(m.month))).toBe(true);
       }
@@ -406,10 +497,6 @@ describe('withExposure', () => {
     const droughtMarks = out
       .filter((m) => m.exposure.some((e) => e.hazard === 'drought'))
       .map((m) => [m.crop, m.month, m.exposure.find((e) => e.hazard === 'drought')!.probability.value]);
-    expect(droughtMarks).toEqual([
-      ['maize', 7, 0.556],
-      ['maize', 8, 0.822],
-      ['soybean', 8, 0.822],
-    ]);
+    expect(droughtMarks).toEqual(IOWA_DROUGHT_MARKS);
   });
 });

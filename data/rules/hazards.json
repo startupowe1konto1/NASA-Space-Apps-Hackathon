@@ -2,11 +2,11 @@
   {
     "id": "hazards.drought.percentile",
     "value": 20,
-    "unit": "percentile of the field's own monthly root-zone wetness (NASA POWER GWETROOT), all years of the record",
+    "unit": "percentile of the field's own root-zone wetness (NASA POWER GWETROOT) for the same calendar month, all years of the record (D42)",
     "appliesTo": "drought check for every crop in its sensitive months; a month below this percentile counts as drought",
     "sourceTitle": "borrowed from U.S. Drought Monitor, Drought Classification",
     "sourceUrl": "https://droughtmonitor.unl.edu/About/AbouttheData/DroughtClassification.aspx",
-    "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00. The Drought Monitor applies percentiles to its own indicators; applying the D1 bound to NASA POWER root-zone wetness (GWETROOT) is our mapping",
+    "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00, listed next to SPI/SPEI values. The Drought Monitor applies percentiles to its own indicators; applying the D1 bound to NASA POWER root-zone wetness (GWETROOT) is our mapping. Same calendar month (D42): WMO SPI User Guide (WMO-No. 1090, 2012), PDF p. 13, 'a 1-month SPI at the end of November compares ... November in that particular year with the November precipitation totals of all the years on record'; excerpt in data/samples/rules/wmo-spi-user-guide-2012.txt",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
   },
   {
@@ -22,12 +22,22 @@
   {
     "id": "hazards.heat.indicator",
     "value": "T2M_MAX",
-    "unit": "NASA POWER parameter id, °C",
-    "appliesTo": "heat check against each crop's own threshold in data/crops",
-    "sourceTitle": "NASA POWER parameter dictionary (community AG, monthly)",
-    "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=FROST_DAYS,T2M_MAX,GWETROOT&temporal=monthly",
-    "sourceLocator": "T2M_MAX 'Temperature at 2 Meters Maximum': maximum hourly air temperature in the period",
-    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+    "unit": "NASA POWER parameter id, °C, read daily",
+    "appliesTo": "heat check against each crop's own threshold in data/crops: days of the month whose daily maximum is above the threshold are counted (D43, hazards.heat.minDays)",
+    "sourceTitle": "NASA POWER parameter dictionary (community AG, daily)",
+    "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=T2M_MAX&temporal=daily",
+    "sourceLocator": "T2M_MAX 'Temperature at 2 Meters Maximum', units C, temporal DAILY: 'The maximum hourly air (dry bulb) temperature at 2 meters above the surface of the earth in the period of interest' (data/samples/power/parameters-tmax-daily.json); the daily point API returns one value per day (data/samples/power/point-daily-tmax-2023-2024-ag.json)",
+    "checkedBy": "O1, sample saved Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.heat.minDays",
+    "value": 3,
+    "unit": "days per month with daily T2M_MAX above the crop's heat threshold",
+    "appliesTo": "heat check for every crop and the field summary: a month counts as a heat month when at least this many days pass the threshold (D43)",
+    "sourceTitle": "Steduto et al. (eds.), Crop yield response to water, FAO Irrigation and Drainage Paper 66, FAO 2012 (barley chapter)",
+    "sourceUrl": "https://www.fao.org/4/i2800e/i2800e.pdf",
+    "sourceLocator": "book p. 139 (PDF p. 154): high temperatures above 30-32 °C shorten grain filling; 'The effect is noticeable even if periods of high temperature are short (even only 3 days).' Second source for field pea: Saskatchewan Pulse Growers, 'A few days of heat above 29°C in the field causes flower and young pod abortion'. Team rule: one value for all crops (D43); excerpts in data/samples/research/agronomy/hf-fao66-crop-chapters.txt and hf-saskpulse-pea-heat.txt",
+    "checkedBy": "O1, team rule on the saved excerpts, Sat 14 Nov 2026"
   },
   {
     "id": "hazards.frost.indicator",
@@ -81,7 +91,7 @@
   {
     "id": "hazards.heat.generalThresholdC",
     "value": 35,
-    "unit": "°C, monthly maximum of hourly 2 m air temperature (NASA POWER T2M_MAX); a month above this counts as a heat month",
+    "unit": "°C, daily maximum 2 m air temperature (NASA POWER daily T2M_MAX); a month with at least hazards.heat.minDays days above this counts as a heat month",
     "appliesTo": "field summary and calendar for months without a crop-specific threshold; crops in data/crops carry their own thresholds, which win",
     "sourceTitle": "team rule of thumb",
     "sourceUrl": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",

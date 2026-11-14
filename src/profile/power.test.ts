@@ -226,3 +226,63 @@ describe('datasets', () => {
     }));
   });
 });
+
+// #105 item 2 (D43): heat counts hot days, so the profile also reads NASA POWER daily T2M_MAX.
+import dailySample from '../../data/samples/power/point-daily-tmax-2023-2024-ag.json';
+import { fetchPowerDailyTMax, parsePowerDailyTMax, powerDailyUrl } from './power';
+
+describe('parsePowerDailyTMax', () => {
+  const sampleValues = Object.entries(dailySample.properties.parameter.T2M_MAX as Record<string, number>);
+
+  it('groups the saved 2023-2024 sample into one list per month, one value per day', () => {
+    const d = parsePowerDailyTMax(dailySample);
+    expect(d.get(202307)).toHaveLength(31);
+    expect(d.get(202402)).toHaveLength(29);
+    const july2023 = sampleValues.filter(([k]) => k.startsWith('202307')).map(([, v]) => v);
+    expect(d.get(202307)).toEqual(july2023);
+  });
+
+  it('keeps the hot days of the sample: days above 35 °C per month match the raw series', () => {
+    const d = parsePowerDailyTMax(dailySample);
+    const raw = sampleValues.filter(([k, v]) => k.startsWith('202308') && v > 35).length;
+    expect(d.get(202308)!.filter((v) => v !== null && v > 35)).toHaveLength(raw);
+  });
+
+  it('turns the fill value into null', () => {
+    const body: any = JSON.parse(JSON.stringify(dailySample));
+    body.properties.parameter.T2M_MAX['20230102'] = -999;
+    expect(parsePowerDailyTMax(body).get(202301)![1]).toBeNull();
+  });
+
+  it('throws SourceError for a body without the parameter or with a bad date key', () => {
+    expect(() => parsePowerDailyTMax({ messages: ['bad request'] })).toThrow(SourceError);
+    const body: any = JSON.parse(JSON.stringify(dailySample));
+    body.properties.parameter.T2M_MAX['2023x'] = 1;
+    expect(() => parsePowerDailyTMax(body)).toThrow(SourceError);
+  });
+
+  it('throws SourceError when T2M_MAX is not in °C', () => {
+    const body: any = JSON.parse(JSON.stringify(dailySample));
+    body.parameters.T2M_MAX.units = 'F';
+    expect(() => parsePowerDailyTMax(body)).toThrow(SourceError);
+  });
+});
+
+describe('powerDailyUrl and fetchPowerDailyTMax', () => {
+  it('asks the AG daily point API for T2M_MAX, 1981-01-01 to 2025-12-31', () => {
+    expect(powerDailyUrl(42.0, -93.6)).toBe(
+      'https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX&community=AG&longitude=-93.6&latitude=42&start=19810101&end=20251231&format=JSON',
+    );
+  });
+
+  it('fetches and parses, and maps HTTP and network errors to SourceError("NASA POWER")', async () => {
+    const ok = vi.fn(async () => new Response(JSON.stringify(dailySample), { status: 200 }));
+    expect((await fetchPowerDailyTMax(42.0, -93.6, ok as unknown as typeof fetch)).get(202307)).toHaveLength(31);
+    const bad = vi.fn(async () => new Response('oops', { status: 503 }));
+    const err = await fetchPowerDailyTMax(42.0, -93.6, bad as unknown as typeof fetch).catch((e) => e);
+    expect(err).toBeInstanceOf(SourceError);
+    expect(err.source).toBe('NASA POWER');
+    const down = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+    expect(await fetchPowerDailyTMax(42.0, -93.6, down as unknown as typeof fetch).catch((e) => e)).toBeInstanceOf(SourceError);
+  });
+});

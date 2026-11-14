@@ -150,6 +150,7 @@ export const climateProfile = z.object({
       tMaxC: nullableNumber,
       frostDays: nullableNumber,
       evapotranspirationMm: nullableNumber,
+      tMaxDailyC: z.array(nullableNumber).optional(),
     }),
   ),
   monthlyRisk: z.array(z.object({ month, hazard, probability: sourced })),

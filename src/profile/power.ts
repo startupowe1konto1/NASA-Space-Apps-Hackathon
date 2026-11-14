@@ -146,3 +146,72 @@ export async function fetchPowerMonthly(lat: number, lon: number, fetchImpl: typ
   }
   return parsePowerMonthly(body, localIsoDate(new Date()));
 }
+
+// ---------- daily T2M_MAX (#105 item 2, D43) ----------
+// Heat counts hot days: days whose maximum 2 m temperature is above a crop's threshold. The monthly T2M_MAX above
+// is the single hottest hour of the month, so it cannot tell one hot afternoon from a hot spell.
+// Parser written against data/samples/power/point-daily-tmax-2023-2024-ag.json.
+
+/** Daily maximum temperatures in °C, one list per month keyed year × 100 + month, one entry per day (null = fill). */
+export type PowerDailyTMax = Map<number, (number | null)[]>;
+
+export function powerDailyUrl(lat: number, lon: number): string {
+  return (
+    'https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX' +
+    `&community=AG&longitude=${round4(lon)}&latitude=${round4(lat)}` +
+    `&start=${START_YEAR}0101&end=${END_YEAR}1231&format=JSON`
+  );
+}
+
+export function parsePowerDailyTMax(json: unknown): PowerDailyTMax {
+  if (!isRecord(json)) throw malformed('body is not an object');
+  const properties = json.properties;
+  const series = isRecord(properties) && isRecord(properties.parameter) ? properties.parameter.T2M_MAX : undefined;
+  if (!isRecord(series)) {
+    const first = Array.isArray(json.messages) ? json.messages.find((m) => typeof m === 'string' && m.length > 0) : undefined;
+    throw malformed(first ? `no daily data. POWER says: ${String(first)}` : 'no daily T2M_MAX');
+  }
+  const meta = isRecord(json.parameters) ? json.parameters.T2M_MAX : undefined;
+  if (isRecord(meta) && typeof meta.units === 'string' && meta.units !== 'C') {
+    throw malformed(`daily T2M_MAX is in ${meta.units}, expected C`);
+  }
+  const fills = new Set<number>([DEFAULT_FILL]);
+  if (isRecord(json.header) && typeof json.header.fill_value === 'number') fills.add(json.header.fill_value);
+
+  const days = new Map<number, { day: number; value: number | null }[]>();
+  for (const [key, raw] of Object.entries(series)) {
+    if (!/^\d{8}$/.test(key)) throw malformed(`bad date key ${key} in daily T2M_MAX`);
+    if (raw !== null && (typeof raw !== 'number' || !Number.isFinite(raw))) throw malformed(`non-numeric daily T2M_MAX at ${key}`);
+    const id = Number(key.slice(0, 6));
+    const list = days.get(id) ?? [];
+    list.push({ day: Number(key.slice(6)), value: raw === null || fills.has(raw) ? null : raw });
+    days.set(id, list);
+  }
+  const out: PowerDailyTMax = new Map();
+  for (const [id, list] of [...days.entries()].sort((a, b) => a[0] - b[0])) {
+    out.set(id, list.sort((a, b) => a.day - b.day).map((d) => d.value));
+  }
+  return out;
+}
+
+export async function fetchPowerDailyTMax(lat: number, lon: number, fetchImpl: typeof fetch = fetch): Promise<PowerDailyTMax> {
+  const url = powerDailyUrl(lat, lon);
+  let res: Response;
+  try {
+    res = await fetchImpl(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  } catch (e) {
+    const name = typeof e === 'object' && e !== null && 'name' in e ? String((e as { name: unknown }).name) : '';
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      throw new SourceError(SOURCE, `NASA POWER did not answer within ${TIMEOUT_MS / 1000} s`);
+    }
+    throw new SourceError(SOURCE, `NASA POWER could not be reached: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (!res.ok) throw new SourceError(SOURCE, `NASA POWER answered with status ${res.status}`);
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    throw malformed('body is not JSON');
+  }
+  return parsePowerDailyTMax(body);
+}
