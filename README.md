@@ -18,7 +18,7 @@ NASA Space Apps Challenge 2026 (14–15 Nov 2026), theme "The Next Frontier".
 
 ## How we work
 
-The spec is [docs/SPEC.md](docs/SPEC.md), the task plan is [docs/PLAN.md](docs/PLAN.md), decisions are in [docs/DECISIONS.md](docs/DECISIONS.md). The process, schedule and prompts are in [HACKATHON.md](HACKATHON.md). Repo rules for people and agents are in [CLAUDE.md](CLAUDE.md). What we know about the event rules is in [context/rules.md](context/rules.md).
+The spec is [docs/SPEC.md](docs/SPEC.md), the task plan is [docs/PLAN.md](docs/PLAN.md), decisions are in [docs/DECISIONS.md](docs/DECISIONS.md). The process, schedule and prompts are in [HACKATHON.md](HACKATHON.md). Repo rules for people and agents are in [CLAUDE.md](CLAUDE.md). What we know about the event rules is in [context/rules.md](context/rules.md). Transcripts of team calls are in [context/meetings/](context/meetings/).
 
 ## Run locally
 
