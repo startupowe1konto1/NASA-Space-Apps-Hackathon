@@ -166,6 +166,8 @@ export interface SoilRuleSet {
   sourceIds: Record<string, string[]>;
   /** Main or cover crops of this rotation with no sourced C factor row for one of their cover states. */
   erosionNoRow: string[];
+  /** Main crops whose crop and residue months use one annual C factor (erosion.cAnnual.<crop>.<country>, D54). */
+  erosionAnnual: string[];
 }
 
 const meanOf = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -244,6 +246,16 @@ export function toSoilRules(
     const v = get(id)?.value;
     return typeof v === 'object' ? v : undefined;
   };
+  // D54: a main crop with no row by crop stage may have one annual C factor for the whole year (IUNG-PIB, the Polish
+  // USLE model). It stands for both its crop and its residue months, and the card names the crop in its gaps.
+  const erosionAnnual = new Set<string>();
+  const annualC = (id: string): { c: number; from: string } | undefined => {
+    const rowId = `erosion.cAnnual.${id}.${country.toLowerCase()}`;
+    const v = get(rowId)?.value;
+    if (typeof v !== 'number') return undefined;
+    erosionAnnual.add(id);
+    return { c: v, from: rowId };
+  };
   const cropC = (id: string): { c: number; from: string } | undefined => {
     if (id === 'alfalfa') {
       const m = record('erosion.slr.meadow')?.alfalfa;
@@ -252,7 +264,7 @@ export function toSoilRules(
     const rowId = SMALL_GRAINS.has(id) ? 'erosion.slr.smallGrain.conventional' : get(`erosion.slr.${id}.conventional`) ? `erosion.slr.${id}.conventional` : `erosion.slr.${id}`;
     const t = record(rowId);
     const stages = CROP_STAGES.map((k) => t?.[k]).filter((x): x is number => typeof x === 'number');
-    return stages.length === 0 ? undefined : { c: meanOf(stages) / 100, from: rowId };
+    return stages.length === 0 ? annualC(id) : { c: meanOf(stages) / 100, from: rowId };
   };
   const residueC = (id: string): { c: number; from: string } | undefined => {
     // After its last cut an alfalfa stand stays in the ground until the next crop is sown: the full-year value for
@@ -263,7 +275,7 @@ export function toSoilRules(
     const rowId = SMALL_GRAINS.has(id) ? 'erosion.slr.smallGrain.conventional' : `erosion.slr.${id}.conventional`;
     const t = record(rowId) ?? record(`erosion.slr.${id}`);
     const v = t?.residue ?? t?.roughFallow;
-    return v === undefined ? undefined : { c: v / 100, from: t === record(rowId) ? rowId : `erosion.slr.${id}` };
+    return v === undefined ? annualC(id) : { c: v / 100, from: t === record(rowId) ? rowId : `erosion.slr.${id}` };
   };
   const coverC = (id: string): { c: number; from: string } | undefined => {
     if (id === 'red-clover') {
@@ -350,5 +362,5 @@ export function toSoilRules(
       add('pestBreak', derivedRow(`pestBreak.minReturn.${family}`, anyFamily.value, 'years', anyFamily, `crop family ${family}`), [anyFamily.id]);
     }
   }
-  return { rules: out, sourceIds, erosionNoRow: [...erosionNoRow] };
+  return { rules: out, sourceIds, erosionNoRow: [...erosionNoRow], erosionAnnual: [...erosionAnnual] };
 }

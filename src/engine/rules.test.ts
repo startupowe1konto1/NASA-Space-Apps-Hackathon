@@ -158,6 +158,27 @@ describe('toSoilRules on the rows in data/rules', () => {
     expect(erosionNoRow).not.toContain('alfalfa');
   });
 
+  // D54: field pea and winter rapeseed have no C factor by crop stage, only an IUNG annual value (Polish USLE model).
+  it('uses the annual C factor for a main crop with no stage rows, for its crop and residue months, and names it', () => {
+    const { rules, sourceIds, erosionNoRow, erosionAnnual } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'field-pea' }, { crop: 'winter-wheat' }], {
+      monthly: poznanClimate.monthly,
+      slopePct: poznanSlope,
+    });
+    const annual = loaded.byId.get('erosion.cAnnual.field-pea.pl')!.value as number;
+    expect(erosionNoRow).not.toContain('field-pea');
+    expect(erosionAnnual).toEqual(['field-pea']);
+    expect(sourceIds['erosion.cFactor.crop']).toContain('erosion.cAnnual.field-pea.pl');
+    expect(sourceIds['erosion.cFactor.residue']).toContain('erosion.cAnnual.field-pea.pl');
+    expect(find(rules.erosion, 'erosion.cFactor.crop')).toBeDefined();
+    expect(find(rules.erosion, 'erosion.cFactor.residue')).toBeDefined();
+    expect(annual).toBeGreaterThan(0);
+  });
+
+  it('does not use a Polish annual C factor on a US field', () => {
+    const { erosionAnnual } = toSoilRules(loaded, 'US', fixtureCrops.US, [{ crop: 'maize' }], iowa);
+    expect(erosionAnnual).toEqual([]);
+  });
+
   it('leaves erosion C factors out for a cover crop without a row', () => {
     const { rules, erosionNoRow } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
       monthly: poznanClimate.monthly,
