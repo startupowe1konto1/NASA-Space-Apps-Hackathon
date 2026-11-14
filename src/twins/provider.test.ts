@@ -45,6 +45,14 @@ const cases: CasesFile = {
         outcomeRegion: { code: 'DE1', name: 'Baden-Württemberg', level: 'nuts1', note: 'by Land only' },
       },
     },
+    {
+      // another NUTS 2 region of the same Land: Eurostat has the Land's figures only, so it is not a second case
+      id: 'DE12', name: 'Karlsruhe', country: 'OTHER', centroid: { lat: 49.0, lon: 8.4 }, features: feats(420, 0.46, 98, 32),
+      outcome: {
+        ...crops({ rapeseed: [12, 3.9], 'sugar-beet': [5, null] }, 'eurostat-apro-cpnhr', 'derived'),
+        outcomeRegion: { code: 'DE1', name: 'Baden-Württemberg', level: 'nuts1', note: 'by Land only' },
+      },
+    },
   ],
 };
 
@@ -89,7 +97,8 @@ describe('TwinsProvider', () => {
     const { cases: found } = await ready([{ crop: 'maize' }, { crop: 'soybean' }]);
     const cell = found.find((c) => c.regionName.includes('Near County'))!;
     expect(cell.crops).toEqual(['maize', 'soybean']);
-    expect(cell.outcome).toMatchObject({ value: 12, unit: 't/ha, maize, mean 2019–2023', kind: 'observation', retrievedAt: '2026-11-14' });
+    // area-weighted: 550 ha of maize at 11 t/ha and 500 ha at 13 t/ha
+    expect(cell.outcome).toMatchObject({ value: 11.95, unit: 't/ha, maize, mean 2019–2023', kind: 'observation', retrievedAt: '2026-11-14' });
     expect(cell.outcome.datasetIds).toEqual(['usda-nass-county-crops', 'nasa-power-climatology', 'nasa-power-monthly']);
     const soyOnly = found.find((c) => c.regionName.includes('Soy Only'))!;
     expect(soyOnly).toMatchObject({ crops: ['soybean'], outcome: { value: 3.3, unit: 't/ha, soybean, mean 2019–2023' } });
@@ -117,15 +126,31 @@ describe('TwinsProvider', () => {
     expect(pl.outcome).toMatchObject({ value: 3.2, kind: 'derived', datasetIds: ['eurostat-apro-cpnhr', 'nasa-power-climatology', 'nasa-power-monthly'] });
   });
 
-  it('names the Land for German cases and gives a null yield with a reason when the region has the crop but no yield', async () => {
-    const { cases: found } = await ready([{ crop: 'sugar-beet' }], 30);
-    expect(found[0]!.regionName).toBe('Stuttgart (figures for Baden-Württemberg)');
+  it('counts the NUTS 2 regions of one German Land as one case and gives a null yield with a reason when there is none', async () => {
+    const { cases: found, caseCount } = await ready([{ crop: 'sugar-beet' }], 30);
+    expect(caseCount).toBe(1);
+    expect(found[0]!.regionName).toBe('Baden-Württemberg (2 NUTS 2 regions; Eurostat figures for the Land)');
     expect(found[0]!.outcome).toMatchObject({ value: null, missingReason: expect.stringContaining('sugar-beet') });
   });
 
   it('counts a cover crop of the rotation too', async () => {
     const result = await provider.getTwins(field, profile(100), [{ crop: 'oats', coverCrop: 'winter-wheat' }]);
     expect(result.status).toBe('ready');
+  });
+});
+
+describe('loading the case base', () => {
+  it('tries again after a failed load instead of keeping the failure', async () => {
+    let calls = 0;
+    const flaky = createTwinsProvider(async () => {
+      calls += 1;
+      if (calls === 1) throw new Error('network');
+      return cases;
+    });
+    await expect(flaky.getTwins(field, profile(100), [{ crop: 'maize' }])).rejects.toThrow('network');
+    const second = await flaky.getTwins(field, profile(100), [{ crop: 'maize' }]);
+    expect(second.status).toBe('ready');
+    expect(calls).toBe(2);
   });
 });
 
