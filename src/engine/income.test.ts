@@ -280,6 +280,20 @@ describe('incomeEstimate', () => {
     expect(r.data.gaps).toContainEqual({ code: 'gap.income-calibration-large', params: { crop: 'a', factor: 1.5 } });
   });
 
+  // D53: oats, rye and spring barley borrow a wheat Ky; the card says so in its gaps.
+  it('names a borrowed yield response factor in the gaps', () => {
+    const borrowed: CropTraits = { ...cropA, yieldResponseFactorFrom: 'Spring wheat' };
+    const r = incomeEstimate([{ crop: 'a' }, { crop: 'n' }], [borrowed, cropN, coverC], dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P, HEAT_MIN);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    expect(r.data.gaps).toContainEqual({ code: 'gap.income-ky-borrowed', params: { crop: 'a', from: 'Spring wheat' } });
+  });
+
+  it('adds no borrowed-Ky gap for a crop with its own Ky', () => {
+    const r = incomeEstimate([{ crop: 'a' }, { crop: 'n' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P, HEAT_MIN);
+    if (r.status !== 'ready') throw new Error('expected ready');
+    expect(r.data.gaps.some((g) => g.code === 'gap.income-ky-borrowed')).toBe(false);
+  });
+
   it('adds no calibration gap when the factor is small', () => {
     const r = incomeEstimate([{ crop: 'a' }, { crop: 'n' }], crops, dryClimate, economics, [], 'USD', 'FY2026', DROUGHT_P, HEAT_MIN);
     if (r.status !== 'ready') throw new Error('expected ready');
@@ -532,6 +546,7 @@ describe('INCOME_MESSAGE_CODES', () => {
         'income.no-yield-response',
         'income.total-loss-every-year',
         'gap.income-calibration-large',
+        'gap.income-ky-borrowed',
       ].sort(),
     );
   });

@@ -460,6 +460,8 @@
       }
     ],
     "waterNeed": "medium",
+    "yieldResponseFactor": 1.15,
+    "yieldResponseFactorFrom": "Spring wheat",
     "forage": false,
     "residueCover": "high",
     "sources": [
@@ -484,9 +486,9 @@
         "locator": "Barley chapter, page 139 (PDF p. 154): \"High temperatures (above 30-32 ºC) accelerate seed development towards maturity, shortening the grain filling period\", even in spells of only 3 days; heat threshold 30 °C, the low end of that range (R10 conversion rule 1), compared with the monthly maximum of NASA POWER T2M_MAX in the heading and grain-filling months. Excerpt: data/samples/research/agronomy/hf-fao66-crop-chapters.txt"
       },
       {
-        "title": "Field Shift decision D29: the yield response factor is optional",
-        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-        "locator": "D29: no single Ky for barley. FAO Paper 66 Table 1 (the FAO-33 seasonal values) has none; the one measured value found (Andersen, Jensen and Losch, IPI 1/1994, Table 5, Jyndevad, Denmark, sandy soil) ranges from 0.38 to 1.50 over the whole season between two years, so yieldResponseFactor is left out and the income score for this crop is no-data (R10: data/samples/research/agronomy/ky-andersen-1992-spring-barley.txt)"
+        "title": "borrowed from FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012): Spring wheat",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Spring wheat 1.15. The table has no barley row and no other opened document gives one (the one measured value found, Andersen, Jensen and Losch, IPI 1/1994, Table 5, ranges from 0.38 to 1.50 over the season between two years, too wide to use; data/samples/research/agronomy/ky-andersen-1992-spring-barley.txt), so the spring wheat value is borrowed (D53, the user's decision; it replaces D29 for this crop). The card names the borrowed value in its gaps. Excerpt in data/samples/research/agronomy/ky-fao66-tables-1-2.txt"
       },
       {
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",
@@ -519,6 +521,8 @@
       }
     ],
     "waterNeed": "low",
+    "yieldResponseFactor": 1.05,
+    "yieldResponseFactorFrom": "Winter wheat",
     "forage": false,
     "residueCover": "high",
     "sources": [
@@ -543,9 +547,9 @@
         "locator": "page 3, \"High Residue Crop List\", cool season small grains: Rye; high residue list maps to residueCover high"
       },
       {
-        "title": "Field Shift decision D29: the yield response factor is optional",
-        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-        "locator": "D29: no opened document gives a Ky for rye (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+        "title": "borrowed from FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012): Winter wheat",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Winter wheat 1.05. The table has no rye row and no other opened document gives one, so the winter wheat value is borrowed (D53, the user's decision; it replaces D29 for this crop). The card names the borrowed value in its gaps. Excerpt in data/samples/research/agronomy/ky-fao66-tables-1-2.txt"
       },
       {
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",

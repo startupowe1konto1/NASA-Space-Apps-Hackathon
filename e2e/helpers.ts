@@ -1,6 +1,32 @@
+import { readFileSync } from 'node:fs';
 import { expect, type Page } from '@playwright/test';
+import { demoFields } from '../src/fixtures/fields';
 
 export const SUPPORT_SENTENCE = 'This is decision support';
+
+const CORS = { 'access-control-allow-origin': '*' };
+const uldkPoznan = readFileSync('data/samples/uldk/parcel-by-xy-poznan-srid4326.txt', 'utf8');
+
+/**
+ * Step 1 by address search, as the farmer does it (O1-F2). Nominatim is mocked with one place at the demo field's
+ * centroid, so the run does not depend on its rate limit; the queries have no Polish letters, so they go to Nominatim.
+ * Iowa then takes the demo field's stored outline. Poznań gets the saved ULDK answer for that point: live ULDK can
+ * take longer than the 10 s expect timeout before the app falls back to 4 ha (review finding 2).
+ */
+async function findField(page: Page, demo: 'Iowa demo field' | 'Poznań demo field') {
+  const field = demo === 'Iowa demo field' ? demoFields.iowa : demoFields.poznan;
+  const body = JSON.stringify([{ lat: String(field.centroid.lat), lon: String(field.centroid.lon), display_name: demo }]);
+  await page.route('**/nominatim.openstreetmap.org/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', headers: CORS, body }),
+  );
+  await page.route('**/uldk.gugik.gov.pl/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/plain', headers: CORS, body: uldkPoznan }),
+  );
+  await page.getByLabel('Address or place').fill(demo === 'Iowa demo field' ? 'Iowa demo' : 'Poznan demo');
+  await page.getByRole('button', { name: 'Search', exact: true }).click();
+  await expect(page.getByText(`Found ${demo}.`)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
+}
 
 /** The start page, then steps 1–4 for a demo field with the default goal and priorities. Stops on step 4, before "Next". */
 export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field' | 'Poznań demo field') {
@@ -8,7 +34,7 @@ export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field'
   await page.getByRole('button', { name: 'Start', exact: true }).click();
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 1 of 6');
-  await page.getByRole('button', { name: demoButton }).click();
+  await findField(page, demoButton);
   await next(page);
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 2 of 6');

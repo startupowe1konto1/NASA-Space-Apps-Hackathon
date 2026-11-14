@@ -49,6 +49,14 @@ describe('cropTraits', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low' }).success).toBe(true);
     expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(true);
   });
+
+  // D53: a Ky may be borrowed from another crop; the row then says from which, and it must carry the value itself.
+  it('accepts a borrowed yield response factor only together with the value', () => {
+    const cash = { ...base, kind: 'cash', waterNeed: 'low' };
+    expect(cropTraits.safeParse({ ...cash, yieldResponseFactor: 1.15, yieldResponseFactorFrom: 'Spring wheat' }).success).toBe(true);
+    expect(cropTraits.safeParse({ ...cash, yieldResponseFactorFrom: 'Spring wheat' }).success).toBe(false);
+    expect(cropTraits.safeParse({ ...cash, yieldResponseFactor: 1.15, yieldResponseFactorFrom: '' }).success).toBe(false);
+  });
 });
 
 describe('WaterNeed', () => {

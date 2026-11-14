@@ -340,6 +340,8 @@
       }
     ],
     "waterNeed": "medium",
+    "yieldResponseFactor": 1.15,
+    "yieldResponseFactorFrom": "Spring wheat",
     "forage": false,
     "residueCover": "high",
     "sources": [
@@ -364,9 +366,9 @@
         "locator": "page 3, \"High Residue Crop List\", cool season: Oats; high residue list maps to residueCover high"
       },
       {
-        "title": "Field Shift decision D29: the yield response factor is optional",
-        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/DECISIONS.md",
-        "locator": "D29: no opened document gives a Ky for oats (FAO Paper 66 Table 1, the FAO-33 seasonal values, has none), so yieldResponseFactor is left out and the income score for this crop is no-data"
+        "title": "borrowed from FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012): Spring wheat",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Spring wheat 1.15. The table has no oats row and no other opened document gives one, so the spring wheat value is borrowed (D53, the user's decision; it replaces D29 for this crop). The card names the borrowed value in its gaps. Excerpt in data/samples/research/agronomy/ky-fao66-tables-1-2.txt"
       },
       {
         "title": "Field Shift plan: crop ids and families are fixed by the fixture",

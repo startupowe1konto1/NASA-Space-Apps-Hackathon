@@ -60,12 +60,15 @@ export const cropTraits = z.object({
   ),
   waterNeed: z.enum(['low', 'medium', 'high']).optional(),
   yieldResponseFactor: z.number().positive().optional(),
+  yieldResponseFactorFrom: z.string().min(1).optional(), // D53: Ky borrowed from this crop
   forage: z.boolean(),
   residueCover: z.enum(['low', 'medium', 'high']),
   sources: z.array(sourceRef).min(1),
 }).refine((c) => c.kind === 'cover' || c.waterNeed !== undefined, {
   // yieldResponseFactor is optional for every kind (D29): a missing Ky gives no-data income
   message: 'waterNeed is required unless kind is cover',
+}).refine((c) => c.yieldResponseFactorFrom === undefined || c.yieldResponseFactor !== undefined, {
+  message: 'yieldResponseFactorFrom needs the borrowed yieldResponseFactor itself (D53)',
 });
 
 /** One row of data/rules/*.json. */

@@ -94,6 +94,7 @@
   "income.current-missing": "Your current rotation has no income estimate, so there is nothing to compare this income with.",
   "gap.payment-unconfirmed": "{programme}: the rate for this campaign could not be confirmed, so it is left out of the income.",
   "gap.payment-no-rate": "{programme}: no sourced rate per hectare, so it is left out of the income.",
+  "gap.income-ky-borrowed": "{crop}: no source gives its own yield response to water, so the dry-year replay uses the {from} value (FAO Paper 66, Table 1).",
   "gap.income-years-left-out": "{count} of {years} past years had missing climate data and were left out of the income replay.",
   "gap.cover-cost-missing": "No sourced seed and sowing cost for {crop}, so its cost is left out of the income.",
   "gap.crop-after-itself-not-priced": "{crop} follows {crop} in this rotation. A crop grown after itself may yield less and cost more than after another crop. The income does not count that: there is no sourced cost or yield for it yet.",

@@ -6,7 +6,7 @@ Written Sat 14 Nov 2026, 14:45 CET (T+3:36) from `HANDOFF.md` v3 with PRs #19 an
 
 A farmer says what matters most to them (keep the soil as it is, improve it, or income), marks a field and gets the three best crop rotations for that goal plus the current one. Every rotation is scored on soil health and climate resilience computed from 45 years of NASA data for that field, whatever the goal; the goal changes the weights, and money enters the ranking only when the farmer picks the income goal, and then it is income computed against the field's own 45 years of drought, heat and frost. Each rotation shows why it was suggested, the evidence, the benefits, the data gaps and the risks that need local review. The same app works for a field in Iowa and a field near Poznań.
 
-The tool supports the farmer's decision and does not replace it. Every card and the advisor report say so.
+The tool supports the farmer's decision and does not replace it. Every rotation card says so.
 
 ## 2. What the brief asks and where it shows on screen
 
@@ -18,7 +18,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 | Farmer priorities: water, forage, nitrogen, erosion, organic matter, market, income | step 1 main goal (keep soil, improve soil, income) sets the ranking weights; step 4 switches fine-tune it (water, forage, nitrogen, erosion, organic matter) | `src/steps/goal`, `src/steps/priorities`, `src/engine/scoring` | yes for the two soil goals; income when the money tables land |
 | Explain terms | `<Term>` tooltip at first use and a glossary page (section 11) | `src/ui-kit`, `src/steps/glossary` | yes |
 | Show uncertainty | every score has a low–high range and a confidence label (section 7) | `src/engine/scoring`, `src/ui-kit` | yes |
-| Supports, does not replace farmer judgment | fixed sentence on each card and in the report | `src/steps/cards`, `src/steps/report` | yes |
+| Supports, does not replace farmer judgment | fixed sentence on each card | `src/steps/cards` | yes |
 | NASA data integral (judging: Relevance) | the field's NASA record acts inside every score except the pest-cycle break: climate resilience, erosion, nitrogen loss, organic matter breakdown, water balance, yield loss in the income score, the hazard marks on the calendar and the twin features (section 7); crop rules, soil surveys and prices are labelled as what they are; each number carries a source label (section 10) | all | yes |
 
 ## 3. Scope
@@ -41,12 +41,12 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 ### After the minimum, in this order
 
 1. Money detail section under the cards (payment conditions, costs, revenue per crop).
-2. Advisor report (print view and shareable link).
+2. ~~Advisor report (print view and shareable link).~~ Built, then removed with the share link (D52).
 3. Recent soil moisture from SMAP (2015 to now) in the field profile.
 4. Polish UI text (the i18n layer exists from the skeleton).
 5. Live crop history, soil and suitability for any field, not only the demo fields.
 6. Field-level NDVI from HLS as a check on bare-soil periods.
-7. Bot that sends back the report link.
+7. ~~Bot that sends back the report link.~~ Dropped: there is no report link since D52.
 8. Sonification of 45 years of soil moisture.
 
 ### Out of scope
@@ -75,7 +75,7 @@ Commands: `npm run dev -- --port <lane port>`, `npm run typecheck`, `npm run tes
 ```
             ┌──────────── src/app (store, wiring) ────────────┐
  src/map ──▶│ Field[]                                         │
- src/steps ▶│ CropYear[], Priorities ──▶ analyzeField(input)  │──▶ src/steps (cards, calendar, report)
+ src/steps ▶│ CropYear[], Priorities ──▶ analyzeField(input)  │──▶ src/steps (cards, calendar, money)
             └───────────────────────────────┬─────────────────┘
                                             │ calls four providers through interfaces
         ┌────────────────┬──────────────────┼──────────────────┬───────────────┐
@@ -386,8 +386,8 @@ One page: a start page, then six steps with a progress bar, back and forward (D5
 
 | Step | Screen | Main elements |
 |---|---|---|
-| 0 | Start | the app name as the title, two sentences on what the tool does, a large Start button; no progress bar |
-| 1 | Field | map, address box, parcel number box (Poland), two demo-field buttons; parcel layer (KIEG), click to select, draw, later split and merge; list of fields |
+| 0 | Start | the app name as the title, one sentence on what the tool does, a large Start button; no progress bar |
+| 1 | Field | map, address box (a hit outlines the field there: the ULDK parcel in Poland, the Iowa demo field within 2 km of it, else a 4 ha square), parcel number box (Poland); parcel layer (KIEG), click to select, draw, split and merge; Undo for every field edit; list of fields |
 | 2 | Goal | "What matters most to you?" with three icons and one line each; changeable later with Back |
 | 3 | Crops | proposed history with confirm or correct; icon picker for the last two or three years |
 | 4 | Priorities | switches with one-line explanations; excluded crops |
@@ -405,7 +405,7 @@ Each person runs two streams at once. Streams never share a file, so two subagen
 | Owner | Stream A | Stream B |
 |---|---|---|
 | **O1** merger, reviewer, monitoring | `src/contracts/`, `src/app/`, `src/ui-kit/`, `src/fixtures/`, root config, `.github/`, `api/` routing, deploy | `e2e/`, `docs/`, review and merge of all PRs, hourly e2e on `main` |
-| **O2** frontend | `src/map/` (search, parcels, boundary editing) | `src/steps/` (goal, crops, priorities, cards, calendar, money, report, glossary) |
+| **O2** frontend | `src/map/` (search, parcels, boundary editing) | `src/steps/` (goal, crops, priorities, cards, calendar, money, glossary) |
 | **O3** engine | `src/profile/` (POWER and SMAP clients, field profile) | `src/engine/` (candidates, scoring, goals, calendar, `analyzeField`) |
 | **O4** data and evidence | `scripts/`, `data/precomputed/`, `data/crops/`, `src/context-data/`, `api/cropscape.ts`, then `src/money/`, `data/money/` | `data/rules/` first (D16), then `src/twins/`, `data/twins/` |
 

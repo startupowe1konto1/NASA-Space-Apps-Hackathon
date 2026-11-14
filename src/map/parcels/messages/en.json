@@ -29,5 +29,7 @@
   "edit.layer.label": "Show land register parcels (Poland)",
   "edit.layer.hint": "Parcel borders appear from zoom level 17 and their numbers from about 18, so zoom in on the field.",
   "edit.layer.source": "GUGiK KIEG parcel map",
-  "edit.layer.error": "The parcel layer did not load. The map and your fields still work."
+  "edit.layer.error": "The parcel layer did not load. The map and your fields still work.",
+  "edit.undo.button": "Undo",
+  "edit.undo.done": "Last change undone."
 }

@@ -7,6 +7,7 @@ import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
 import { areaHa } from './area';
 import type { MapHandlers } from './leafletMap';
+import { useParcelTap } from './parcels/tap';
 import { getParcelByPoint } from './parcels/uldk';
 import { parseNominatim } from './search/nominatim';
 
@@ -52,40 +53,65 @@ afterEach(() => {
   useAppStore.setState({ addField: realAddField });
 });
 
+/** A Nominatim answer with these places, in the shape of data/samples/geocoders/nominatim-ames-iowa.json. */
+const nominatim = (...places: { lat: number; lon: number; label: string }[]) =>
+  JSON.stringify(places.map((p) => ({ lat: String(p.lat), lon: String(p.lon), display_name: p.label })));
+
+async function search(user: ReturnType<typeof userEvent.setup>, query: string, body: string) {
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })));
+  await user.type(screen.getByLabelText(t('search.label')), query);
+  await user.click(screen.getByRole('button', { name: t('search.button') }));
+}
+
 describe('MapStep', () => {
-  it('adds the Iowa demo field with country US and a polygon, and enables next', async () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('has no demo buttons; the address search finds the field (HANDOFF-frontend.md v2.1)', () => {
+    render(<MapStep />);
+    expect(screen.queryByRole('button', { name: demoFields.iowa.name })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: demoFields.poznan.name })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(t('search.label'))).toBeInTheDocument();
+  });
+
+  it('outlines the field at a single search result, moves the map there and enables next', async () => {
+    const body = readFileSync('data/samples/geocoders/nominatim-ames-iowa.json', 'utf8');
     const user = userEvent.setup();
     render(<MapStep />);
     expect(canContinue(useAppStore.getState())).toBe(false);
 
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    await search(user, 'Ames', body);
+
+    const [place] = parseNominatim(body);
+    await screen.findByText(t('search.moved', { label: place!.label }));
+    expect(leaflet.controller.showPlace).toHaveBeenCalledWith(place!.lat, place!.lon, place!.label);
+    await waitFor(() => expect(useAppStore.getState().fields).toHaveLength(1));
+    expect(useAppStore.getState().fields[0]).toEqual(expect.objectContaining({ country: 'US' }));
+    expect(canContinue(useAppStore.getState())).toBe(true);
+  });
+
+  it('takes the Iowa demo outline for a search hit near the demo field', async () => {
+    const { lat, lon } = demoFields.iowa.centroid;
+    const user = userEvent.setup();
+    render(<MapStep />);
+
+    await search(user, 'Iowa demo', nominatim({ lat, lon, label: 'Story County, Iowa' }));
 
     const fields = screen.getByRole('list', { name: 'Your fields' });
     await within(fields).findByText(`${demoFields.iowa.name}, ${demoFields.iowa.areaHa.toFixed(1)} ha`);
-    expect(useAppStore.getState().addField).toHaveBeenCalledWith(
-      expect.objectContaining({ country: 'US', polygon: expect.objectContaining({ type: 'Polygon' }) }),
-    );
-    expect(canContinue(useAppStore.getState())).toBe(true);
     await waitFor(() => expect(leaflet.controller.flyTo).toHaveBeenCalledWith(expect.objectContaining({ id: demoFields.iowa.id })));
   });
 
-  it('flies to the demo field again when its button is tapped a second time', async () => {
+  it('lists several results and adds no field until the farmer picks one', async () => {
     const user = userEvent.setup();
     render(<MapStep />);
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
-    await waitFor(() => expect(leaflet.controller.flyTo).toHaveBeenCalled());
-    const before = leaflet.controller.flyTo.mock.calls.length;
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
-    expect(leaflet.controller.flyTo.mock.calls.length).toBeGreaterThan(before);
-  });
 
-  it('adds the Poznań demo field with country PL', async () => {
-    const user = userEvent.setup();
-    render(<MapStep />);
-    await user.click(screen.getByRole('button', { name: 'Poznań demo field' }));
-    await screen.findByText(`${demoFields.poznan.name}, ${demoFields.poznan.areaHa.toFixed(1)} ha`);
-    expect(useAppStore.getState().addField).toHaveBeenCalledWith(expect.objectContaining({ country: 'PL' }));
-    expect(canContinue(useAppStore.getState())).toBe(true);
+    await search(user, 'Ames', nominatim({ lat: 42.03, lon: -93.62, label: 'Ames, Iowa' }, { lat: 41.6, lon: -93.6, label: 'Des Moines, Iowa' }));
+
+    const pick = await screen.findByRole('button', { name: /Des Moines, Iowa/ });
+    expect(useAppStore.getState().fields).toHaveLength(0);
+    await user.click(pick);
+    await screen.findByText(t('search.moved', { label: 'Des Moines, Iowa' }));
+    await waitFor(() => expect(useAppStore.getState().fields).toHaveLength(1));
   });
 
   it('adds a 4 ha field where the map is tapped', async () => {
@@ -100,7 +126,7 @@ describe('MapStep', () => {
     expect(canContinue(state)).toBe(true);
   });
 
-  it('shows the tile error and keeps the demo buttons working', async () => {
+  it('shows the tile error and keeps the search working', async () => {
     const user = userEvent.setup();
     render(<MapStep />);
     await waitFor(() => expect(leaflet.handlers).not.toBeNull());
@@ -109,8 +135,9 @@ describe('MapStep', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/map tiles did not answer/);
-    await user.click(screen.getByRole('button', { name: 'Poznań demo field' }));
-    await screen.findByText(`${demoFields.poznan.name}, ${demoFields.poznan.areaHa.toFixed(1)} ha`);
+    const { lat, lon } = demoFields.iowa.centroid;
+    await search(user, 'Iowa demo', nominatim({ lat, lon, label: 'Story County, Iowa' }));
+    await screen.findByText(`${demoFields.iowa.name}, ${demoFields.iowa.areaHa.toFixed(1)} ha`);
 
     await user.click(screen.getByRole('button', { name: 'Try again' }));
     expect(leaflet.controller.retryTiles).toHaveBeenCalled();
@@ -179,22 +206,6 @@ describe('MapStep', () => {
     expect(useAppStore.getState().fields).toHaveLength(0);
   });
 
-  it('moves the map to a typed address without adding a field', async () => {
-    const body = readFileSync('data/samples/geocoders/nominatim-ames-iowa.json', 'utf8');
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })));
-    const user = userEvent.setup();
-    render(<MapStep />);
-
-    await user.type(screen.getByLabelText(t('search.label')), 'Ames');
-    await user.click(screen.getByRole('button', { name: t('search.button') }));
-
-    const [place] = parseNominatim(body);
-    await screen.findByText(t('search.moved', { label: place!.label }));
-    expect(leaflet.controller.showPlace).toHaveBeenCalledWith(place!.lat, place!.lon, place!.label);
-    expect(useAppStore.getState().fields).toHaveLength(0);
-    vi.unstubAllGlobals();
-  });
-
   it('selects a field from the list with a radio, not a button', async () => {
     const user = userEvent.setup();
     useAppStore.setState({ fields: [demoFields.iowa, demoFields.poznan], selectedFieldId: demoFields.iowa.id });
@@ -204,8 +215,6 @@ describe('MapStep', () => {
     await user.click(await screen.findByRole('radio', { name: poznanRow }));
 
     await waitFor(() => expect(useAppStore.getState().selectedFieldId).toBe(demoFields.poznan.id));
-    // e2e finds the demo button by substring, so it must stay the only button carrying a field name.
-    expect(screen.getAllByRole('button', { name: /Iowa demo field/ })).toHaveLength(1);
   });
 });
 
@@ -216,18 +225,19 @@ describe('cutting a field and the parcel layer', () => {
   ];
   const cutButton = () => screen.getByRole('button', { name: t('edit.cut.start') });
 
+  const addIowa = () => act(() => useAppStore.getState().addField(demoFields.iowa));
+
   it('keeps the cut button off until a field is selected', async () => {
-    const user = userEvent.setup();
     render(<MapStep />);
     expect(cutButton()).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
-    expect(cutButton()).toBeEnabled();
+    addIowa();
+    await waitFor(() => expect(cutButton()).toBeEnabled());
   });
 
   it('starts cut mode, explains it, and offers to cancel until the map reports the mode is off', async () => {
     const user = userEvent.setup();
     render(<MapStep />);
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    addIowa();
 
     await user.click(cutButton());
     expect(leaflet.controller.startCut).toHaveBeenCalledTimes(1);
@@ -242,9 +252,8 @@ describe('cutting a field and the parcel layer', () => {
   });
 
   it('replaces the selected field with its two parts when the cut line arrives, and says so', async () => {
-    const user = userEvent.setup();
     render(<MapStep />);
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    addIowa();
     const { iowa } = demoFields;
 
     act(() => leaflet.handlers!.onCut(lineThrough(iowa)));
@@ -259,9 +268,8 @@ describe('cutting a field and the parcel layer', () => {
   });
 
   it('says why a cut failed and keeps the field', async () => {
-    const user = userEvent.setup();
     render(<MapStep />);
-    await user.click(screen.getByRole('button', { name: 'Iowa demo field' }));
+    addIowa();
     const { iowa } = demoFields;
 
     act(() =>
@@ -302,3 +310,52 @@ describe('cutting a field and the parcel layer', () => {
   });
 });
 
+
+describe('undo', () => {
+  const undoButton = () => screen.getByRole('button', { name: t('edit.undo.button') });
+
+  it('offers Undo only after a field edit, and takes the last one back', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    expect(undoButton()).toBeDisabled();
+
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(undoButton()).toBeEnabled());
+    await user.click(undoButton());
+
+    expect(useAppStore.getState().fields).toHaveLength(0);
+    expect(await screen.findByText(t('edit.undo.done'))).toBeInTheDocument();
+    expect(undoButton()).toBeDisabled();
+  });
+
+  it('puts a cut field back as it was', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(leaflet.handlers).not.toBeNull());
+    const { iowa } = demoFields;
+    act(() =>
+      leaflet.handlers!.onCut([
+        [iowa.centroid.lon - 1, iowa.centroid.lat],
+        [iowa.centroid.lon + 1, iowa.centroid.lat],
+      ]),
+    );
+    await waitFor(() => expect(useAppStore.getState().fields).toHaveLength(2));
+
+    await user.click(undoButton());
+
+    expect(useAppStore.getState().fields).toEqual([iowa]);
+    await screen.findByText(`${iowa.name}, ${iowa.areaHa.toFixed(1)} ha`);
+  });
+});
+
+describe('undo while ULDK is answering (review finding 1)', () => {
+  it('keeps Undo off while a tap or search waits for its parcel', async () => {
+    render(<MapStep />);
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await waitFor(() => expect(screen.getByRole('button', { name: t('edit.undo.button') })).toBeEnabled());
+    act(() => useParcelTap.setState({ tap: { status: 'loading' } }));
+    expect(screen.getByRole('button', { name: t('edit.undo.button') })).toBeDisabled();
+    act(() => useParcelTap.setState({ tap: { status: 'idle' } }));
+  });
+});

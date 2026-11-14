@@ -1,16 +1,16 @@
-// Step 1: find the field. Demo buttons, a tap on the map, a drawn outline, and the list of fields, which works even when the map does not.
+// Step 1: find the field. The address search outlines the field at the place it finds (O1-F2), as does a tap on the
+// map; a drawn outline and the list of fields work too, the list even when the map does not.
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../app/i18n';
 import { useAppStore } from '../app/store';
 import type { Field } from '../contracts';
-import { demoFields } from '../fixtures';
 import { StateBoundary } from '../ui-kit/StateBoundary';
 import { FieldList } from './draw/FieldList';
 import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
 import { ParcelSearch } from './parcels/ParcelSearch';
 import { cutField } from './parcels/editFields';
-import { addFieldAt } from './parcels/tap';
+import { addFieldAt, useParcelTap } from './parcels/tap';
 import { SearchBox } from './search/SearchBox';
 
 const BUTTON =
@@ -19,7 +19,9 @@ const BUTTON =
 export function MapStep() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
-  const addField = useAppStore((s) => s.addField);
+  const canUndo = useAppStore((s) => s.fieldHistory.length > 0);
+  // While ULDK answers, the newest edit is not in the store yet; an undo then would take back the one before it.
+  const tapPending = useParcelTap((s) => s.tap.status === 'loading');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapController | null>(null);
@@ -88,12 +90,6 @@ export function MapStep() {
     if (field) mapRef.current?.flyTo(field);
   }, [selectedFieldId]);
 
-  // A second tap on the same demo button does not change the selection, so fly here as well.
-  const pickDemo = (field: Field) => {
-    addField(field);
-    mapRef.current?.flyTo(field);
-  };
-
   const toggleParcels = (on: boolean) => {
     setParcelsOn(on);
     setParcelsFailed(false);
@@ -115,16 +111,12 @@ export function MapStep() {
     <div className="grid gap-4">
       <p className="text-base text-slate-700">{t('map.intro')}</p>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <button type="button" className={BUTTON} onClick={() => pickDemo(demoFields.iowa)}>
-          {t('map.demo.iowa')}
-        </button>
-        <button type="button" className={BUTTON} onClick={() => pickDemo(demoFields.poznan)}>
-          {t('map.demo.poznan')}
-        </button>
-      </div>
-
-      <SearchBox onPick={(place) => mapRef.current?.showPlace(place.lat, place.lon, place.label)} />
+      <SearchBox
+        onPick={(place) => {
+          mapRef.current?.showPlace(place.lat, place.lon, place.label);
+          void addFieldAt(place.lat, place.lon); // the same outline a tap there would give
+        }}
+      />
 
       {tilesFailed ? (
         <StateBoundary state="error" source={t('map.tiles.source')} reason={t('map.tiles.reason')} onRetry={retryTiles}>
@@ -159,6 +151,21 @@ export function MapStep() {
             onClick={() => (cutting ? mapRef.current?.stopCut() : mapRef.current?.startCut())}
           >
             {cutting ? t('edit.cut.cancel') : t('edit.cut.start')}
+          </button>
+          <button
+            type="button"
+            className={`${BUTTON} inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50`}
+            disabled={!canUndo || cutting || tapPending}
+            onClick={() => {
+              useAppStore.getState().undoFieldEdit();
+              setEditNote({ text: t('edit.undo.done'), fields: useAppStore.getState().fields });
+            }}
+          >
+            <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7.5 5 3.5 9l4 4" />
+              <path d="M3.5 9H12a4.5 4.5 0 0 1 0 9h-2" />
+            </svg>
+            {t('edit.undo.button')}
           </button>
           <label className="flex min-h-11 items-center gap-2 text-base text-slate-900">
             <input
