@@ -1,6 +1,6 @@
-# Handoff v9: O1 (integrator) at Sat 22:50, for a fresh session
+# Handoff v10: O1 (integrator) at Sat 23:30, for a fresh session
 
-Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:50 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
+Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 23:30 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
 
 ## Start here
 
@@ -22,16 +22,13 @@ Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:50 by the
 - #152: `src/ui-kit/messages/pl.json` (28 strings: "Słabe dowody", "Źródło: szacunek modelowy", "Spróbuj ponownie", the term button "Co znaczy „…”?").
 - #153: the hourly e2e went red (5 of 6) after #145, because Vite's dependency scan crawled `pitch/farm-stills/render-src/scene.html`, which imports `three`, and React then broke in the dev server. `vite.config.ts` now sets `optimizeDeps: { entries: ['index.html'] }`. CI did not catch it: it runs `vite build` and no e2e.
 
-## Open: step 6 "Money" is still the skeleton placeholder (checked Sat 22:30)
+## Step 6 "Money": build plan ready, backend data incomplete (Sat 23:30)
 
-The user asked whether and when step 6 gets its screen. Nobody is building it.
-- `src/steps/money/MoneyStep.tsx` is the O1-S1 placeholder: a `StateBoundary` in `no-data` with `steps.money.notLoaded` ("Prices and payment rates are not loaded yet." / "Ceny i stawki dopłat nie są jeszcze wczytane."). That text is now wrong: the money tables are wired (`providers.money = tableMoneyProvider`, `moneyAvailable = true` in `src/app/providers.ts`), and the income section works on every card in step 5 (#131, `src/steps/cards/IncomeSection.tsx`).
-- What it should show: SPEC §12, step 6 "Money": margins and payments per rotation with their conditions, dated, below the cards. SPEC §5 "After the minimum", item 1: money detail (payment conditions, costs, revenue per crop). PLAN task O2-B6 covered the income on the cards and this section; only the card part shipped.
-- No branch or PR for it (remote heads checked at 22:25). In the team call (transcript in #150, about 16:01) a teammate said step 6 is blank and "it goes with me", but nothing is on GitHub. Ask the user who owns it before starting, so two people do not build it.
-- Data each rotation already carries: `RotationOption.money: AsyncResult<MoneyEstimate>` (`marginPerHa` as a `Sourced` mean with the 10th–90th percentile years as its range, `currency`, `payments[]` with `programme`, `amountPerHa`, `condition`, `confirmed`, and `campaign`) and `income: AsyncResult<Score>`.
-- A first version needs no contract change: one block per rotation, in the order of the cards for the chosen goal, reusing `IncomeSection` (margin in a bad, average and good year; payments with their condition; unconfirmed rates greyed with "rate not confirmed for 2026"), the campaign line with the price dates, and the "replay of past years at today's prices, not a forecast" sentence (CLAUDE.md). Every number through `<SourcedNumber>`; `StateBoundary` states for loading, no data and source error; EN and PL text; replace `steps.money.notLoaded`.
-- "Costs and revenue per crop" is not in `MoneyEstimate`; that part needs a `[contract]` PR and engine work (O3), so leave it for a second version unless the user wants it now.
-- `src/steps/` is O2's folder. If the user gives it to O1, do it on an `o1/` branch like #151, TDD, then the full gate and a look at `?lang=pl`.
+The full build plan, with the chart spec, the data mapping, the states, the EN/PL texts, the tests and a copy-paste prompt for the lane, is `docs/superpowers/plans/2026-11-14-step-6-money.md`. The user gave steps 5 and 6 to O3 and O4 (`HANDOFF-frontend.md`).
+- What step 6 will show: every rotation of step 5, in the same order (`analysis.shownByGoal`), on one shared axis: the average-year margin per hectare as a dot, the bad-to-good-year range as a bar, the current rotation in grey with a dashed reference line at its average, payments and campaign dates in a disclosure per rotation, and the reason where a rotation has no money data. Plain HTML and CSS like `ScoreBar`, no new dependency.
+- Engine and contract: ready. Each rotation carries `money: AsyncResult<MoneyEstimate>`; `MoneyStep.tsx` is still the placeholder with the wrong "not loaded yet" text.
+- **Data: not complete.** On the Iowa demo all three "Keep my soil" options have no money: oats has no Ky (D29) and `data/money/us-ia.json` has no winter wheat row. Only the current maize → soybean has a margin. In Poznań the rotations with rye have no money (no Ky for rye). Task B1 (O4: the Iowa winter wheat row) can start now; B2 (a Ky for oats, rye and barley, borrowed from wheat or left out) waits for the user.
+- "Costs and revenue per crop" (SPEC §5) is not in `MoneyEstimate`; it stays for a later version with a `[contract]` PR.
 
 ## How O1 works now (approved by the user)
 
@@ -87,5 +84,5 @@ Not needed for the demo: no score, card or ranking uses it. Do it only after ste
 
 - Hosting at the end (D45): O2 commits as the owner account, or the repo goes public (D32; run TruffleHog first), or Vercel Pro. The pitch QR code, the Safari/iPhone check and the CropScape proxy need it.
 - Pitch owner (D14): script, at most seven slides, a 30-second demo video. The team call (#150) planned a deck v1: title, the farmer's problem, the engine, the app demo, a NASA data slide, then a Polish version. Only the farm stills (#145) are in the repo.
-- Who builds step 6 "Money" (see above).
+- Step 6 B2: borrow a Ky for oats, rye and barley from wheat (with a label and a gap line), or leave those rotations without income (D29).
 - Iowa demo: check the soil weights with a mentor before the pitch.
