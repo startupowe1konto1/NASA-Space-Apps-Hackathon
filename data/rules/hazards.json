@@ -26,7 +26,7 @@
     "appliesTo": "heat check against each crop's own threshold in data/crops: days of the month whose daily maximum is above the threshold are counted (D43, hazards.heat.minDays)",
     "sourceTitle": "NASA POWER parameter dictionary (community AG, daily)",
     "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=T2M_MAX&temporal=daily",
-    "sourceLocator": "T2M_MAX 'Temperature at 2 Meters Maximum', units C; the daily point API returns one maximum per day (data/samples/power/point-daily-tmax-2023-2024-ag.json)",
+    "sourceLocator": "T2M_MAX 'Temperature at 2 Meters Maximum', units C, temporal DAILY: 'The maximum hourly air (dry bulb) temperature at 2 meters above the surface of the earth in the period of interest' (data/samples/power/parameters-tmax-daily.json); the daily point API returns one value per day (data/samples/power/point-daily-tmax-2023-2024-ag.json)",
     "checkedBy": "O1, sample saved Sat 14 Nov 2026"
   },
   {

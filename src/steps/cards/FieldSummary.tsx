@@ -23,7 +23,9 @@ function recentYears(analysis: Analysis): { from: number; to: number; years: num
 function droughtYears(analysis: Analysis): Sourced {
   const { profile } = analysis;
   const recent = recentYears(analysis);
-  const base = { datasetIds: profile.source.datasetIds, kind: 'derived' as const, retrievedAt: profile.source.retrievedAt };
+  // drought years come from monthly root-zone wetness only, not from the daily temperature record (D43)
+  const datasetIds = profile.source.datasetIds.filter((id) => id !== 'nasa-power-daily');
+  const base = { datasetIds, kind: 'derived' as const, retrievedAt: profile.source.retrievedAt };
   if (!recent) return { ...base, value: null, missingReason: t('steps.rotations.summary.droughtYears.none') };
   const value = profile.droughtYears.filter((y) => y >= recent.from).length;
   return { ...base, value, unit: t('steps.rotations.summary.droughtYears.unit', { n: recent.years.length }) };

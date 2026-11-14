@@ -210,6 +210,10 @@ describe('heat from daily maxima (D43)', () => {
     expect(risk(rows, 7, 'heat', { ...ALL, heatMinDays: 2 }).value).toBe(1);
   });
 
+  it('throws on a heatMinDays that is not a whole number of at least 1, instead of marking every month', () => {
+    for (const d of [0, 2.5, Number.NaN]) expect(() => monthlyRisk(series(), { ...ALL, heatMinDays: d }, SOURCE)).toThrow(/heatMinDays/);
+  });
+
   it('a month whose daily list is empty is left out of the share', () => {
     const rows = series((row, i) => {
       if (row.month === 7) row.tMaxDailyC = i === 0 ? [] : [...Array<number>(i < 10 ? 3 : 0).fill(30), ...Array<number>(28).fill(20)];

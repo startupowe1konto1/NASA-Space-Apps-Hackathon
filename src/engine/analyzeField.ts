@@ -440,7 +440,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           soilInputsMissing,
           slopeMissing: slopePct.value === null,
           prioritiesNotScored,
-          ruleIds: { drought: rules.ids.drought, markShare: rules.ids.markShare },
+          ruleIds: { drought: rules.ids.drought, markShare: rules.ids.markShare, heatMinDays: rules.ids.heatMinDays },
           calendarDatasetId: CROP_CALENDARS_ID,
           retrievedAt,
           unknownCrops,

@@ -141,7 +141,7 @@ export interface CardInput {
   soilInputsMissing: string[];
   slopeMissing: boolean;
   prioritiesNotScored: PriorityId[];
-  ruleIds: { drought: string; markShare: string };
+  ruleIds: { drought: string; markShare: string; heatMinDays: string };
   /** Dataset id for our crop calendars (bare months). */
   calendarDatasetId: string;
   retrievedAt: string;
@@ -234,7 +234,7 @@ export function cardMessages(c: CardInput): CardMessages {
         basis: '10th to 90th percentile year of the record',
       }),
     ],
-    ruleIds: [c.ruleIds.drought],
+    ruleIds: [c.ruleIds.drought, c.ruleIds.heatMinDays],
   });
   let top: { cell: CalendarMonth; e: CalendarMonth['exposure'][number] } | undefined;
   for (const cell of c.calendar) {
@@ -252,7 +252,13 @@ export function cardMessages(c: CardInput): CardMessages {
         years: record.length,
       }),
       values: [top.e.probability],
-      ruleIds: [c.ruleIds.markShare],
+      // drought marks do not use markShare (D42); heat marks also depend on the hot-day count (D43)
+      ruleIds:
+        top.e.hazard === 'drought'
+          ? [c.ruleIds.drought]
+          : top.e.hazard === 'heat'
+            ? [c.ruleIds.markShare, c.ruleIds.heatMinDays]
+            : [c.ruleIds.markShare],
     });
   }
   evidence.push({

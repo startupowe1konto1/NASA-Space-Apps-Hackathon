@@ -281,6 +281,24 @@ describe('heat from daily maxima (D43)', () => {
     expect(yearlyHits(cropB, climate, P20, 3)).toHaveLength(44);
   });
 
+  it('a daily list with some missing days counts the days it has', () => {
+    const climate = daily((row) => (row.month === 8 ? [31, 31, null, 31, ...Array<number | null>(27).fill(null)] : undefined));
+    expect(yearlyHits(cropB, climate, P20, 3).every((r) => r.hit)).toBe(true);
+    expect(yearlyHits(cropB, climate, P20, 4).some((r) => r.hit)).toBe(false);
+  });
+
+  it('heat marks cite the daily dataset; drought marks cite only the monthly one', () => {
+    const climate = daily((row) => (row.month === 8 ? august(4, 31) : undefined));
+    climate.source.datasetIds = ['nasa-power-monthly', 'nasa-power-daily'];
+    const cells: Cell[] = [
+      { yearIndex: 0, month: 7, crop: 'a', cover: 'crop' },
+      { yearIndex: 0, month: 8, crop: 'b', cover: 'crop' },
+    ];
+    const [july, aug] = withExposure(cells, crops, climate, 0.2, P20, 3);
+    expect(july!.exposure[0]!.probability.datasetIds).toEqual(['nasa-power-monthly']);
+    expect(aug!.exposure[0]!.probability.datasetIds).toEqual(['nasa-power-monthly', 'nasa-power-daily']);
+  });
+
   it('throws on a minimum that is not a whole number of at least 1', () => {
     for (const d of [0, 1.5, Number.NaN]) expect(() => yearlyHits(cropB, makeClimate(), P20, d)).toThrow(/minimum days/);
   });

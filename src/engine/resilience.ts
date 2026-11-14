@@ -187,6 +187,9 @@ function cropById(crops: CropTraits[], id: CropId): CropTraits {
  */
 export const WEAK_CONFIDENCE_MISSING_SHARE = 0.1;
 
+/** Dataset id of the NASA POWER daily record (src/profile/datasets.ts), read only by the heat check. */
+const DAILY_DATASET_ID = 'nasa-power-daily';
+
 /**
  * Climate resilience of a rotation: the share of crop-years (main crop × record year) without a hazard hit, × 100.
  * Cover crops are not scored. A crop-year is hit when any of its checks hit; a crop-year with no hit but a missing
@@ -283,6 +286,9 @@ export function withExposure(
 ): CalendarMonth[] {
   checkPercentile(droughtPercentile);
   const cache = new Map<CropId, HazardHit[]>();
+  // Only heat reads the daily record (D43); drought and frost marks cite the monthly series alone.
+  const idsFor = (hazard: Hazard) =>
+    hazard === 'heat' ? climate.source.datasetIds : climate.source.datasetIds.filter((id) => id !== DAILY_DATASET_ID);
   const hitsOf = (crop: CropTraits) => {
     let rows = cache.get(crop.id);
     if (!rows) {
@@ -307,7 +313,7 @@ export function withExposure(
         probability: {
           value: round(share, 3),
           unit: 'share of years',
-          datasetIds: climate.source.datasetIds,
+          datasetIds: idsFor(s.hazard),
           kind: 'derived',
           retrievedAt: climate.source.retrievedAt,
         },

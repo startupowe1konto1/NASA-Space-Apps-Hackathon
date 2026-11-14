@@ -91,6 +91,9 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
  * Years where the month's value is null are left out of the denominator.
  */
 export function monthlyRisk(monthly: Monthly, thresholds: Thresholds, source: { retrievedAt: string }): MonthlyRisk[] {
+  if (!Number.isInteger(thresholds.heatMinDays) || thresholds.heatMinDays < 1) {
+    throw new Error(`monthlyRisk: heatMinDays must be a whole number ≥ 1, got ${thresholds.heatMinDays}`);
+  }
   const out: MonthlyRisk[] = [];
   for (let month = 1; month <= 12; month++) {
     const rows = monthly.filter((r) => r.month === month);

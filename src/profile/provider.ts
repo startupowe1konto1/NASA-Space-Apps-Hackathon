@@ -11,12 +11,19 @@ function hazardValue(id: string): number | null {
   return row && typeof row.value === 'number' ? row.value : null;
 }
 
+/** A rule the profile cannot work without (D43): a missing row is an error, not a default. */
+function requiredHazardValue(id: string): number {
+  const v = hazardValue(id);
+  if (v === null) throw new Error(`profile: data/rules/hazards.json has no numeric '${id}'`);
+  return v;
+}
+
 /** Crop-independent thresholds for the field summary, read from the rule table (D26). Crops keep their own in data/crops. */
 export const DEFAULT_THRESHOLDS: Thresholds = {
   droughtPercentile: hazardValue('hazards.drought.percentile') ?? 20,
   heatC: hazardValue('hazards.heat.generalThresholdC'),
   frostDays: hazardValue('hazards.frost.generalThresholdDays'),
-  heatMinDays: hazardValue('hazards.heat.minDays') ?? 1,
+  heatMinDays: requiredHazardValue('hazards.heat.minDays'),
 };
 
 /** The profile from POWER monthly, plus the daily maxima for heat (D43) when `daily` is given. */
