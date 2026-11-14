@@ -1,7 +1,6 @@
 {
   "search.title": "Find an address or place",
   "search.label": "Address or place",
-  "search.hint": "A Polish address is looked up in GUGiK, anything else in OpenStreetMap. The field at that place is outlined on the map.",
   "search.button": "Search",
   "search.results": "Places found",
   "search.none": "No place matches this text. Add the town or the postcode, or check the spelling.",

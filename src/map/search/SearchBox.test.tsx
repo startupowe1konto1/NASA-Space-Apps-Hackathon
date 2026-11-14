@@ -42,6 +42,11 @@ async function search(query: string) {
 }
 
 describe('SearchBox', () => {
+  it('has no hint under the field, only the label and the Search button (review of the O4 redesign)', () => {
+    render(<SearchBox onPick={vi.fn()} throttle={noWait} />);
+    expect(screen.getByLabelText(t('search.label'))).not.toHaveAccessibleDescription();
+  });
+
   it('moves the map to the only place GUGiK finds for a Polish address', async () => {
     answer(gugikHit);
     const onPick = vi.fn();
