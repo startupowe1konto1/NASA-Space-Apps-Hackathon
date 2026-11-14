@@ -1,7 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { demoFields } from '../../fixtures';
+import { cutField } from '../parcels/editFields';
 import { FieldList } from './FieldList';
 
 const real = {
@@ -111,14 +113,15 @@ describe('FieldList', () => {
   it('gives no button a name that contains a field name', async () => {
     render(<FieldList />);
     await screen.findByText(rowText(iowa));
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBeGreaterThan(0);
-    for (const button of buttons) {
+    // Every row has one button, Delete; the join button below the list is not a row button.
+    const buttons = screen.getAllByRole('listitem').flatMap((row) => within(row).getAllByRole('button'));
+    expect(buttons).toHaveLength(2);
+    for (const button of [...buttons, screen.getByRole('button', { name: t('edit.join.button') })]) {
       const name = button.textContent ?? '';
       const label = `${name} ${button.getAttribute('aria-label') ?? ''}`.toLowerCase();
       for (const field of [iowa, poznan]) expect(label).not.toContain(field.name.toLowerCase());
-      expect(button).toHaveAccessibleName('Delete');
     }
+    for (const button of buttons) expect(button).toHaveAccessibleName('Delete');
     // Delete still tells a screen reader which field it removes, through its description.
     expect(within(rowOf(iowa)).getByRole('button', { name: 'Delete' })).toHaveAccessibleDescription(rowText(iowa));
   });
@@ -129,3 +132,75 @@ describe('FieldList', () => {
     await screen.findByText('No fields yet.');
   });
 });
+
+describe('FieldList joining', () => {
+  const joinButton = () => screen.getByRole('button', { name: t('edit.join.button') });
+  const tick = (user: ReturnType<typeof userEvent.setup>, name: string) =>
+    user.click(within(screen.getByText((text) => text.startsWith(`${name}, `)).closest('li')!).getByRole('checkbox'));
+
+  /** The Poznań field cut in two: two fields that share a border exactly. */
+  const halves = () => {
+    const cut = cutField(poznan.id, [
+      [poznan.centroid.lon - 1, poznan.centroid.lat],
+      [poznan.centroid.lon + 1, poznan.centroid.lat],
+    ]);
+    if (!cut.ok) throw new Error('setup: the cut failed');
+    return cut.fields;
+  };
+
+  it('offers no joining with a single field', () => {
+    useAppStore.setState({ fields: [iowa] });
+    render(<FieldList />);
+    expect(screen.queryByRole('button', { name: t('edit.join.button') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+  });
+
+  it('keeps the join button off until exactly two fields are ticked', async () => {
+    const user = userEvent.setup();
+    render(<FieldList />);
+    expect(joinButton()).toBeDisabled();
+    await tick(user, iowa.name);
+    expect(joinButton()).toBeDisabled();
+    await tick(user, poznan.name);
+    expect(joinButton()).toBeEnabled();
+    await tick(user, poznan.name);
+    expect(joinButton()).toBeDisabled();
+  });
+
+  it('joins two fields that share a border into one and says so', async () => {
+    const user = userEvent.setup();
+    const [a, b] = halves();
+    render(<FieldList />);
+
+    await tick(user, a.name);
+    await tick(user, b.name);
+    await user.click(joinButton());
+
+    const joinedName = t('merge.field.name', { a: a.name, b: b.name });
+    expect(await screen.findByText(t('edit.join.done', { name: joinedName }))).toBeInTheDocument();
+    expect(useAppStore.getState().fields.map((f) => f.name).sort()).toEqual([iowa.name, joinedName].sort());
+    await waitFor(() => expect(joinButton()).toBeDisabled());
+  });
+
+  it('explains why two fields cannot be joined and leaves them as they are', async () => {
+    const user = userEvent.setup();
+    render(<FieldList />);
+    await tick(user, iowa.name);
+    await tick(user, poznan.name);
+    await user.click(joinButton());
+
+    expect(await screen.findByText(t('edit.join.fail.not-adjacent'))).toBeInTheDocument();
+    expect(useAppStore.getState().fields.map((f) => f.id)).toEqual([iowa.id, poznan.id]);
+  });
+
+  it('forgets a tick when its field is deleted', async () => {
+    const user = userEvent.setup();
+    render(<FieldList />);
+    await tick(user, iowa.name);
+    await tick(user, poznan.name);
+    expect(joinButton()).toBeEnabled();
+    act(() => useAppStore.getState().removeField(iowa.id));
+    await waitFor(() => expect(screen.queryByRole('button', { name: t('edit.join.button') })).not.toBeInTheDocument());
+  });
+});
+

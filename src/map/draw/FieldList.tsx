@@ -5,6 +5,7 @@ import { useEffect, useId, useState, type KeyboardEvent } from 'react';
 import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import type { Field } from '../../contracts';
+import { joinFields } from '../parcels/editFields';
 
 const BUTTON =
   'min-h-11 shrink-0 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
@@ -15,6 +16,19 @@ export function FieldList() {
   const fields = useAppStore((s) => s.fields);
   const selectedFieldId = useAppStore((s) => s.selectedFieldId);
   const groupName = useId();
+  const [ticked, setTicked] = useState<string[]>([]);
+  const [note, setNote] = useState<string | null>(null);
+  // A field deleted or replaced elsewhere drops out of the ticked ones.
+  const pair = ticked.filter((id) => fields.some((f) => f.id === id));
+  const canJoin = fields.length >= 2;
+  const toggle = (id: string) => setTicked((now) => (now.includes(id) ? now.filter((x) => x !== id) : [...now, id]));
+  const join = () => {
+    const [a, b] = pair;
+    if (pair.length !== 2 || !a || !b) return;
+    const outcome = joinFields(a, b);
+    setNote(outcome.ok ? t('edit.join.done', { name: outcome.field.name }) : t(`edit.join.fail.${outcome.reason}`));
+    if (outcome.ok) setTicked([]);
+  };
 
   return (
     <section>
@@ -24,15 +38,45 @@ export function FieldList() {
         <legend className="sr-only">{t('draw.fields.select')}</legend>
         <ul aria-label={t('map.fields')} className="grid gap-2">
           {fields.map((f) => (
-            <FieldRow key={f.id} field={f} selected={f.id === selectedFieldId} groupName={groupName} />
+            <FieldRow
+              key={f.id}
+              field={f}
+              selected={f.id === selectedFieldId}
+              groupName={groupName}
+              joinable={canJoin}
+              ticked={pair.includes(f.id)}
+              onToggleJoin={() => toggle(f.id)}
+            />
           ))}
         </ul>
       </fieldset>
+      {canJoin ? (
+        <div className="mt-3 grid gap-2">
+          <p className="text-sm text-slate-600">{t('edit.join.hint')}</p>
+          <div>
+            <button type="button" className={BUTTON} disabled={pair.length !== 2} onClick={join}>
+              {t('edit.join.button')}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <div role="status" className="mt-2 text-base text-slate-900">
+        {note}
+      </div>
     </section>
   );
 }
 
-function FieldRow({ field, selected, groupName }: { field: Field; selected: boolean; groupName: string }) {
+interface RowProps {
+  field: Field;
+  selected: boolean;
+  groupName: string;
+  joinable: boolean;
+  ticked: boolean;
+  onToggleJoin(): void;
+}
+
+function FieldRow({ field, selected, groupName, joinable, ticked, onToggleJoin }: RowProps) {
   const selectField = useAppStore((s) => s.selectField);
   const removeField = useAppStore((s) => s.removeField);
   const base = useId();
@@ -59,6 +103,18 @@ function FieldRow({ field, selected, groupName }: { field: Field; selected: bool
         <label htmlFor={pickId} id={rowId} className={`flex min-h-11 flex-1 items-center ${selected ? 'font-medium' : ''}`}>
           {t('map.fields.item', { name: field.name, area: field.areaHa.toFixed(1) })}
         </label>
+        {joinable ? (
+          <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={ticked}
+              onChange={onToggleJoin}
+              aria-label={`${t('edit.join.pick')}: ${field.name}`}
+              className="h-6 w-6 shrink-0 accent-emerald-700"
+            />
+            <span aria-hidden="true">{t('edit.join.pick')}</span>
+          </label>
+        ) : null}
       </div>
       <div className="mt-2 flex items-end gap-2">
         <div className="min-w-0 flex-1">

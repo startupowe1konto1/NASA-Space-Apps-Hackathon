@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import './draw/draw.css';
-import type { Polygon } from 'geojson';
+import type { Polygon, Position } from 'geojson';
 import type { Field } from '../contracts';
 
 export interface MapHandlers {
@@ -17,6 +17,12 @@ export interface MapHandlers {
   onEdited(id: string, polygon: Polygon): void;
   /** A field was tapped in delete mode. */
   onRemoved(id: string): void;
+  /** Cut mode: the second tap came in. The line runs through these two [lon, lat] points; the mode is already off. */
+  onCut(line: [Position, Position]): void;
+  /** Cut mode went on or off, however it happened (two taps, cancel, or another map tool taking over). */
+  onCutMode(active: boolean): void;
+  /** A tile of the parcel layer did not load. */
+  onParcelLayerError(): void;
 }
 
 export interface MapController {
@@ -28,6 +34,12 @@ export interface MapController {
   isEditing(): boolean;
   /** Moves the map to a place found by the address search and marks it. One marker at a time. */
   showPlace(lat: number, lon: number, label: string): void;
+  /** Cut mode: the next two taps on the map are the line a field is cut along. Switches the Geoman tools off. */
+  startCut(): void;
+  /** Leaves cut mode without a cut. */
+  stopCut(): void;
+  /** Shows or hides the land register parcels (KIEG, Poland). Visible from zoom 14. */
+  setParcelLayer(on: boolean): void;
 }
 
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -35,6 +47,12 @@ const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">Op
 const START_VIEW: L.LatLngTuple = [46, -40]; // between the USA and Poland
 const START_ZOOM = 2;
 const PLACE_ZOOM = 16; // close enough to see field edges and tap the right one
+// KIEG, the national land register map from GUGiK (host on the SPEC section 15 list; it redirects to integracja02, D49).
+// A WMS image overlay in Web Mercator, so the map keeps its OpenStreetMap projection. The service draws nothing
+// above a scale of about 1:25 000, so tiles are only asked for from zoom 14.
+const KIEG_URL = 'https://integracja.gugik.gov.pl/cgi-bin/KrajowaIntegracjaEwidencjiGruntow';
+const KIEG_ATTRIBUTION = '&copy; <a href="https://integracja.gugik.gov.pl">GUGiK</a> KIEG';
+const PARCEL_MIN_ZOOM = 14;
 
 const toLatLngs = (field: Field): L.LatLngTuple[][] =>
   field.polygon.coordinates.map((ring) => ring.map(([lon = 0, lat = 0]) => [lat, lon] as L.LatLngTuple));
@@ -68,6 +86,17 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
   const tiles = L.tileLayer(TILE_URL, { maxZoom: 19, attribution: ATTRIBUTION }).addTo(map);
   const fieldLayer = L.layerGroup().addTo(map);
   const placeLayer = L.layerGroup().addTo(map);
+  const cutLayer = L.layerGroup().addTo(map);
+  const parcelLayer = L.tileLayer.wms(KIEG_URL, {
+    layers: 'dzialki,numery_dzialek',
+    format: 'image/png',
+    transparent: true,
+    version: '1.3.0',
+    minZoom: PARCEL_MIN_ZOOM,
+    maxZoom: 19,
+    attribution: KIEG_ATTRIBUTION,
+  });
+  parcelLayer.on('tileerror', () => handlers.onParcelLayerError());
 
   tiles.on('tileerror', () => handlers.onTileError());
 
@@ -78,9 +107,39 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
     e.layer.remove();
     if (polygon) handlers.onDrawn(polygon);
   });
+  // Cut mode: `cutPoints` is null when off, else the taps so far (0 or 1).
+  let cutPoints: Position[] | null = null;
+  const setCutMode = (active: boolean) => {
+    if ((cutPoints !== null) === active) return;
+    cutPoints = active ? [] : null;
+    cutLayer.clearLayers();
+    handlers.onCutMode(active);
+  };
   const isEditing = () =>
-    map.pm.globalDrawModeEnabled() || map.pm.globalEditModeEnabled() || map.pm.globalRemovalModeEnabled();
-  map.on('click', (e: L.LeafletMouseEvent) => handlers.onClick(e.latlng.lat, L.Util.wrapNum(e.latlng.lng, [-180, 180], true)));
+    cutPoints !== null ||
+    map.pm.globalDrawModeEnabled() ||
+    map.pm.globalEditModeEnabled() ||
+    map.pm.globalRemovalModeEnabled();
+  // Another map tool switched on: it owns the taps now.
+  map.on('pm:drawstart pm:globaleditmodetoggled pm:globalremovalmodetoggled', (e) => {
+    const toggled = e as { enabled?: boolean };
+    if (toggled.enabled !== false) setCutMode(false);
+  });
+  map.on('click', (e: L.LeafletMouseEvent) => {
+    const lon = L.Util.wrapNum(e.latlng.lng, [-180, 180], true);
+    if (cutPoints) {
+      cutPoints.push([lon, e.latlng.lat]);
+      if (cutPoints.length < 2) {
+        L.circleMarker(e.latlng, { radius: 6, color: '#b45309', weight: 3, fillOpacity: 1, interactive: false }).addTo(cutLayer);
+        return;
+      }
+      const line = cutPoints as [Position, Position];
+      setCutMode(false);
+      handlers.onCut(line);
+      return;
+    }
+    handlers.onClick(e.latlng.lat, lon);
+  });
 
   return {
     setFields(fields, selectedId) {
@@ -96,7 +155,7 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
           .on('click', (e: L.LeafletMouseEvent) => {
             // While drawing, a tap on a field is a corner of the new outline. The field stops the click from reaching
             // the map, so hand it on: Geoman adds the corner there. Selecting the field would fly the map away mid-draw.
-            if (map.pm.globalDrawModeEnabled()) {
+            if (map.pm.globalDrawModeEnabled() || cutPoints) {
               map.fire('click', e);
               return;
             }
@@ -126,6 +185,20 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
       map.remove();
     },
     isEditing,
+    startCut() {
+      map.pm.disableDraw();
+      map.pm.disableGlobalEditMode();
+      map.pm.disableGlobalRemovalMode();
+      setCutMode(false); // forget a half-drawn line
+      setCutMode(true);
+    },
+    stopCut() {
+      setCutMode(false);
+    },
+    setParcelLayer(on) {
+      if (on && !map.hasLayer(parcelLayer)) parcelLayer.addTo(map);
+      else if (!on && map.hasLayer(parcelLayer)) parcelLayer.remove();
+    },
     showPlace(lat, lon, label) {
       placeLayer.clearLayers();
       // Not interactive: a tap on the marker still reaches the map, so it adds a field or a corner there.
