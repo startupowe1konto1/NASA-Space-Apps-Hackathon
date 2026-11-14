@@ -4,6 +4,13 @@ import { App } from './App';
 import { useAppStore } from './store';
 import { useOnline } from './useOnline';
 
+// This test checks the offline shell, so it runs on the fixture analysis and never calls the real engine or NASA POWER.
+vi.mock('./providers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./providers')>();
+  const { fixtureAnalyzeField } = await import('../fixtures');
+  return { ...actual, analyzeField: fixtureAnalyzeField };
+});
+
 function setNavigatorOnline(value: boolean) {
   Object.defineProperty(window.navigator, 'onLine', { configurable: true, get: () => value });
 }
