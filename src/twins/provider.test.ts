@@ -5,28 +5,45 @@ import { createTwinsProvider, type CasesFile } from './provider';
 const feats = (gsRainMm: number, gsRootZoneWetness: number, frostDaysPerYear: number, yearlyMaxTempC: number) => ({
   gsMeanTempC: 18, gsRainMm, gsRootZoneWetness, frostDaysPerYear, yearlyMaxTempC,
 });
-const crops = (entries: Record<string, number>, source = 'usda-nass-quickstats', kind: 'observation' | 'derived' = 'observation') => ({
+/** Outcome rows: crop → [share %, yield t/ha | null]. */
+const crops = (
+  entries: Record<string, [number, number | null]>,
+  source = 'usda-nass-quickstats',
+  kind: 'observation' | 'derived' = 'observation',
+) => ({
   years: '2019–2023',
   source,
   kind,
   areaHa: 1000,
-  crops: Object.fromEntries(Object.entries(entries).map(([id, share]) => [id, { sharePct: share, yieldTPerHa: 5, nYears: 5, nAreaYears: 5 }])),
+  crops: Object.fromEntries(
+    Object.entries(entries).map(([id, [share, yieldTPerHa]]) => [id, { sharePct: share, yieldTPerHa, nYears: 5, nAreaYears: 5 }]),
+  ),
 });
 
+const iowaFeatures = feats(600, 0.5, 140, 35);
 const cases: CasesFile = {
   meta: { retrievedAt: '2026-11-14', script: 'scripts/twins_outcomes.py', sourceUrl: 'https://quickstats.nass.usda.gov/' },
   regions: [
-    { id: 'US-1', name: 'Near County, IA', country: 'US', centroid: { lat: 42, lon: -93 }, features: feats(600, 0.5, 140, 35), outcome: crops({ maize: 55, soybean: 40 }) },
-    { id: 'US-2', name: 'Far County, NE', country: 'US', centroid: { lat: 41, lon: -100 }, features: feats(300, 0.3, 170, 38), outcome: crops({ maize: 70 }) },
-    { id: 'US-3', name: 'Wheat County, MN', country: 'US', centroid: { lat: 45, lon: -95 }, features: feats(590, 0.5, 141, 35), outcome: crops({ 'winter-wheat': 30 }) },
+    // the county the field sits in: never its own twin
+    { id: 'US-0', name: 'Own County, IA', country: 'US', centroid: { lat: 42.03, lon: -93.5 }, features: iowaFeatures, outcome: crops({ maize: [60, 12], soybean: [40, 3.5] }) },
+    // two counties in one NASA POWER cell: identical features, one case
+    { id: 'US-1', name: 'Near County, IA', country: 'US', centroid: { lat: 42.4, lon: -94.2 }, features: feats(601, 0.5, 140, 35), outcome: crops({ maize: [55, 11], soybean: [40, 3.4] }) },
+    { id: 'US-5', name: 'Cell Mate County, IA', country: 'US', centroid: { lat: 42.45, lon: -94.25 }, features: feats(601, 0.5, 140, 35), outcome: crops({ maize: [50, 13], soybean: [45, 3.6] }) },
+    { id: 'US-2', name: 'Far County, NE', country: 'US', centroid: { lat: 41, lon: -100 }, features: feats(300, 0.3, 170, 38), outcome: crops({ maize: [70, 9] }) },
+    { id: 'US-3', name: 'Wheat County, MN', country: 'US', centroid: { lat: 45, lon: -95 }, features: feats(590, 0.5, 141, 35), outcome: crops({ 'winter-wheat': [30, 4] }) },
     { id: 'US-4', name: 'No Data County, IN', country: 'US', centroid: { lat: 40, lon: -86 }, features: feats(600, 0.5, 140, 35), outcome: null },
+    { id: 'US-6', name: 'Soy Only County, IA', country: 'US', centroid: { lat: 41.5, lon: -92 }, features: feats(610, 0.52, 139, 35.2), outcome: crops({ soybean: [80, 3.3] }) },
     ...Array.from({ length: 12 }, (_, i) => ({
-      id: `PL-${i}`, name: `Region ${i}`, country: 'PL' as const, centroid: { lat: 52, lon: 17 },
-      features: feats(330 + i, 0.36, 105, 33), outcome: crops({ 'winter-wheat': 25, maize: 10, rapeseed: 9 }, 'eurostat-apro-cpnhr', 'derived'),
+      id: `PL-${i}`, name: `Region ${i}`, country: 'PL' as const, centroid: { lat: 50 + i * 0.1, lon: 20 },
+      features: feats(330 + i, 0.36, 105, 33),
+      outcome: crops({ 'winter-wheat': [25, 5.5], maize: [10, 7], rapeseed: [9, 3.2] }, 'eurostat-apro-cpnhr', 'derived'),
     })),
     {
       id: 'DE11', name: 'Stuttgart', country: 'OTHER', centroid: { lat: 48.8, lon: 9.2 }, features: feats(400, 0.45, 100, 32),
-      outcome: { ...crops({ rapeseed: 12, 'sugar-beet': 5 }, 'eurostat-apro-cpnhr', 'derived'), outcomeRegion: { code: 'DE1', name: 'Baden-Württemberg', level: 'nuts1', note: 'by Land only' } },
+      outcome: {
+        ...crops({ rapeseed: [12, 3.9], 'sugar-beet': [5, null] }, 'eurostat-apro-cpnhr', 'derived'),
+        outcomeRegion: { code: 'DE1', name: 'Baden-Württemberg', level: 'nuts1', note: 'by Land only' },
+      },
     },
   ],
 };
@@ -46,22 +63,46 @@ const profile = (rainPerSeasonMonth: number): FieldProfile => {
   return { monthly } as unknown as FieldProfile;
 };
 
-const provider = createTwinsProvider(cases);
+const provider = createTwinsProvider(async () => cases);
+
+async function ready(rotation: Parameters<typeof provider.getTwins>[2], rain = 100) {
+  const result = await provider.getTwins(field, profile(rain), rotation);
+  if (result.status !== 'ready') throw new Error(`expected ready, got ${result.status}`);
+  return result.data;
+}
 
 describe('TwinsProvider', () => {
-  it('returns the nearest regions that grow a crop of the rotation, with case count and mean similarity', async () => {
-    const result = await provider.getTwins(field, profile(100), [{ crop: 'maize' }, { crop: 'soybean' }]);
-    expect(result.status).toBe('ready');
-    if (result.status !== 'ready') return;
-    const { cases: found, caseCount, meanSimilarity } = result.data;
-    expect(found[0]).toMatchObject({ regionName: 'Near County, IA', country: 'US', crops: ['maize', 'soybean'], years: '2019–2023' });
+  it('leaves out the region the field sits in', async () => {
+    const { cases: found } = await ready([{ crop: 'maize' }, { crop: 'soybean' }]);
+    expect(found.map((c) => c.regionName).join('|')).not.toContain('Own County');
+  });
+
+  it('counts regions with identical NASA POWER features once, naming the others', async () => {
+    const { cases: found, caseCount } = await ready([{ crop: 'maize' }, { crop: 'soybean' }]);
+    const cell = found.filter((c) => c.regionName.includes('Near County') || c.regionName.includes('Cell Mate County'));
+    expect(cell).toHaveLength(1);
+    expect(cell[0]!.regionName).toMatch(/\+1 more in the same NASA POWER grid cell/);
+    expect(caseCount).toBe(found.length);
+  });
+
+  it('shows the yield of the first rotation crop grown there, averaged over a shared grid cell', async () => {
+    const { cases: found } = await ready([{ crop: 'maize' }, { crop: 'soybean' }]);
+    const cell = found.find((c) => c.regionName.includes('Near County'))!;
+    expect(cell.crops).toEqual(['maize', 'soybean']);
+    expect(cell.outcome).toMatchObject({ value: 12, unit: 't/ha, maize, mean 2019–2023', kind: 'observation', retrievedAt: '2026-11-14' });
+    expect(cell.outcome.datasetIds).toEqual(['usda-nass-county-crops', 'nasa-power-climatology', 'nasa-power-monthly']);
+    const soyOnly = found.find((c) => c.regionName.includes('Soy Only'))!;
+    expect(soyOnly).toMatchObject({ crops: ['soybean'], outcome: { value: 3.3, unit: 't/ha, soybean, mean 2019–2023' } });
+  });
+
+  it('keeps the ranking, the 10-case limit and the mean similarity of the shown cases', async () => {
+    const { cases: found, caseCount, meanSimilarity } = await ready([{ crop: 'maize' }, { crop: 'winter-rapeseed' }]);
+    expect(found.length).toBeLessThanOrEqual(10);
+    expect(caseCount).toBe(found.length);
+    expect(meanSimilarity).toBeCloseTo(found.reduce((s, c) => s + c.similarity, 0) / found.length, 5);
+    for (let i = 1; i < found.length; i++) expect(found[i - 1]!.similarity).toBeGreaterThanOrEqual(found[i]!.similarity);
     expect(found.map((c) => c.regionName)).not.toContain('Wheat County, MN'); // grows none of the rotation's crops
     expect(found.map((c) => c.regionName)).not.toContain('No Data County, IN'); // no outcome
-    expect(found).toHaveLength(10);
-    expect(caseCount).toBe(10);
-    expect(meanSimilarity).toBeCloseTo(found.reduce((s, c) => s + c.similarity, 0) / 10, 5);
-    expect(found[0]!.similarity).toBeGreaterThanOrEqual(found[1]!.similarity);
-    expect(found[0]!.outcome).toMatchObject({ value: 95, unit: '% of the harvested area of the case-base crops (not all farmland)', kind: 'observation', retrievedAt: '2026-11-14' });
   });
 
   it('is no-data with twins.no-cases when no region grows a crop of the rotation', async () => {
@@ -69,15 +110,17 @@ describe('TwinsProvider', () => {
     expect(result).toEqual({ status: 'no-data', reason: { code: 'twins.no-cases' } });
   });
 
-  it('maps our crop ids to the case-base names (winter-rapeseed = rapeseed), labels Eurostat shares as our calculation and names the Land for German cases', async () => {
-    const result = await provider.getTwins(field, profile(30), [{ crop: 'winter-rapeseed' }]);
-    expect(result.status).toBe('ready');
-    if (result.status !== 'ready') return;
-    const pl = result.data.cases.find((c) => c.regionName.startsWith('Region'));
+  it('maps our crop ids to the case-base names, keeps Eurostat yields as our calculation and names the Land for German cases', async () => {
+    const { cases: found } = await ready([{ crop: 'winter-rapeseed' }], 30);
+    const pl = found.find((c) => c.regionName.startsWith('Region'))!;
     expect(pl).toMatchObject({ crops: ['winter-rapeseed'], country: 'PL' });
-    expect(pl?.outcome).toMatchObject({ value: 9, kind: 'derived', datasetIds: ['eurostat-apro-cpnhr', 'nasa-power-climatology'] });
-    const beet = await provider.getTwins(field, profile(30), [{ crop: 'sugar-beet' }]);
-    expect(beet.status === 'ready' && beet.data.cases[0]?.regionName).toBe('Stuttgart (shares for Baden-Württemberg)');
+    expect(pl.outcome).toMatchObject({ value: 3.2, kind: 'derived', datasetIds: ['eurostat-apro-cpnhr', 'nasa-power-climatology', 'nasa-power-monthly'] });
+  });
+
+  it('names the Land for German cases and gives a null yield with a reason when the region has the crop but no yield', async () => {
+    const { cases: found } = await ready([{ crop: 'sugar-beet' }], 30);
+    expect(found[0]!.regionName).toBe('Stuttgart (figures for Baden-Württemberg)');
+    expect(found[0]!.outcome).toMatchObject({ value: null, missingReason: expect.stringContaining('sugar-beet') });
   });
 
   it('counts a cover crop of the rotation too', async () => {
@@ -87,7 +130,7 @@ describe('TwinsProvider', () => {
 });
 
 describe('caseBaseTwinsProvider on the shipped case base', () => {
-  it('answers for the Iowa demo field without throwing: ready with cases, or no-data while outcomes are missing', async () => {
+  it('loads the case base on first use and answers for the Iowa demo field', async () => {
     const { caseBaseTwinsProvider } = await import('./provider');
     const result = await caseBaseTwinsProvider.getTwins(field, profile(100), [{ crop: 'maize' }, { crop: 'soybean' }]);
     expect(['ready', 'no-data']).toContain(result.status);
