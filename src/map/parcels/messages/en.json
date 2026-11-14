@@ -1,0 +1,12 @@
+{
+  "parcels.source": "GUGiK ULDK",
+  "parcels.field.name": "Parcel {teryt}",
+  "parcels.search.title": "Find a Polish parcel",
+  "parcels.search.label": "Parcel number",
+  "parcels.search.hint": "The full number from the land register, for example 302116_5.0008.428/1. In Poland a tap on the map also finds the parcel.",
+  "parcels.search.button": "Find parcel",
+  "parcels.added": "Added parcel {teryt}.",
+  "parcels.notFound": "No parcel has this number. Check it against your land register extract, including the region code before the dot.",
+  "parcels.tap.none": "No parcel was found at that spot, so a 4 ha square was added instead.",
+  "parcels.tap.error": "GUGiK ULDK did not answer, so a 4 ha square was added instead."
+}
