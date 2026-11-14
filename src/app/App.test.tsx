@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { demoFields } from '../fixtures';
 import terms from '../steps/glossary/terms.en.json';
+import { encodeShare } from '../steps/report/shareLink';
 import { App } from './App';
 import { t } from './i18n';
 import { canContinue, useAppStore } from './store';
@@ -140,3 +141,38 @@ describe('t', () => {
     expect(t({ code: 'no.such.code' })).toBe('no.such.code');
   });
 });
+
+describe('shared report link', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'));
+
+  it('opens the report with the shared goal, field, crops and priorities', async () => {
+    const field = demoFields.poznan;
+    const history = [
+      { year: 2024, crop: 'maize', source: 'farmer' as const },
+      { year: 2025, crop: 'potato', source: 'farmer' as const },
+    ];
+    const priorities = { on: ['erosion' as const], excludedCrops: [] };
+    window.history.replaceState(null, '', `/#s=${encodeShare({ goal: 'improveSoil', field, cropHistory: history, priorities })}`);
+    render(<App />);
+    await screen.findByRole('region', { name: /Report for your advisor/ });
+    const st = useAppStore.getState();
+    expect(st.step).toBe(7);
+    expect(st.goal).toBe('improveSoil');
+    expect(st.fields.map((f) => f.id)).toEqual([field.id]);
+    expect(st.cropHistory[field.id]).toEqual(history);
+    expect(st.priorities).toEqual(priorities);
+  });
+
+  it('starts at step 1 when the hash holds no share code', () => {
+    window.history.replaceState(null, '', '/#something-else');
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Step 1 of 7');
+  });
+
+  it('keeps the header and the back/next bar out of print', () => {
+    render(<App />);
+    expect(screen.getByRole('banner')).toHaveClass('print:hidden');
+    expect(screen.getByRole('contentinfo')).toHaveClass('print:hidden');
+  });
+});
+
