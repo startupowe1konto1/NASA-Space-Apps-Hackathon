@@ -11,12 +11,22 @@ const field: Field = {
   id: 'f1',
   name: 'Test field',
   country: 'US',
-  polygon: { type: 'Polygon', coordinates: [[[-93.6, 42], [-93.59, 42], [-93.59, 42.01], [-93.6, 42]]] },
+  polygon: { type: 'Polygon', coordinates: [[[-93.6, 42], [-93.59, 42], [-93.59, 42.01], [-93.6, 42.01], [-93.6, 42]]] },
   centroid: { lat: 42, lon: -93.6 },
   areaHa: 50,
 };
 
 const okResponse = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+
+describe('createPowerProfileProvider thresholds', () => {
+  it('passes thresholds through, so heat and frost come from hazards.json with one line', async () => {
+    const fetchImpl = vi.fn(async () => okResponse(sample));
+    const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch, { droughtPercentile: 20, heatC: 30, frostDays: 10 });
+    const profile = await provider.getClimate(field);
+    const julyHeat = profile.monthlyRisk.find((r) => r.month === 7 && r.hazard === 'heat')!;
+    expect(julyHeat.probability.value).not.toBeNull();
+  });
+});
 
 describe('buildClimateProfile from the saved sample', () => {
   const profile = buildClimateProfile(parsePowerMonthly(sample, RETRIEVED), DEFAULT_THRESHOLDS);
@@ -36,8 +46,9 @@ describe('buildClimateProfile from the saved sample', () => {
   });
 
   it('uses the 20th percentile from hazards.drought.percentile, so drought is 9 of 45 years', () => {
-    const july = profile.monthlyRisk.find((r) => r.month === 7 && r.hazard === 'drought')!;
-    expect(july.probability.value).toBeGreaterThanOrEqual(9 / 45);
+    const drought = profile.monthlyRisk.filter((r) => r.hazard === 'drought');
+    expect(drought).toHaveLength(12);
+    for (const r of drought) expect(r.probability.value).toBeCloseTo(9 / 45, 10);
     expect(profile.droughtYears.length).toBeGreaterThanOrEqual(9);
   });
 
