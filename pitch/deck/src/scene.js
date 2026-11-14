@@ -1,6 +1,6 @@
 // One renderer, one camera. Rest views: orbit, field, europe. Only this file moves the camera.
-// Ported from prototype/orbit.html. The field and the images are still the prototype's Iowa ones; the Poznań
-// assets replace them in a later task. All motion runs on elapsed time, never on frame counts.
+// Ported from prototype/orbit.html, now on the pitch field near Poznań: its centre, outline and neighbours come
+// from data/field.json, the images from scripts/fetch-imagery.sh. All motion runs on elapsed time, never on frame counts.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -20,13 +20,14 @@ const MOVE_S = 2.2;            // camera move between rest views, exponential ea
 const MOVE_RATE = 2.4;
 const HIGH = 400, LOW = 2.3;
 
-// The prototype's field: 0.6 x 0.4 km at the Iowa demo point.
-const FIELD = { lat: 42.0305, lon: -93.497, widthKm: 0.6, heightKm: 0.4 };
+// The Blue Marble box of assets/img/europe-wide.jpg (degrees). Must equal EU_BBOX in scripts/fetch-imagery.sh.
+const EUROPE_BOX = { s: 36, w: -20, n: 66, e: 50 };
 
 // Rest views of the ground scene (1 unit = 1 km). The field sits left of centre so the table has the right-hand side.
 const VIEW = {
   field: { pos: new THREE.Vector3(1.3, 1.3, 1.62), look: new THREE.Vector3(0.24, 0.36, -0.2), dim: 0.36, grid: 0.13 },
-  europe: { pos: new THREE.Vector3(-66, 780, 92), look: new THREE.Vector3(-66, 0, -48), dim: 1.25, grid: 0 },
+  // About 1.9 km per pixel: every twin place and the field fit in the strip between the text block and the table.
+  europe: { pos: new THREE.Vector3(-182, 3578, 758), look: new THREE.Vector3(-182, 0, 114), dim: 1.25, grid: 0 },
 };
 export const VIEWS = ['orbit', 'field', 'europe'];
 
@@ -43,18 +44,25 @@ function hasWebGL(force) {
 export async function createScene({ stage, cloud, noWebGL = false }) {
   const data = await fetch('data/field.json').then((r) => { if (!r.ok) throw new Error(`data/field.json: ${r.status}`); return r.json(); });
   const webgl = hasWebGL(noWebGL);
+  const FIELD = { lat: data.field.centroid.lat, lon: data.field.centroid.lon };
 
   const api = {
     data, FIELD, THREE, available: webgl, view: 'orbit', still: false, fieldFill: 0.16,
     toKm: null, project: null, ground: null, camera: null, scene: null,
+    fieldRing: null,       // the parcel outline in ground units (km, x east, z south), closed: last point = first
+    neighbourRings: null,  // the neighbouring parcels' outlines, same units
   };
   const frameHooks = new Set();
   api.onFrame = (fn) => { frameHooks.add(fn); return () => frameHooks.delete(fn); };
 
+  if (new URLSearchParams(location.search).has('debug')) window.__scene = api;
   if (!webgl) return withoutWebGL(api, stage);
 
   const KM_LAT = 111.32, KM_LON = 111.32 * Math.cos(THREE.MathUtils.degToRad(FIELD.lat));
   api.toKm = (lat, lon) => new THREE.Vector3((lon - FIELD.lon) * KM_LON, 0, -(lat - FIELD.lat) * KM_LAT); // x east, z south
+  const ringKm = (ring) => ring.map(([lon, lat]) => api.toKm(lat, lon));
+  api.fieldRing = ringKm(data.field.ring);
+  api.neighbourRings = data.neighbours.map((nb) => ringKm(nb.ring));
   const C = { field: cssColor('--field'), twin: cssColor('--twin'), data: cssColor('--data') };
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
@@ -68,14 +76,14 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#05070d');
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; // soft reflections for the spacecraft
-  const camera = new THREE.PerspectiveCamera(32, W / H, 0.02, 4000);
+  const camera = new THREE.PerspectiveCamera(32, W / H, 0.02, 9000);
   api.camera = camera; api.scene = scene;
 
   const textures = new THREE.TextureLoader();
   const load = (url) => textures.loadAsync(url).then((t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; });
   const draco = new DRACOLoader().setDecoderPath('node_modules/three/examples/jsm/libs/draco/gltf/');
   const [earthMap, regionMap, localMap, wideMap, craft] = await Promise.all([
-    load('assets/img/earth.jpg'), load('assets/img/iowa-region.jpg'), load('assets/img/iowa-local-native.png'), load('assets/img/iowa-wide.jpg'),
+    load('assets/img/earth.jpg'), load('assets/img/poznan-region.jpg'), load('assets/img/poznan-local.png'), load('assets/img/europe-wide.jpg'),
     new GLTFLoader().setDRACOLoader(draco).loadAsync('assets/glb/landsat8.glb'),
   ]);
 
@@ -131,7 +139,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
   });
   const fitted = new THREE.Group(); fitted.add(model); fitted.scale.setScalar(3.6 / Math.max(size.x, size.y, size.z));
   sat.add(fitted);
-  const satHome = C0.clone().addScaledVector(fwd, 7.4).addScaledVector(right, -1.5).addScaledVector(up, -0.62);
+  const satHome = C0.clone().addScaledVector(fwd, 7.4).addScaledVector(right, -1.25).addScaledVector(up, -1.08); // below the facts row, clear of Poland
   sat.position.copy(satHome);
   const sx = right.clone().addScaledVector(fwd, 0.5).addScaledVector(up, 0.18).normalize();
   const sy0 = up.clone().addScaledVector(fwd, -0.35).normalize();
@@ -146,22 +154,39 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
   // ---------- ground (1 unit = 1 km) ----------
   const ground = new THREE.Group(); ground.visible = false; scene.add(ground);
   api.ground = ground;
-  const flat = (map, sz2, order) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(sz2, sz2), new THREE.MeshBasicMaterial({ map, transparent: true, depthTest: false, depthWrite: false }));
-    m.rotation.x = -Math.PI / 2; m.renderOrder = order; ground.add(m); return m;
+  // Each image is an EPSG:4326 box; toKm is linear in degrees, so the box maps to a rectangle and the dots placed
+  // with toKm land on the right pixels.
+  const flat = (map, box, order) => {
+    const a = api.toKm(box.s, box.w), b = api.toKm(box.n, box.e);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(b.x - a.x, a.z - b.z), new THREE.MeshBasicMaterial({ map, transparent: true, depthTest: false, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.set((a.x + b.x) / 2, 0, (a.z + b.z) / 2); m.renderOrder = order; ground.add(m); return m;
   };
-  const wide = flat(wideMap, 1224.5, -1);  // Blue Marble, cloud-free, for the view of the similar regions
-  const region = flat(regionMap, 445, 0);
-  const local = flat(localMap, 13.3, 1);
+  const wide = flat(wideMap, EUROPE_BOX, -1);                                        // Blue Marble, cloud-free, for the similar regions
+  const region = flat(regionMap, { s: 50.4593, w: 13.8378, n: 54.4593, e: 20.3992 }, 0); // MODIS, 445 km
+  const local = flat(localMap, { s: 52.3995, w: 17.0205, n: 52.5190, e: 17.2166 }, 1);   // HLS, 13.3 km
   const grid = new THREE.GridHelper(13.3, 133, '#ffffff', '#ffffff');
   grid.material.transparent = true; grid.material.opacity = 0; grid.material.depthTest = false; grid.renderOrder = 2; ground.add(grid);
 
-  const { widthKm: FW, heightKm: FH } = FIELD;
-  const fill = new THREE.Mesh(new THREE.PlaneGeometry(FW, FH), new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false }));
+  // Neighbouring parcels: thin white lines. The sharpness at field level comes from these vectors, not from pixels.
+  const nbPts = [];
+  for (const ring of api.neighbourRings) for (let i = 1; i < ring.length; i++) nbPts.push(ring[i - 1], ring[i]);
+  const nbMat = new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthTest: false });
+  const nbLines = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(nbPts), nbMat);
+  nbLines.position.y = 0.001; nbLines.renderOrder = 3; ground.add(nbLines);
+
+  // The field: its real outline from the land register, a faint fill and a 10 m wide edge.
+  const shape = new THREE.Shape(api.fieldRing.map((p) => new THREE.Vector2(p.x, -p.z)));
+  const fill = new THREE.Mesh(new THREE.ShapeGeometry(shape), new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false }));
   fill.rotation.x = -Math.PI / 2; fill.renderOrder = 3; ground.add(fill);
   const edgeMat = new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false });
-  for (const [w, d, x, z] of [[FW + 0.01, 0.01, 0, -FH / 2], [FW + 0.01, 0.01, 0, FH / 2], [0.01, FH, -FW / 2, 0], [0.01, FH, FW / 2, 0]]) {
-    const e = new THREE.Mesh(new THREE.BoxGeometry(w, 0.003, d), edgeMat); e.position.set(x, 0.002, z); e.renderOrder = 4; ground.add(e);
+  for (let i = 1; i < api.fieldRing.length; i++) {
+    const a = api.fieldRing[i - 1], b = api.fieldRing[i];
+    const len = a.distanceTo(b);
+    if (len < 1e-4) continue;
+    const e = new THREE.Mesh(new THREE.BoxGeometry(len + 0.01, 0.003, 0.01), edgeMat);
+    e.position.set((a.x + b.x) / 2, 0.002, (a.z + b.z) / 2);
+    e.rotation.y = -Math.atan2(b.z - a.z, b.x - a.x);
+    e.renderOrder = 4; ground.add(e);
   }
 
   // ---------- camera state ----------
@@ -278,6 +303,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
 
       const near = clamp01(1 - (cur.pos.y - 1.3) / 40);              // 1 at the field, 0 high above it
       edgeMat.opacity = near * fade;
+      nbMat.opacity = 0.28 * near * fade;
       fill.material.opacity = near * api.fieldFill * fade;
     }
     cloud.style.opacity = String(flash);

@@ -11,31 +11,14 @@ fi
 
 WMS="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&STYLES=&CRS=EPSG:4326"
 
-# Region box for the Europe frame: every twin place and the field centroid,
-# plus a 250 km margin on every side. 1 deg lat = 111 km; 1 deg lon = 111 km * cos(lat),
-# with cos taken at the southern latitude of the box so the lon margin is never too small.
-# Long side = 2048 px, the other side proportional.
-EUROPE=$(node -e '
-const f = require("./data/field.json");
-const pts = f.twins.cases.map(c => c.place).concat([f.field.centroid]);
-const MARGIN_KM = 250;
-let s = Math.min(...pts.map(p => p.lat)), n = Math.max(...pts.map(p => p.lat));
-let w = Math.min(...pts.map(p => p.lon)), e = Math.max(...pts.map(p => p.lon));
-const dLat = MARGIN_KM / 111;
-s -= dLat; n += dLat;
-const dLon = MARGIN_KM / (111 * Math.cos(s * Math.PI / 180));
-w -= dLon; e += dLon;
-const latSpan = n - s, lonSpan = e - w;
-let width, height;
-if (lonSpan >= latSpan) { width = 2048; height = Math.round(2048 * latSpan / lonSpan); }
-else { height = 2048; width = Math.round(2048 * lonSpan / latSpan); }
-const r = (x) => x.toFixed(4);
-console.log([r(s), r(w), r(n), r(e), width, height].join(" "));
-')
-set -- $EUROPE
-EU_BBOX="$1,$2,$3,$4"
-EU_W=$5
-EU_H=$6
+# Europe frame: a fixed box that fills the whole 1920 x 1080 frame of the `europe` rest view in
+# src/scene.js. The view has to show every twin place and the field in the strip between the text block
+# (top left) and the table (right), at about 1.9 km per screen pixel, so the camera sees roughly
+# 3700 x 2100 km, more at the top edge because the view is tilted. A box of only the twin places plus a margin leaves black edges in that frame.
+# Equal degrees per pixel (EPSG:4326): 70 deg x 30 deg -> 3584 x 1536 px.
+EU_BBOX="36,-20,66,50"
+EU_W=3584
+EU_H=1536
 echo "europe box (S,W,N,E): $EU_BBOX  size: ${EU_W}x${EU_H}"
 
 fetch() {
@@ -53,7 +36,7 @@ fetch assets/img/poznan-local.png \
 fetch assets/img/poznan-region.jpg \
   "LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&TIME=2025-03-20&BBOX=50.4593,13.8378,54.4593,20.3992&WIDTH=2048&HEIGHT=2048&FORMAT=image/jpeg"
 
-# 3. Europe frame: Blue Marble, no TIME.
+# 3. Europe frame: Blue Marble, no TIME. Check the box above against VIEW.europe in src/scene.js.
 fetch assets/img/europe-wide.jpg \
   "LAYERS=BlueMarble_ShadedRelief_Bathymetry&BBOX=$EU_BBOX&WIDTH=$EU_W&HEIGHT=$EU_H&FORMAT=image/jpeg"
 
