@@ -77,17 +77,17 @@ export function RotationsStep() {
               </p>
             ) : null}
           </div>
-          <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-4">
-          {rotations.map((r) => (
-            <RotationCard
-              key={r.id}
-              rotation={r}
-              goal={ranking}
-              rank={others.indexOf(r.id) + 1}
-              datasets={data.datasets}
-              calendar={<CalendarStrip months={r.calendar} datasets={data.datasets} />}
-            />
-          ))}
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            {rotations.map((r) => (
+              <RotationCard
+                key={r.id}
+                rotation={r}
+                goal={ranking}
+                rank={others.indexOf(r.id) + 1}
+                datasets={data.datasets}
+                calendar={<CalendarStrip months={r.calendar} datasets={data.datasets} />}
+              />
+            ))}
           </div>
         </>
       )}

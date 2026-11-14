@@ -82,31 +82,34 @@ describe('RotationCard', () => {
     expect(text.indexOf(t('steps.rotations.soilHealth'))).toBeGreaterThan(text.indexOf(within(card).getByRole('heading', { level: 2 }).textContent!));
   });
 
-  it('folds the reasons after the first, the evidence, the benefits, the regions and the income; the first gaps and risks stay open', async () => {
+  it('shows the title, the first reason, the scores, the calendar and the first gaps and risks; the rest is folded', async () => {
     const user = userEvent.setup();
     const r = iowaAnalysis.rotations.find((x) => x.why.length > 1 && x.evidence.length > 0)!;
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} moneyAvailable />);
     const card = screen.getByRole('article');
 
-    expect(within(card).getByText(t(r.why[0]!))).toBeVisible();
+    // The first reason sits under the title; every reason, the evidence, the score basis and the income open from the
+    // card's fold list.
+    expect(within(card).getAllByText(t(r.why[0]!))[0]).toBeVisible();
     expect(within(card).getByText(t(r.why[1]!))).not.toBeVisible();
     expect(within(card).getByText(t(r.evidence[0]!.message))).not.toBeVisible();
+    expect(within(card).getByText(t(r.soilHealth.basis))).not.toBeVisible();
     expect(within(card).getByText(t('steps.rotations.income.notForecast'))).not.toBeVisible();
 
-    // The first three gaps and risks are open; the rest open with one button per list.
-    for (const m of [...r.gaps.slice(0, 3), ...r.localReviewRisks.slice(0, 3)]) expect(within(card).getByText(t(m))).toBeVisible();
+    // Gaps and local risks: the first two of each are open, the rest open with one button per list.
+    for (const m of [...r.gaps.slice(0, 2), ...r.localReviewRisks.slice(0, 2)]) expect(within(card).getByText(t(m))).toBeVisible();
     for (const [items, name] of [[r.gaps, 'steps.rotations.gaps'], [r.localReviewRisks, 'steps.rotations.risks']] as const) {
-      if (items.length <= 3) continue;
-      expect(within(card).queryByText(t(items[3]!))).toBeNull();
+      if (items.length <= 2) continue;
+      expect(within(card).queryByText(t(items[2]!))).toBeNull();
       const list = within(card).getByRole('list', { name: t(name) });
-      await user.click(within(list.parentElement!).getByRole('button', { name: t('steps.rotations.listMore', { count: items.length - 3 }) }));
+      await user.click(within(list.parentElement!).getByRole('button', { name: t('steps.rotations.listMore', { count: items.length - 2 }) }));
       for (const m of items) expect(within(card).getByText(t(m))).toBeVisible();
     }
     expect(within(card).getByText(SUPPORT)).toBeVisible();
 
     await user.click(within(card).getByText(t('steps.rotations.evidence')));
     expect(within(card).getByText(t(r.evidence[0]!.message))).toBeVisible();
-    await user.click(within(card).getByText(t('steps.rotations.whyMore', { count: r.why.length - 1 })));
+    await user.click(within(card).getByText(t('steps.rotations.why')));
     expect(within(card).getByText(t(r.why[1]!))).toBeVisible();
   });
 
