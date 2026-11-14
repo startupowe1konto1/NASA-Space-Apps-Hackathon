@@ -22,14 +22,14 @@ export function GoalStep() {
       <div role="radiogroup" aria-label={t('steps.goal.question')} className="grid gap-3">
         {goals.map(({ id, Icon }) => {
           const chosen = goal === id;
-          const noteId = id === 'income' && !moneyAvailable ? 'goal-income-note' : undefined;
+          // The note sits inside the option, so it is read once as part of its name.
+          const showNote = id === 'income' && !moneyAvailable;
           return (
             <button
               key={id}
               type="button"
               role="radio"
               aria-checked={chosen}
-              aria-describedby={noteId}
               onClick={() => setGoal(id)}
               className={`flex min-h-[72px] w-full cursor-pointer items-start gap-4 rounded-xl border-2 px-4 py-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 ${
                 chosen ? 'border-emerald-700 bg-emerald-50' : 'border-slate-300 bg-white hover:border-slate-500'
@@ -45,8 +45,8 @@ export function GoalStep() {
               <span className="grid gap-1">
                 <span className="text-lg font-semibold text-slate-900">{t(`steps.goal.${id}`)}</span>
                 <span className="text-base leading-snug text-slate-700">{t(`steps.goal.${id}.hint`)}</span>
-                {noteId ? (
-                  <span id={noteId} className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-sm text-amber-900">
+                {showNote ? (
+                  <span className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-sm text-amber-900">
                     {t('steps.goal.income.noMoney')}
                   </span>
                 ) : null}

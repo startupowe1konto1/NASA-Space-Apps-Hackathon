@@ -61,4 +61,11 @@ describe('GoalStep', () => {
     render(<GoalStep />);
     expect(screen.getByText(/change this later/i)).toBeInTheDocument();
   });
+
+  it('reads the price note once: inside the income option, not again as its description', () => {
+    render(<GoalStep />);
+    const income = screen.getByRole('radio', { name: /Income/ });
+    expect(income).toHaveAccessibleName(/price data not loaded yet/i);
+    expect(income).not.toHaveAttribute('aria-describedby');
+  });
 });

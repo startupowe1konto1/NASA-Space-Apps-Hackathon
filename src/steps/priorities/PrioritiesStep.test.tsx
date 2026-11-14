@@ -1,13 +1,19 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useAppStore } from '../../app/store';
 import { providers } from '../../app/providers';
+import { SourceError } from '../../contracts';
+import type { CropTraits } from '../../contracts';
 import { demoFields } from '../../fixtures';
 import { cropName } from '../shared/cropName';
 import { PrioritiesStep } from './PrioritiesStep';
 
 beforeEach(() => {
   useAppStore.getState().reset();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const SWITCHES = ['Use less water', 'Grow forage', 'Fix and keep nitrogen', 'Stop erosion', 'Build organic matter'];
@@ -39,10 +45,10 @@ describe('PrioritiesStep', () => {
     useAppStore.getState().addField(demoFields.iowa);
     render(<PrioritiesStep />);
     const list = await screen.findByRole('group', { name: /crops you will not grow/i });
-    const maize = await within(list).findByRole('checkbox', { name: 'Maize' });
-    await user.click(maize);
-    expect(useAppStore.getState().priorities.excludedCrops).toEqual(['maize']);
-    expect(within(list).getByRole('checkbox', { name: 'Soybean' })).not.toBeChecked();
+    const [first, second] = await providers.context.getCrops('US');
+    await user.click(await within(list).findByRole('checkbox', { name: cropName(first!.id) }));
+    expect(useAppStore.getState().priorities.excludedCrops).toEqual([first!.id]);
+    expect(within(list).getByRole('checkbox', { name: cropName(second!.id) })).not.toBeChecked();
   });
 
   it('shows Polish crops for the Poznań field', async () => {
@@ -69,5 +75,38 @@ describe('PrioritiesStep', () => {
     render(<PrioritiesStep />);
     expect(await screen.findByText(/Pick a field first to see its crops/)).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: 'Grow forage' })).toBeInTheDocument();
+  });
+
+  it('drops excluded crops that the loaded crop list of this field does not have', async () => {
+    const pl = await providers.context.getCrops('PL');
+    const us = await providers.context.getCrops('US');
+    const kept = us[0]!.id;
+    const foreign = pl.find((c) => !us.some((u) => u.id === c.id))?.id;
+    expect(foreign).toBeDefined(); // the tables must hold at least one crop that only Poland has
+    useAppStore.getState().addField(demoFields.iowa);
+    useAppStore.getState().setPriorities({ on: [], excludedCrops: [foreign!, kept] });
+    render(<PrioritiesStep />);
+    await screen.findByRole('checkbox', { name: cropName(kept) });
+    expect(useAppStore.getState().priorities.excludedCrops).toEqual([kept]);
+  });
+
+  it('keeps the newest crop list when an older request answers late', async () => {
+    const user = userEvent.setup();
+    const us = await providers.context.getCrops('US');
+    const pl = await providers.context.getCrops('PL');
+    let releaseLate: (crops: CropTraits[]) => void = () => undefined;
+    vi.spyOn(providers.context, 'getCrops')
+      .mockRejectedValueOnce(new SourceError('Crop table', 'timeout'))
+      .mockImplementationOnce(() => new Promise<CropTraits[]>((resolve) => (releaseLate = resolve)))
+      .mockResolvedValueOnce(us);
+    useAppStore.getState().addField(demoFields.poznan);
+    render(<PrioritiesStep />);
+    await user.click(await screen.findByRole('button', { name: 'Try again' }));
+    act(() => useAppStore.getState().addField(demoFields.iowa));
+    await screen.findByRole('checkbox', { name: cropName(us[0]!.id) });
+    await act(async () => releaseLate(pl));
+    expect(screen.getByRole('checkbox', { name: cropName(us[0]!.id) })).toBeInTheDocument();
+    const plOnly = pl.find((c) => !us.some((u) => u.id === c.id));
+    if (plOnly) expect(screen.queryByRole('checkbox', { name: cropName(plOnly.id) })).not.toBeInTheDocument();
   });
 });

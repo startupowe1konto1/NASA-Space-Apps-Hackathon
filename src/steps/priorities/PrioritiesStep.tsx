@@ -1,5 +1,5 @@
 // Step 4: what else matters on this field, and crops the farmer will not grow (SPEC section 12).
-import { useCallback, useEffect, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import { t } from '../../app/i18n';
 import { providers } from '../../app/providers';
 import { selectedField, useAppStore } from '../../app/store';
@@ -112,27 +112,37 @@ function ExcludedCrops(props: {
   const [state, setState] = useState<CropsState>({ status: hasField ? 'loading' : 'no-field' });
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
 
+  // Every request gets a number; only the newest one may write the state, so a late answer to an older request
+  // (a retry, or the field changing) never replaces a newer list.
+  const latest = useRef(0);
+
   const load = useCallback(() => {
+    const request = ++latest.current;
     if (!hasField || !country) {
       setState({ status: 'no-field' });
-      return () => undefined;
+      return;
     }
-    let live = true;
     setState({ status: 'loading' });
     providers.context
       .getCrops(country)
-      .then((crops) => live && setState({ status: 'ready', crops }))
+      .then((crops) => {
+        if (request !== latest.current) return;
+        setState({ status: 'ready', crops });
+        // Exclusions picked for a field in the other country do not apply here.
+        const { priorities, setPriorities } = useAppStore.getState();
+        const kept = priorities.excludedCrops.filter((id) => crops.some((c) => c.id === id));
+        if (kept.length !== priorities.excludedCrops.length) setPriorities({ ...priorities, excludedCrops: kept });
+      })
       .catch((error: unknown) => {
-        if (!live) return;
+        if (request !== latest.current) return;
         const source = error instanceof SourceError ? error.source : t('steps.priorities.exclude.source');
         setState({ status: 'error', source, reason: error instanceof Error ? error.message : String(error) });
       });
-    return () => {
-      live = false;
-    };
   }, [country, hasField]);
 
-  useEffect(() => load(), [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
