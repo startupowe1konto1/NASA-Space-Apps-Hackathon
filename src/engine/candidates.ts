@@ -19,7 +19,8 @@ export function currentRotation(history: CropYear[]): Years {
   const sorted = [...history].sort((a, b) => a.year - b.year);
   const n = sorted.length;
   const toYear = (h: CropYear): Year => (h.coverCrop ? { crop: h.crop, coverCrop: h.coverCrop } : { crop: h.crop });
-  for (let L = 1; L <= Math.floor(n / 2); L++) {
+  // A cycle counts once at least two years repeat it, so a 7-year history can show a 4-year rotation.
+  for (let L = 1; n - L >= 2; L++) {
     // the cycle is found on main crops; cover crops of the last cycle are carried over as they are
     if (sorted.every((h, i) => i + L >= n || h.crop === sorted[i + L]?.crop)) return sorted.slice(n - L).map(toYear);
   }
