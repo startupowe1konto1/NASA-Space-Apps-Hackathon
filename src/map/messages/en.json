@@ -3,7 +3,7 @@
   "map.demo.iowa": "Iowa demo field",
   "map.demo.poznan": "Poznań demo field",
   "map.label": "Map. Tap a spot to add a field there.",
-  "map.hint": "A tap adds a 200 m by 200 m square (4 ha) around that spot. Tap a field you already added to select it.",
+  "map.hint": "In Poland a tap adds the land register parcel at that spot. Elsewhere it adds a 200 m by 200 m square (4 ha). Tap a field you already added to select it.",
   "map.field.atPoint": "Field at {lat}, {lon}",
   "map.fields": "Your fields",
   "map.fields.empty": "No fields yet.",

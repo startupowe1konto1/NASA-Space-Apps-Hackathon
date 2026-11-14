@@ -5,6 +5,7 @@ import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
 import { areaHa } from './area';
 import type { MapHandlers } from './leafletMap';
+import { getParcelByPoint } from './parcels/uldk';
 
 // Leaflet does not render in jsdom; the wrapper is replaced and its handlers are captured.
 const leaflet = vi.hoisted(() => ({
@@ -23,6 +24,12 @@ vi.mock('./leafletMap', () => ({
     leaflet.handlers = handlers;
     return leaflet.controller;
   }),
+}));
+
+// No network in unit tests: ULDK finds no parcel, so a tap in Poland falls back to the 4 ha square (parcels/ has its own tests).
+vi.mock('./parcels/uldk', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./parcels/uldk')>()),
+  getParcelByPoint: vi.fn(async () => null),
 }));
 
 const realAddField = useAppStore.getState().addField;
@@ -117,6 +124,7 @@ describe('MapStep', () => {
 
     await screen.findByText('No fields yet.');
     expect(useAppStore.getState().fields).toHaveLength(0);
+    expect(getParcelByPoint).not.toHaveBeenCalled(); // no ULDK request either
     leaflet.controller.isEditing.mockReturnValue(false);
   });
 

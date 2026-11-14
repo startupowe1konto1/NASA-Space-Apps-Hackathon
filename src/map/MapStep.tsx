@@ -8,7 +8,8 @@ import { StateBoundary } from '../ui-kit/StateBoundary';
 import { FieldList } from './draw/FieldList';
 import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
-import { pointToField } from './pointToField';
+import { ParcelSearch } from './parcels/ParcelSearch';
+import { addFieldAt } from './parcels/tap';
 
 const BUTTON =
   'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
@@ -30,9 +31,9 @@ export function MapStep() {
       mapRef.current = createLeafletMap(container, {
         // Read the store at call time, so the handlers never hold a stale action.
         onClick: (lat, lon) => {
-          // While drawing, editing or deleting, a tap belongs to that tool, not to the 4 ha quick add.
+          // While drawing, editing or deleting, a tap belongs to that tool, not to the quick add.
           if (mapRef.current?.isEditing()) return;
-          useAppStore.getState().addField(pointToField(lat, lon));
+          void addFieldAt(lat, lon); // in Poland, the ULDK parcel; elsewhere a 4 ha square
         },
         onTileError: () => setTilesFailed(true),
         onSelectField: (id) => useAppStore.getState().selectField(id),
@@ -111,6 +112,8 @@ export function MapStep() {
         <p className="mt-2 text-sm text-slate-600">{t('map.hint')}</p>
         <p className="mt-1 text-sm text-slate-600">{t('draw.hint')}</p>
       </div>
+
+      <ParcelSearch />
 
       <FieldList />
     </div>
