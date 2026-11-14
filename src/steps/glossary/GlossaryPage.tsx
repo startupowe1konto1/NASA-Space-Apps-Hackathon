@@ -1,14 +1,17 @@
 import { useEffect, useId, useRef } from 'react';
-import { t } from '../../app/i18n';
+import { t, useLang } from '../../app/i18n';
 import { TERM_IDS, term } from './useTerm';
 
 // The text is bundled with the app, so this page has no loading, offline or source-error state.
-const entries = TERM_IDS.map((id) => ({ id, ...term(id) })).sort((a, b) =>
-  a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }),
-);
+// Built on each render in the current language and sorted by that language's alphabet (ł after l, ś after s in Polish).
+function entriesFor(lang: string) {
+  return TERM_IDS.map((id) => ({ id, ...term(id) })).sort((a, b) => a.label.localeCompare(b.label, lang, { sensitivity: 'base' }));
+}
 
 export function GlossaryPage(props: { onBack?: () => void; backToStep?: number }) {
   const { onBack, backToStep } = props;
+  const lang = useLang((s) => s.lang);
+  const entries = entriesFor(lang);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const headingId = useId();
 
