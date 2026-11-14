@@ -71,7 +71,7 @@
     },
     "unit": "lb N/acre less N fertilizer needed by first-year maize after alfalfa than by continuous maize; our subtraction of two numbers in the same paper",
     "appliesTo": "Iowa: nitrogen benefit of alfalfa to the first following maize crop (crop ids: alfalfa -> maize)",
-    "sourceTitle": "Sawyer, J.E. (2004). With high fertilizer prices is it business as usual or should fertilization practices change? 2004 Integrated Crop Management Conference, Iowa State University",
+    "sourceTitle": "team calculation from Sawyer, J.E. (2004). With high fertilizer prices is it business as usual or should fertilization practices change? 2004 Integrated Crop Management Conference, Iowa State University",
     "sourceUrl": "https://www.agronext.iastate.edu/soilfertility/info/highfertilizerprices04icm.pdf",
     "sourceLocator": "p. 165: continuous corn 'highest return to N occurs at 170 lb N/acre'; minus first-year corn after alfalfa optimum 0-25 lb N/acre (Table 2, p. 172) = 145-170",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
@@ -84,7 +84,7 @@
     },
     "unit": "lb N/acre, same benefit as soybean gives to first-year maize",
     "appliesTo": "Iowa: second maize year after alfalfa (c-C-a-a) responds to N like maize after soybean, so it takes the soybean credit row's values",
-    "sourceTitle": "Sawyer, J.E. (2006). Managing Nitrogen for High Corn Yields. Integrated Crop Management Conference, Iowa State University",
+    "sourceTitle": "team calculation from Sawyer, J.E. (2006). Managing Nitrogen for High Corn Yields. Integrated Crop Management Conference, Iowa State University",
     "sourceUrl": "https://www.agronext.iastate.edu/soilfertility/info/ManNitrHighCornYields_2006ICMConf.pdf",
     "sourceLocator": "p. 3: 'second year corn following alfalfa (c-C-a-a), the N rate response is the same as corn in a C-s rotation'; values from nitrogen.credit.soybean.us-ia",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"

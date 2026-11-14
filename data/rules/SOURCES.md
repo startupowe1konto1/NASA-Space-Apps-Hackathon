@@ -83,3 +83,10 @@ Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 row
 - A mapping from calendar months to the crop stages of Handbook 537 Table 5; the engine averages the stage values.
 - Humus coefficients that apply to Iowa (NRCS Soil Conditioning Index not opened), so organic matter is left out for US fields.
 - `nitrogen.leachingRainMm`, `nitrogen.leachingMaxLoss`, `nitrogen.leachingBySand`: no source opened with numbers.
+
+## Follow-ups from issue #79 (O4-B0 1c)
+
+- `hazards.frost.generalThresholdDays` is now 10, a team rule of thumb: with 0 every April in Iowa was a frost month. Numbers in the row's locator.
+- `hazards.gaez.notSuitableBelowSI`: the check is "at or below", on the 0–100 SI scale. `hazards.gaez.classes` uses stable keys (`veryHigh` … `notSuitable`).
+- Relabelled as what they are: `nitrogen.credit.alfalfa.us-ia` and `nitrogen.credit.alfalfaSecondYear.us-ia` ("team calculation from …"), `erosion.ls.slopeLength75ft` ("team choice of the 75 ft column from …"), `humus.coef.soybean.pl`, `humus.coef.alfalfa.pl`, `humus.coef.red-clover.pl` ("borrowed from …").
+- Istanbulluoglu et al. 2010 (an abstract on a third-party index, R10) is not used anywhere (D37).

@@ -144,7 +144,7 @@
     },
     "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy, blackEarth (czarne ziemie); negative = degradation, positive = reproduction. The slide prints the unit column as '1ha'; tonnes is how the Code of Good Agricultural Practice states these coefficients, a mentor should confirm",
     "appliesTo": "humus balance, one crop-year of soybean grown as a main crop (group 'Strączkowe'); Polish coefficients, for a field outside Poland they are a borrowed value",
-    "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
+    "sourceTitle": "borrowed from IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 4 (PDF page 4), table row 'Strączkowe': light 0.32, medium 0.35, heavy 0.38, black earth 0.38",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
@@ -159,7 +159,7 @@
     },
     "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy, blackEarth (czarne ziemie); negative = degradation, positive = reproduction. The slide prints the unit column as '1ha'; tonnes is how the Code of Good Agricultural Practice states these coefficients, a mentor should confirm",
     "appliesTo": "humus balance, one crop-year of alfalfa grown as a main crop (group 'Motylkowe, mieszanki'); Polish coefficients, for a field outside Poland they are a borrowed value",
-    "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
+    "sourceTitle": "borrowed from IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 4 (PDF page 4), table row 'Motylkowe, mieszanki': light 1.89, medium 1.96, heavy 2.1, black earth 2.1",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
@@ -173,8 +173,8 @@
       "blackEarth": 2.1
     },
     "unit": "change in soil organic matter (humus) per hectare per crop-year, in tonnes, by soil class: light, medium, heavy, blackEarth (czarne ziemie); negative = degradation, positive = reproduction. The slide prints the unit column as '1ha'; tonnes is how the Code of Good Agricultural Practice states these coefficients, a mentor should confirm",
-    "appliesTo": "humus balance, one crop-year of red-clover grown as a main crop (group 'Motylkowe, mieszanki'); Polish coefficients, for a field outside Poland they are a borrowed value",
-    "sourceTitle": "IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
+    "appliesTo": "humus balance, one crop-year of red-clover grown as a main crop (group 'Motylkowe, mieszanki'); Polish coefficients, for a field outside Poland they are a borrowed value. Main-crop value; red clover is only an Iowa cover crop in this app and the engine reads Polish humus rows only, so this row is not used",
+    "sourceTitle": "borrowed from IUNG-PIB (Siebielec G., 2014), slide 'Współczynniki reprodukcji i degradacji glebowej substancji organicznej [Kodeks Dobrej Praktyki Rolniczej, 2004]'",
     "sourceUrl": "https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf",
     "sourceLocator": "slide 4 (PDF page 4), table row 'Motylkowe, mieszanki': light 1.89, medium 1.96, heavy 2.1, black earth 2.1",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
