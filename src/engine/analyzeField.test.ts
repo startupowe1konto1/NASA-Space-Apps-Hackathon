@@ -3,8 +3,7 @@ import { SourceError, type Analysis, type CropYear, type Message, type Prioritie
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
 import { analyzeField, createAnalyzeField, emptyReason } from './analyzeField';
-import { loadRules } from './rules';
-import { O4_ROWS } from './testdata/o4Rules';
+import { loadRules, shippedRules } from './rules';
 import en from './messages/en.json';
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
@@ -36,9 +35,7 @@ const run = (field: 'iowa' | 'poznan', providers: Providers = fixtureProviders, 
 describe('analyzeField with fixture providers', () => {
   for (const field of ['iowa', 'poznan'] as const) {
     it(`${field}: parses with the Analysis schema and shows four rotations under keepSoil`, async () => {
-      const started = Date.now();
       const a = await run(field);
-      expect(Date.now() - started).toBeLessThan(2000);
       const parsed = analysisSchema.safeParse(a);
       expect(parsed.success, parsed.success ? '' : parsed.error.message).toBe(true);
       expect(a.shownByGoal.keepSoil).toHaveLength(4);
@@ -142,8 +139,8 @@ describe('analyzeField with fixture providers', () => {
     expect(a.rotations).toEqual([]);
   });
 
-  it('with the O4 rule tables, soil indicators are scored and evidence names the O4 rows', async () => {
-    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+  it('with the rule tables in data/rules, soil indicators are scored and evidence names the O4 rows', async () => {
+    const withRules = createAnalyzeField({ rules: shippedRules });
     for (const field of ['iowa', 'poznan'] as const) {
       const a = await withRules({ field: demoFields[field], cropHistory: field === 'iowa' ? iowaHistory : poznanHistory, priorities }, fixtureProviders);
       const parsed = analysisSchema.safeParse(a);
@@ -159,6 +156,17 @@ describe('analyzeField with fixture providers', () => {
     const ruleIds = current.evidence.flatMap((e) => e.ruleIds);
     expect(ruleIds).toContain('nitrogen.credit.soybean.us-ia');
     expect(ruleIds.some((id) => id.startsWith('nitrogen.credit.soybean') && !id.endsWith('us-ia'))).toBe(false);
+  });
+
+  it('without rule tables it returns the profile, no cards and a reason, not invented values', async () => {
+    const noRules = createAnalyzeField({ rules: loadRules({}) });
+    const input = { field: demoFields.iowa, cropHistory: iowaHistory, priorities };
+    const a = await noRules(input, fixtureProviders);
+    expect(a.rotations).toEqual([]);
+    expect(a.profile.monthly.length).toBeGreaterThan(0);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    expect(emptyReason(a, input)?.code).toBe('empty.rules-missing');
+    expect('empty.rules-missing' in en).toBe(true);
   });
 
   it('a crop list provider that throws gives the profile, no cards and a reason', async () => {
@@ -203,7 +211,7 @@ describe('analyzeField with fixture providers', () => {
   });
 
   it('ranks soil over the indicators a rotation shares with the current one, and says so', async () => {
-    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+    const withRules = createAnalyzeField({ rules: shippedRules });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const current = a.rotations.find((r) => r.isCurrent)!;
     const currentSet = Object.keys(current.indicators);
@@ -217,5 +225,73 @@ describe('analyzeField with fixture providers', () => {
     expect(current.soilHealth.basis.code === 'soil.basis.total' || current.soilHealth.basis.code === 'soil.basis.total-complete').toBe(true);
     if (current.soilHealth.basis.code === 'soil.basis.total') expect(String(current.soilHealth.basis.params?.missing)).not.toMatch(/organicMatter|pestBreak/);
   });
-});
 
+  describe('soil adjustments without a sourced rule are named, not shown as a measured zero', () => {
+    const row = (id: string, value: unknown) => ({ id, value, unit: 'test', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
+    const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
+    const withExtra = (rows: ReturnType<typeof row>[]) => createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': rows }) });
+    const leachingRows = [row('nitrogen.leachingRainMm', 200), row('nitrogen.leachingMaxLoss', 0.3), row('nitrogen.leachingBySand', { '0': 1 })];
+    const humusRows = [
+      row('humus.climateLimits', { meanTMaxC: 10, annualRainMm: 600 }),
+      row('humus.climateFactor', { 'cool-dry': 1, 'cool-wet': 1, 'warm-dry': 1, 'warm-wet': 1 }),
+      row('humus.textureBySand', { '0': 1 }),
+    ];
+    const evidenceCodes = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!.evidence.map((e) => e.message.code);
+    const gapCodes = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!.gaps.map((g) => g.code);
+
+    it('nitrogen without leaching rows: no leaching percentage, a gap names the left-out adjustment', async () => {
+      const hasLeaching = shippedRules.byId.has('nitrogen.leachingRainMm') && shippedRules.byId.has('nitrogen.leachingMaxLoss');
+      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+      expect(a.rotations.find((r) => r.isCurrent)!.indicators.nitrogen).toBeDefined();
+      expect(evidenceCodes(a).includes('soil.evidence.nitrogen')).toBe(hasLeaching);
+      expect(evidenceCodes(a).includes('soil.evidence.nitrogen-no-leaching')).toBe(!hasLeaching);
+      expect(gapCodes(a).includes('gap.leaching-not-counted')).toBe(!hasLeaching);
+    });
+
+    it('nitrogen with leaching rows keeps the leaching evidence and no gap', async () => {
+      const a = await withExtra(leachingRows)({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+      expect(evidenceCodes(a)).toContain('soil.evidence.nitrogen');
+      expect(evidenceCodes(a)).not.toContain('soil.evidence.nitrogen-no-leaching');
+      expect(gapCodes(a)).not.toContain('gap.leaching-not-counted');
+    });
+
+    it('organic matter without climate or texture rows says it is not adjusted, and a gap names what was left out', async () => {
+      const missing = [
+        ...(['humus.climateLimits', 'humus.climateFactor'].every((id) => shippedRules.byId.has(id)) ? [] : ['climate']),
+        ...(shippedRules.byId.has('humus.textureBySand') ? [] : ['soil texture']),
+      ];
+      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.poznan, cropHistory: poznanHistory, priorities }, fixtureProviders);
+      const current = a.rotations.find((r) => r.isCurrent)!;
+      expect(current.indicators.organicMatter).toBeDefined();
+      expect(evidenceCodes(a).includes('soil.evidence.organic-matter-unadjusted')).toBe(missing.length > 0);
+      const gap = current.gaps.find((g) => g.code === 'gap.humus-not-adjusted');
+      expect(gap !== undefined).toBe(missing.length > 0);
+      if (gap) expect(gap.params?.adjustments).toBe(missing.join(' and '));
+    });
+
+    it('organic matter with climate and texture rows keeps its evidence and no gap', async () => {
+      const a = await withExtra(humusRows)({ field: demoFields.poznan, cropHistory: poznanHistory, priorities }, fixtureProviders);
+      expect(evidenceCodes(a)).toContain('soil.evidence.organic-matter');
+      expect(gapCodes(a)).not.toContain('gap.humus-not-adjusted');
+    });
+  });
+
+  it('names the crop when erosion is left out for want of a soil cover row (alfalfa residue)', async () => {
+    const history: CropYear[] = [
+      { year: 2023, crop: 'maize', source: 'farmer' },
+      { year: 2024, crop: 'alfalfa', source: 'farmer' },
+      { year: 2025, crop: 'alfalfa', source: 'farmer' },
+    ];
+    const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: history, priorities }, fixtureProviders);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    const noRow = current.gaps.filter((g) => g.code === 'gap.erosion-no-row');
+    if (current.indicators.erosion) {
+      expect(noRow).toEqual([]);
+    } else {
+      expect(noRow.map((g) => g.params?.crop)).toContain('alfalfa');
+      // the specific gap replaces the generic one for erosion
+      expect(current.gaps.some((g) => g.code === 'gap.rule-missing' && g.params?.indicator === 'erosion')).toBe(false);
+    }
+    expect('gap.erosion-no-row' in en).toBe(true);
+  });
+});

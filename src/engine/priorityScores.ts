@@ -6,16 +6,14 @@
 // yet; O3-B6 passes them from data/rules once one does. Evapotranspiration is not used.
 // Until a sourced data/rules row backs those thresholds, the water score is never 'strong': 'moderate' with a
 // complete record, 'weak' when a season had to be skipped for a gap in the rain record.
-import type { ClimateProfile, CropTraits, RotationOption, Score } from '../contracts';
+import type { ClimateProfile, CropTraits, RotationOption, Score, WaterNeed } from '../contracts';
 import { cropById } from './calendar';
 
-/** Water need class of a crop; optional on cover crops once [contract] #44 lands. */
-export type WaterNeed = NonNullable<CropTraits['waterNeed']>;
 
 /** Every message code this module emits, with the intended English text (task O3-B6 writes messages/en.json). */
 export const PRIORITY_MESSAGE_CODES = [
   'priority.basis.forage', //        "{forageYears} of {years} rotation years give forage: a forage crop or a grazed cover crop. Counted from crop traits."
-  'priority.basis.water', //         "Rain covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (a model estimate). Range: 10th to 90th percentile year."
+  'priority.basis.water', //         "Growing-season rain alone (evapotranspiration not counted) covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (a model estimate). Range: 10th to 90th percentile year."
   'priority.basis.water-no-data', // "No growing season in the rain record is complete, so the water need could not be checked."
   'priority.basis.water-no-need-class', // "No crop in this rotation has a water need class, so the water need could not be checked."
 ] as const;

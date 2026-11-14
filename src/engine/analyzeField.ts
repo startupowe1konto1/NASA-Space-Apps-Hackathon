@@ -122,6 +122,31 @@ export function soilStep(
   return { score, coverOnly: false, evidence: result.evidence, missing: result.missing, indicators: result.indicators };
 }
 
+/**
+ * soilHealth scores nitrogen without leaching, and organic matter without the climate or texture factor, when those
+ * rule rows are missing; its evidence would then print a leaching loss of 0% or an "unknown" climate as if measured.
+ * Swap those texts for ones that say the adjustment is not counted, and record it for the card's gaps.
+ */
+export function markNotAdjusted(out: SoilOutcome, rules: SoilRules): void {
+  const has = (group: keyof SoilRules, id: string) => rules[group].some((r) => r.id === id);
+  const leaching = !(has('nitrogen', 'nitrogen.leachingRainMm') && has('nitrogen', 'nitrogen.leachingMaxLoss'));
+  const humus = [
+    ...(has('humus', 'humus.climateLimits') && has('humus', 'humus.climateFactor') ? [] : ['climate']),
+    ...(has('humus', 'humus.textureBySand') ? [] : ['soil texture']),
+  ];
+  out.notAdjusted = { leaching, humus };
+  out.evidence = out.evidence.map((e) => {
+    const p = e.message.params ?? {};
+    if (e.message.code === 'soil.evidence.nitrogen' && leaching) {
+      return { ...e, message: { code: 'soil.evidence.nitrogen-no-leaching', params: { legumeYears: p.legumeYears!, years: p.years!, creditKgPerHa: p.creditKgPerHa! } } };
+    }
+    if (e.message.code === 'soil.evidence.organic-matter' && humus.length > 0) {
+      return { ...e, message: { code: 'soil.evidence.organic-matter-unadjusted', params: { balancePerYear: p.balancePerYear!, adjustments: humus.join(' and ') } } };
+    }
+    return e;
+  });
+}
+
 interface Candidate extends Scored {
   months: ReturnType<typeof buildCalendar>['months'];
   bareMonths: number;
@@ -152,7 +177,13 @@ export interface AnalyzeOptions {
 
 export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
   const loaded = options.rules ?? shippedRules;
-  const rules: EngineRules = engineRules(loaded);
+  // A row the engine needs is missing from data/rules: no cards, a reason, never invented numbers.
+  let engine: EngineRules | null;
+  try {
+    engine = engineRules(loaded);
+  } catch {
+    engine = null;
+  }
   const registry = options.registry ?? datasetRegistry;
 
   return async (input, providers) => {
@@ -171,6 +202,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
 
     // 3. outside the USA and Poland: profile only
     if (field.country === 'OTHER') return empty({ code: 'empty.outside-coverage' });
+    if (!engine) return empty({ code: 'empty.rules-missing' });
+    const rules = engine;
     const country = field.country;
 
     // 4. crops and the GAEZ gate
@@ -243,6 +276,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           ...e,
           ruleIds: [...new Set(e.ruleIds.flatMap((id) => soilRules.sourceIds[id] ?? [id]))],
         }));
+        markNotAdjusted(soilOut, soilRules.rules);
+        soilOut.erosionNoRow = soilRules.erosionNoRow;
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
         candidates.push({

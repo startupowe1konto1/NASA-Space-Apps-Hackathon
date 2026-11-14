@@ -77,7 +77,7 @@ describe('SourcedNumber', () => {
   it('opens and closes the source panel from the chip', async () => {
     const user = userEvent.setup();
     render(<SourcedNumber value={moisture} datasets={[smap]} decimals={2} />);
-    const chip = screen.getByRole('button', { name: 'model estimate' });
+    const chip = screen.getByRole('button', { name: 'Source: model estimate' });
     expect(chip).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('SMAP L4 root zone soil moisture')).not.toBeInTheDocument();
 
@@ -100,13 +100,15 @@ describe('SourcedNumber', () => {
     ['derived', 'our calculation'],
   ] as const)('labels the %s kind as "%s"', (kind, label) => {
     render(<SourcedNumber value={{ ...moisture, kind }} datasets={[smap]} />);
-    expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
+    // The visible text stays the kind; the accessible name adds "Source" so screen readers and e2e know what the chip opens.
+    const chip = screen.getByRole('button', { name: `Source: ${label}` });
+    expect(chip).toHaveTextContent(label);
   });
 
   it('lists a dataset id it cannot find as an unknown source', async () => {
     const user = userEvent.setup();
     render(<SourcedNumber value={{ ...moisture, datasetIds: ['smap-l4', 'mystery-set'] }} datasets={[smap]} />);
-    await user.click(screen.getByRole('button', { name: 'model estimate' }));
+    await user.click(screen.getByRole('button', { name: 'Source: model estimate' }));
     expect(await screen.findByText('unknown source: mystery-set')).toBeInTheDocument();
     expect(screen.getByText('SMAP L4 root zone soil moisture')).toBeInTheDocument();
   });
@@ -114,7 +116,7 @@ describe('SourcedNumber', () => {
   it('says when no source is listed', async () => {
     const user = userEvent.setup();
     render(<SourcedNumber value={{ ...moisture, datasetIds: [] }} datasets={[smap]} />);
-    await user.click(screen.getByRole('button', { name: 'model estimate' }));
+    await user.click(screen.getByRole('button', { name: 'Source: model estimate' }));
     expect(await screen.findByText('No source is listed for this value.')).toBeInTheDocument();
   });
 });

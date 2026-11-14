@@ -52,6 +52,11 @@ export const CARD_MESSAGE_CODES = [
   'gap.soil-compared-shared',
   'gap.humus-medium-class',
   'gap.erosion-rye-row',
+  'gap.leaching-not-counted',
+  'gap.erosion-no-row',
+  'gap.humus-not-adjusted',
+  'soil.evidence.nitrogen-no-leaching',
+  'soil.evidence.organic-matter-unadjusted',
   'gap.unknown-crop',
   'soil.basis.total-complete',
   'empty.outside-coverage',
@@ -59,6 +64,7 @@ export const CARD_MESSAGE_CODES = [
   'empty.crops-error',
   'empty.unknown-crops',
   'empty.current-not-scored',
+  'empty.rules-missing',
   'gap.soil-missing',
   'gap.slope-missing',
   'gap.priority-not-scored',
@@ -102,6 +108,10 @@ export interface SoilOutcome {
   coverOnly: boolean;
   evidence: Evidence[];
   missing: IndicatorId[];
+  /** Crops without a sourced C factor row; named in the gaps when erosion is left out. */
+  erosionNoRow?: string[];
+  /** Adjustments a scored indicator left out for want of a sourced rule row (named in the gaps). */
+  notAdjusted?: { leaching: boolean; humus: string[] };
 }
 
 export interface CardInput {
@@ -269,12 +279,20 @@ export function cardMessages(c: CardInput): CardMessages {
   for (const r of c.removedCrops) gaps.push(m('gap.not-suitable', { crop: r.crop, cropName: cropLabel(r.crop), index: r.index }));
   for (const crop of c.unknownSuitability) gaps.push(m('gap.suitability-unknown', { crop: cropLabel(crop) }));
   if (c.suitabilityError) gaps.push(m('gap.suitability-error'));
-  for (const id of c.soil.missing) gaps.push(m('gap.rule-missing', { indicator: INDICATOR_LABEL[id] }));
+  for (const id of c.soil.missing) {
+    const noRow = id === 'erosion' ? (c.soil.erosionNoRow ?? []) : [];
+    if (noRow.length === 0) gaps.push(m('gap.rule-missing', { indicator: INDICATOR_LABEL[id] }));
+    for (const crop of noRow) gaps.push(m('gap.erosion-no-row', { crop: cropLabel(crop) }));
+  }
   if (c.soilComparedOn) {
     gaps.push(m('gap.soil-compared-shared', { shared: c.soilComparedOn.length > 0 ? c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') : 'none' }));
   }
   if (c.soil.indicators?.organicMatter && c.years.length > 0 && c.soil.evidence.some((e) => e.ruleIds.some((id) => id.startsWith('humus.coef.') && id.endsWith('.pl')))) {
     gaps.push(m('gap.humus-medium-class'));
+  }
+  if (c.soil.indicators?.nitrogen && c.soil.notAdjusted?.leaching) gaps.push(m('gap.leaching-not-counted'));
+  if (c.soil.indicators?.organicMatter && c.soil.notAdjusted && c.soil.notAdjusted.humus.length > 0) {
+    gaps.push(m('gap.humus-not-adjusted', { adjustments: c.soil.notAdjusted.humus.join(' and ') }));
   }
   if (c.soil.indicators?.erosion && c.years.some((y) => y.coverCrop === 'cereal-rye')) gaps.push(m('gap.erosion-rye-row'));
   for (const crop of c.unknownCrops ?? []) gaps.push(m('gap.unknown-crop', { crop: cropLabel(crop) }));

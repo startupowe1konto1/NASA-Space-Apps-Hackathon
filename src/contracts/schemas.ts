@@ -63,8 +63,9 @@ export const cropTraits = z.object({
   forage: z.boolean(),
   residueCover: z.enum(['low', 'medium', 'high']),
   sources: z.array(sourceRef).min(1),
-}).refine((c) => c.kind === 'cover' || (c.waterNeed !== undefined && c.yieldResponseFactor !== undefined), {
-  message: 'waterNeed and yieldResponseFactor are required unless kind is cover',
+}).refine((c) => c.kind === 'cover' || c.waterNeed !== undefined, {
+  // yieldResponseFactor is optional for every kind (D29): a missing Ky gives no-data income
+  message: 'waterNeed is required unless kind is cover',
 });
 
 /** One row of data/rules/*.json. */

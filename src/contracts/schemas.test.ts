@@ -1,3 +1,4 @@
+import type { CropTraits, WaterNeed } from './index';
 import { cropTraits, score, sourced } from './schemas';
 
 const base = { datasetIds: ['nasa-power-monthly'], kind: 'model', retrievedAt: '2026-11-14' };
@@ -38,9 +39,23 @@ describe('cropTraits', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cover' }).success).toBe(true);
   });
 
-  it('still requires both for cash and perennial crops', () => {
+  it('still requires water need for cash and perennial crops', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cash' }).success).toBe(false);
-    expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(false);
+    expect(cropTraits.safeParse({ ...base, kind: 'perennial', yieldResponseFactor: 1.1 }).success).toBe(false);
     expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low', yieldResponseFactor: 1.05 }).success).toBe(true);
+  });
+
+  it('accepts any crop kind without a yield response factor (D29: a missing Ky gives no-data income)', () => {
+    expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low' }).success).toBe(true);
+    expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(true);
+  });
+});
+
+describe('WaterNeed', () => {
+  it('is the type of CropTraits.waterNeed, so engine maps can key on it', () => {
+    const need: NonNullable<CropTraits['waterNeed']> = 'medium';
+    const asType: WaterNeed = need;
+    const byNeed: Record<WaterNeed, number> = { low: 1, medium: 2, high: 3 };
+    expect(byNeed[asType]).toBe(2);
   });
 });
