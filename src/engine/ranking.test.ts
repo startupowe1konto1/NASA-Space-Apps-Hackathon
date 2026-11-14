@@ -100,6 +100,42 @@ describe('rankByGoal', () => {
     expect(result.items[0]!.totals.income.status).toBe('no-data');
   });
 
+  describe('income goal', () => {
+    const noPrice = { status: 'no-data', reason: { code: 'income.no-price', params: { crop: 'oats' } } } as const;
+    const withIncome = (it: Scored, income: number): Scored => ({ ...it, income: s(income) });
+    const items: Scored[] = [
+      withIncome(current, 40),
+      withIncome(others[0]!, 90),
+      { ...others[2]!, incomeStatus: noPrice },
+      withIncome(others[3]!, 60),
+      withIncome(others[5]!, 100), // below the soil floor
+    ];
+    const r = rankByGoal(items, rules, []);
+    const get = (id: string) => r.items.find((x) => x.id === id)!;
+
+    it('ranks only the rotations with an income, the current one included', () => {
+      expect(r.shownByGoal.income).toContain(current.id);
+      expect(get(others[2]!.id).rankByGoal.income).toBeUndefined();
+      expect(get(others[2]!.id).totals.income).toEqual(noPrice);
+      const ranks = items.filter((i) => i.income).map((i) => get(i.id).rankByGoal.income).sort((a, b) => a! - b!);
+      expect(ranks).toEqual(ranks.map((_, i) => i + 1));
+    });
+
+    it('keeps the soil floor and soil and climate in the total (D9)', () => {
+      expect(r.shownByGoal.income).not.toContain(others[5]!.id);
+      const t = get(others[0]!.id).totals.income;
+      expect(t.status).toBe('ready');
+      if (t.status === 'ready') expect(t.data.value).toBeCloseTo(goalTotal(items[1]!, rules.weights.income, []).value, 5);
+    });
+
+    it('has no income list when the current rotation has no income', () => {
+      const none = rankByGoal([{ ...current, incomeStatus: noPrice }, withIncome(others[0]!, 90)], rules, []);
+      expect(none.shownByGoal.income).toBeUndefined();
+      expect(none.items[0]!.totals.income).toEqual(noPrice);
+      expect(none.items[1]!.rankByGoal.income).toBeUndefined();
+    });
+  });
+
   it('breaks a keepSoil tie towards the fewest changed years', () => {
     const near = item('maize+cereal-rye/soybean', [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean' }], 60, 60);
     const far = item('oats/alfalfa', [{ crop: 'oats' }, { crop: 'alfalfa' }], 60, 60);

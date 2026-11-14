@@ -79,6 +79,10 @@ export const CARD_MESSAGE_CODES = [
   'soil.basis.cover-only',
   'total.basis',
   'income.not-wired',
+  'income.error',
+  'income.current-missing',
+  'gap.payments-error',
+  'gap.payments-not-loaded',
   'twins.error',
 ] as const;
 
@@ -147,6 +151,8 @@ export interface CardInput {
   soilComparedOn?: IndicatorId[];
   /** For the current rotation: where its crop history came from. */
   history?: { source: 'farmer' | 'provider'; years: number[]; cropscape: boolean };
+  /** What the money step left out of this rotation's income (O3-B7); absent = income not wired. */
+  incomeGaps?: Message[];
 }
 
 export interface CardMessages {
@@ -299,7 +305,8 @@ export function cardMessages(c: CardInput): CardMessages {
   if (c.soilInputsMissing.length > 0) gaps.push(m('gap.soil-missing', { inputs: c.soilInputsMissing.join(', ') }));
   if (c.slopeMissing) gaps.push(m('gap.slope-missing'));
   for (const p of c.prioritiesNotScored) gaps.push(m('gap.priority-not-scored', { priority: PRIORITY_LABEL[p] }));
-  gaps.push(m('gap.income-not-wired'));
+  // income: what the money step left out (O3-B7), or that it is not wired
+  gaps.push(...(c.incomeGaps ?? [m('gap.income-not-wired')]));
   gaps.push(m('gap.not-checked'));
 
   // ---- risks only the farm can check
