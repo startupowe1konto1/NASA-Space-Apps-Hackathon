@@ -1,102 +1,117 @@
-# Handoff: frontend changes from the Sat 14 Nov team call
+# Handoff v2: frontend changes after the Sat 14 Nov team call
 
-Written Sat 14 Nov 2026, about 22:40 CET, by O1 from the Fathom transcript of the team call (`context/meetings/2026-11-14-fathom-transcript.md`). The transcript is in PR #150, which is still open; until it merges, read it with `git show origin/o2/contract-fathom-transcript:context/meetings/2026-11-14-fathom-transcript.md`.
+v1 (#155, Sat 22:30) was written from the Fathom transcript of the team call. This v2 (Sat 22:40 CET) adds the user's decisions, written after the call, step by step; where they differ from the transcript, the decisions win. The transcript is `context/meetings/2026-11-14-fathom-transcript.md` in PR #150 (still open; read it with `git show origin/o2/contract-fathom-transcript:context/meetings/2026-11-14-fathom-transcript.md`). Times in brackets, like (1:49), point to it.
 
-This file covers the app UI only. From about 17:19 the call is about the pitch, and a few remarks before that (animation, 3D models, the diorama) are about the pitch too; all of that is left out. Times in brackets, like (1:49), point to the transcript. The transcript is an automatic Polish transcript with misheard words, so where a remark is unclear this file says so instead of guessing.
-
-`HANDOFF.md` (O1's state and working rules) stays as it is and still applies.
+This file covers the app UI only; the pitch part of the call is left out. `HANDOFF.md` (O1's state and working rules) still applies. Its v8 in PR #154 (open) has the full analysis of step 6.
 
 ## Start here
 
 1. Read `CLAUDE.md`, `HANDOFF.md`, `docs/SPEC.md` §7 (confidence), §12 (screens) and §13 (owner folders), `src/steps/design.md` and `docs/FRONTEND-SKILLS.md`.
-2. Owners: `src/steps/` and `src/map/` are O2's folders; `src/app/`, `src/ui-kit/`, `e2e/` and `docs/` are O1's. A change outside your folders is a separate `[contract]` PR.
-3. Open PRs that touch the same files: #141 (O2 review follow-ups in `src/map/` and `src/steps/`) and #143 (KIEG parcel layer, split and merge, in `src/map/`). Do not start the field-step work below until both are merged, or you will rebase into conflicts.
+2. Owners: `src/steps/` and `src/map/` are O2's folders; `src/app/`, `src/ui-kit/`, `e2e/` and `docs/` are O1's; `src/engine/` is O3's. A change outside your folders is a separate `[contract]` PR.
+3. Open PRs on the same folders (`src/map/`, `src/steps/`): #157 (the #76 review follow-ups, replacing #141) and #143 (KIEG parcel layer, split and merge). Start the field-step work only after both are merged.
 4. Use `ui-ux-pro-max` for the layout work and `impeccable` for the audit before a PR (repo rule).
 
-Steps today (`src/app/App.tsx:18`): 1 goal, 2 field (`MapStep`), 3 crops, 4 priorities, 5 rotations, 6 money, 7 report.
+## The new flow (user's decision)
 
-## What the team asked for, screen by screen
+| Now | After |
+|---|---|
+| (none) | start page: app name and a short description of what the app does; not a numbered step |
+| 1 Goal | 2 Goal |
+| 2 Field | 1 Field |
+| 3 Crops | 3 Crops, no change |
+| 4 Priorities | 4 Priorities, better text layout |
+| 5 Rotations | 5 Rotations, shorter, folded, no goal switcher |
+| 6 Money | 6 Money, needs a working preview |
+| 7 Report | removed |
 
-### A start page before step 1 (0:48–1:21, 15:17–15:25)
+The swap, the start page and the removal of step 7 all change the step list, so do them in one PR. It touches:
 
-The language buttons exist (in the header, `App.tsx:83`), but the app opens straight on the goal question. The team wants one simple page first: the app name, a one-sentence description, and the language choice, possibly with the region (1:13). Mateusz: "it can be simple, nothing complicated" (1:21), and the page needs a better layout. The name is not final (D13), so use the working name from `src/app/brand.ts` and keep it in one place.
-
-### Field before goal (1:49, 15:37)
-
-Swap steps 1 and 2: the farmer picks the place first, then the goal. This touches more than the `steps` array:
-
-- `STEP_COUNT`, the `app.step.*` labels and the progress bar in `App.tsx`;
+- the `steps` array (`src/app/App.tsx:18`), `STEP_COUNT` in `src/app/store.ts`, the `app.step.*` labels and the progress bar;
 - the share link, which opens step 7 by number (`src/steps/report/shareLink.ts:98`, `goToStep(7)`);
-- `e2e/helpers.ts` (`walkToPriorities` clicks through steps 1–4 in order) and the step tests;
-- SPEC §12 and D9, which says the goal is "chosen first". Add a DECISIONS line for the new order.
+- `e2e/helpers.ts`: `walkToPriorities` picks the goal first, then the field;
+- SPEC §12 (step table) and D9 ("the farmer's main goal, chosen first"): a `[contract]` PR with a DECISIONS line for the new order and for dropping step 7.
 
-Do this together with the start page, since both change the step list.
+## Per step
 
-### Field step: search only, and outline the field (1:49–4:22, 6:32)
+### Start page (new)
 
-- Remove the two demo buttons (`src/map/MapStep.tsx:87–91`) and keep "find address or place". In the demo the farmer types an Iowa address (3:23). Keep `demoFields` in `src/fixtures`: tests read their values from it. `e2e/demo-fields.spec.ts` and `e2e/helpers.ts` press the demo buttons, so they must switch to the search box in the same change (or keep a test-only way in).
-- After a search hit, find the field and outline its edges, then let the farmer accept it (3:57–4:22). Today a hit only moves the map (`MapStep.tsx:95`, `showPlace`); the field is added only by a tap. `addFieldAt` in `src/map/parcels/tap.ts` already returns the ULDK parcel outline in Poland and a 4 ha square elsewhere. A first version: call `addFieldAt(lat, lon)` for the search hit and show the outline with an accept button.
-- Iowa has no outline source. None of the allowed sources (SPEC §15) gives US field boundaries, so an Iowa field stays a 4 ha square or a drawn outline. A new boundary source means asking a human first. Oskar doubted there is time for the outline at all (4:22).
-- Places without data (2:37): Mikołaj wants a few places that work and a clear "not available yet" message everywhere else. Today the engine compares rotations only in the USA and Poland and shows `empty.outside-coverage` on step 5 (`src/engine/analyzeField.ts:245`). The prices, payments and rules cover Iowa and Wielkopolska, though, so check what a field in, say, Kansas or Podlasie shows, and whether the message should come right after the search instead of on step 5. Mikołaj also asked for a few more comparison places; that needs data, so it is an open question below.
-- A country choice came up (1:49), and Fathom's summary line says "set country/region default". Where it goes is not clear from the call; see the open questions.
+User: before step 1, a screen with the app name and a short description of what the app does. Take the name from `src/app/brand.ts` (D13: the final name comes at the end, so keep it in one place). The language buttons stay in the header (`App.tsx:83`). On the call the team also asked for a better layout and "nothing complicated" (1:21).
 
-### Crops, step 3: no change (7:48)
+### Step 1, field (was step 2)
 
-Mateusz: "in step 3 we remove nothing and change nothing". The farmer confirms what was planted.
+User: remove the two demo tiles, Iowa and Poznań (`src/map/MapStep.tsx:87–91`). In the pitch animation, someone types the address of an Iowa field and the app outlines that field along its edges.
 
-### Priorities, step 4: no change (7:48, 8:10)
+- Keep `demoFields` in `src/fixtures`: tests read their values from it. `e2e/demo-fields.spec.ts` and `e2e/helpers.ts` press the demo buttons, so switch them to the search box in the same PR.
+- Today a search hit only moves the map (`MapStep.tsx:95`, `showPlace`), and a field is added only by a tap. `addFieldAt` in `src/map/parcels/tap.ts` returns the ULDK parcel outline in Poland and a 4 ha square anywhere else. First change: call `addFieldAt(lat, lon)` for the search hit, show the outline, and let the farmer accept it.
+- Iowa is the gap. None of the allowed sources (SPEC §15) gives US field boundaries, so the Iowa search hit gets a 4 ha square, not the field's edges. See open question 1.
 
-The switches and filters work. Mateusz added "except what just broke with the text" (8:12): some text broke on screen during the call, and the transcript does not say where. Reproduce it on steps 3–5 for both demo places, in both languages and at phone width.
+### Step 2, goal (was step 1)
 
-### Rotations, step 5: shorter, with less shown at once (8:16–11:54)
+No change to the screen, only its place in the flow.
 
-This step got the most comments. Wojciech: too much text at once, "a wall of text"; hide more of it so it does not all show at once; the data sources should be collapsed and open on a tap; it should read as short as the recommendations the team wrote at the last hackathon (8:16, 10:00).
+### Step 3, crops
 
-The call did not say which parts to fold. A split that keeps the repo rules:
+User: OK as it is.
 
-- Always visible: the rotation title, soil health and climate resilience first (D9), the goal total, the calendar strip, the gaps and local risks, and the closing support sentence. SPEC §11 makes the card end with "check the gaps and risks above", and the comment in `RotationCard.tsx` says gaps and risks are in the body, never a footnote, so do not fold them. Shorten them instead if they are long.
-- Folded by default: "Why", "Evidence", "Benefits", "Twins" and the range note in `RotationCard.tsx`, and the whole `SourcesPanel` at the bottom of `RotationsStep.tsx`.
-- Use a real disclosure (`<details>` or a button with `aria-expanded`). Tests that wait for text inside a folded section must open it first.
+### Step 4, priorities
 
-Other points on this step:
+User: improve how the text on this step is shown. On the call some text broke on screen around this step (8:12, "except what just broke with the text"); the transcript does not say what. Open `PrioritiesStep.tsx` on both demo places, in both languages and at phone width, find what wraps or overflows, and fix the layout of the switch labels and their one-line explanations.
 
-- Goal chosen twice (10:00). Wojciech: the farmer picks the main goal at the start, so why pick it again here (`GoalSwitcher`, `RotationsStep.tsx:54`). SPEC §12 lists the switcher on step 5 and says the goal is "changeable later". Removing it or turning it into one line ("Ranked for: Keep my soil, change") is a product choice; ask the user.
-- The calendar strip (8:55–10:00). It is most likely the "map" they talked about: Wojciech described it as "the whole rotation with the crops plus the risk". Mateusz and Oskar were unsure it adds much, and Mikołaj said it is not for the pitch, but Wojciech wants it kept because it is simple to read. Nobody asked to remove it. Keep it.
-- "Weak evidence" (10:00). Wojciech: find out why it shows up; the demo examples should not show it. Fathom's summary line says "remove 'weak evidence'", but hiding it breaks SPEC §7 and the gaps rule. The cause: when no soil indicator has a sourced rule, soil health falls back to the cover-only stand-in, which is always `weak` (`coverOnlyScore`, `src/engine/analyzeField.ts:121`). SPEC §7 defines `weak` as two or more missing inputs, so the stand-in does not match the spec. That is an engine and method question for O3 and the user, not a UI fix. Check on both demo fields whether soil health or climate resilience is the weak one. On the UI side there is one change that stays inside the spec: SPEC §7 asks for "a visible badge" and "the reason first in the gaps section", while the card today puts a large amber banner above the title (`RotationCard.tsx:53–71`). Moving the reason into the gaps section, with the badge next to the score, is allowed and makes the card shorter.
-- Twins (11:54–12:22). Wojciech wanted them more visible. The team agreed not to add a twin step to the app ("it is part of the analysis"); they go into the pitch. The card keeps its twins section, folded with the rest.
+### Step 5, rotations
 
-### Money, step 6: still empty (16:01)
+User's decisions:
 
-`src/steps/money/MoneyStep.tsx` is still the skeleton placeholder and shows "no data". Income already shows on each card (`IncomeSection`, #131). Mateusz said step 6 is in progress on his side and that the team will look at what it shows once everything is pushed. Ask him which branch before touching it, so the work is not done twice.
+- Hide more: fold most of the card and the data sources. No wall of text.
+- Keep the meaning of everything. Fold, do not delete.
+- Remove the goal choice from this step, because the farmer picks the goal at the start.
+- Simple, shorter recommendations.
+- Look into "weak evidence" (analysis below).
 
-### Report, step 7: maybe a button, not a step (13:25–14:00)
+How, inside the repo rules:
 
-The advisor report came out with the latest changes and "looks bad" (14:00). Wojciech doubts it needs its own step: it could be a button on the step before it. Nobody objected. Mateusz may have said something similar at 7:48 ("the next one can go, the report is already made in five"), but that sentence is cut. If the user confirms: drop step 7 from the progress bar, add a "Report for your advisor" button at the end of the last step that opens the print view (`ReportStep.tsx`), keep printing, point the share link (`shareLink.ts:98`) at the new place, and fix the layout. SPEC §12 lists step 7, so this needs a `[contract]` SPEC update and a DECISIONS line.
+- Always visible on a card: the rotation title, soil health and climate resilience first (D9), the goal total, the calendar strip, gaps and local risks, and the support sentence. SPEC §11 makes the card end with "check the gaps and risks above", so gaps and risks stay unfolded; shorten them instead.
+- Folded by default: "Why", "Evidence", "Benefits", "Twins" and the range note (`RotationCard.tsx`), and the whole `SourcesPanel` (`RotationsStep.tsx:74`). Use `<details>` or a button with `aria-expanded`. Tests that wait for text inside a folded section must open it first.
+- Goal switcher: remove `<GoalSwitcher>` (`RotationsStep.tsx:54`) and the second sentence of `steps.rotations.intro` ("Tap a goal to reorder them."). Keep the `goalNoData` notice: it still says when the chosen goal has no data and the cards fall back to "Keep my soil". The farmer changes the goal by going back to step 2. SPEC §12 lists the switcher on step 5, so it goes into the same `[contract]` SPEC update.
+- Shorter recommendations: the texts come from engine message codes in `src/engine/messages/en.json` and `pl.json` (O3's folder). On the card, show the first "Why" line and fold the rest. Shortening the texts themselves is a separate `[contract]` PR, and every Polish line changes with its English one.
 
-### Glossary in Polish (0:16, 13:25, 34:04): done
+#### "Weak evidence": what causes it
 
-Merged as #151. Check it once at `?lang=pl` while testing the other changes.
+The user's screenshot shows an Iowa card (Option 1, Alfalfa → Oats → Oats): an amber "Read this first" banner above the title, "Low confidence in the soil health score: two or more of its inputs or rules are missing", and a second "Weak evidence" badge under the soil health bar, whose basis reads "Weighted mean of 3 soil health indicators. Not scored: organic matter."
+
+- Organic matter is never scored for Iowa. The engine reads the humus rows for Poland only (`src/engine/rules.ts:229`, `if (country === 'PL')`), although each humus row in `data/rules/humus.json` says "for a field outside Poland they are a borrowed value".
+- The soil health total takes its weakest indicator's confidence and drops one more level when an indicator is missing (`src/engine/soilHealth.ts:443`; the rule is in the comment at line 46). An indicator is one level down when its rule has one value and no range (several Iowa rows do, for example the red clover N credit and the soybean pest-break row) or when an input is missing. In the screenshot at least one indicator is one level down, and the missing organic matter adds the second level: `weak`. This is the engine working as designed, not a UI bug, so most Iowa cards will show it until the rules change.
+- The screenshot is Iowa. Check the Poznań cards too.
+
+Two separate fixes:
+
+1. UI, inside the spec (O2, can start now): SPEC §7 asks for "a visible badge" and "the reason first in the gaps section". The card shows the badge twice and adds a banner above the title (`RotationCard.tsx:53–71`). Drop the banner, keep the badge next to the score, and put the reason first in the gaps. The card gets shorter and still says it.
+2. Engine (O3, the user decides): score organic matter for Iowa with the borrowed Polish coefficients and a gap line that says so. That removes the missing indicator, so the Iowa total would be at most one level down. See open question 2.
+
+### Step 6, money
+
+User: the step stays, and the backend has to be fixed so that it shows a preview. Today `src/steps/money/MoneyStep.tsx` is the skeleton placeholder with the out-of-date text "Prices and payment rates are not loaded yet". The O1 analysis in #154 (`HANDOFF.md` v8) found that each rotation already carries its money data (`RotationOption.money`, `income`), so a first version can reuse `IncomeSection` without a contract change. Costs and revenue per crop are not in the contract yet. On the call Mateusz said step 6 is his (16:01), but at 22:25 nothing was on GitHub. Settle the owner with the user before anyone starts, so it is not built twice.
+
+### Step 7, report
+
+User: remove it. Take it out of the step list in the same PR as the new flow. The share link is built on this step (`ReportStep.tsx:44`, "copy link") and opens step 7 when it is followed (`shareLink.ts:98`); see open question 3.
 
 ## Open questions for the user
 
-Ask these before building the part they block.
+1. The Iowa field outline for the animation. (a) Trace the field by hand with the drawing tool while recording; this works today. (b) Build an outline from USDA CropScape, an allowed source: take the crop-class pixels around the search point and trace the patch they form. That is a rough, 30 m outline, and it needs the CropScape proxy, which needs hosting (`HANDOFF.md`). (c) A real field-boundary source, which needs a human's approval first (SPEC §15).
+2. "Weak evidence" in Iowa: should O3 use the borrowed Polish humus coefficients for US fields, or should Iowa stay at `weak` with only the UI change?
+3. With step 7 gone, keep the "copy link" button (on step 5 or 6) and point the link at step 5, or drop the share link? Check first whether the pitch QR code needs it.
+4. Who builds step 6 (see above).
 
-1. Country or region: a choice on the start page, on the field step, or taken from the search result? What is the default?
-2. The goal switcher on step 5: remove it, or replace it with one line linking back to the goal step?
-3. Step 7: confirm it becomes a button on the last step.
-4. Soil quality typed in by the farmer (12:28–13:18). Oskar asked whether the tool knows the soil at a place, and if not, whether the farmer could type it in. The team was not sure and wanted to ask. The tool already reads soil: SSURGO for US points and SoilGrids elsewhere (`src/engine/analyzeField.ts:91–100`). It does not forecast yields (repo rule), so a typed soil value could only correct the soil data that the existing rules use. Fathom's summary line: "Clarify w/ team: soil-quality input and twin/forecast handling".
-5. Field outline for Iowa: accept the 4 ha square and the drawing tool, or look for a boundary source (a human decides on any new source)?
-6. More comparison places (2:37): which ones, and is there data for them?
-7. "Weak evidence" on the demo fields: does O3 change how the soil stand-in sets its confidence, or does the team keep it and only move the banner?
+From the call, but not in the user's decisions, so nobody builds them unless the user asks: a country or region choice (1:49), a typed-in soil quality (12:28–13:18; the app already reads SSURGO in the US and SoilGrids elsewhere, and it does not forecast yields), more comparison places, and a "not available yet" message right after the search for places without data (2:37; today it shows only on step 5, `empty.outside-coverage`).
 
-## Suggested order
+## Order
 
-The deadline is Sun 15 Nov, 11:59 CET. Small, low-risk UI changes first:
+The deadline is Sun 15 Nov, 11:59 CET.
 
-1. Step 5: fold sections, fold the sources panel, move the weak-evidence reason into the gaps (O2 folder, UI only, no open question).
-2. Find the text that broke on the call (step 3–5) and fix it.
-3. Step 7 as a button, after the user confirms.
-4. The field step: drop the demo buttons, add the field on a search hit, update e2e in the same change. After #141 and #143 merge.
-5. The start page and the field-before-goal swap, together, last: they change step numbers in the app, the share link and e2e.
+1. Step 5: fold the sections and the sources, remove the goal switcher, drop the weak-evidence banner. No open question blocks it.
+2. Step 4: the text layout.
+3. The new flow in one PR: start page, field and goal swapped, step 7 removed, SPEC §12 and DECISIONS updated, e2e updated.
+4. Step 1: drop the demo tiles, add the field on a search hit, switch e2e to the search box. After #157 and #143 merge, and after open question 1 for Iowa.
+5. Step 6, once its owner is settled.
 
-Each of these is its own PR with the usual gate (`git fetch && git rebase origin/main && npm run typecheck && npm run test && npm run build && npm run validate:data`). Every screen keeps its loading, offline, no-data and error states. English UI text goes through the anti-ai-writing skill, and every new key needs its Polish line in `pl.json` (the i18n parity test checks the ids). Check each change on localhost with both demo places, both languages and a phone-width window.
+Each item is its own PR with the gate (`git fetch && git rebase origin/main && npm run typecheck && npm run test && npm run build && npm run validate:data`). Every screen keeps its loading, offline, no-data and error states. English UI text goes through the anti-ai-writing skill, and every new key gets its Polish line in `pl.json` (the i18n parity test checks the ids). Check each change on localhost with both demo places, both languages and a phone-width window.
