@@ -60,17 +60,32 @@ function malformed(detail: string): SourceError {
   return new SourceError(SOURCE, `NASA POWER sent an unexpected response: ${detail}`);
 }
 
+/** Units the conversions in rainMm and evapotranspirationMm assume, as the saved sample states them. */
+const EXPECTED_UNITS: Partial<Record<PowerParameter, string>> = { PRECTOTCORR: 'mm/day', EVPTRNS: 'MJ/m^2/day' };
+const TIMEOUT_MS = 15000;
+
+const emptyMonth = (year: number, month: number): PowerMonth => ({
+  year, month, GWETROOT: null, GWETTOP: null, PRECTOTCORR: null, T2M_MAX: null, FROST_DAYS: null, EVPTRNS: null,
+});
+
 export function parsePowerMonthly(json: unknown, retrievedAt: string): PowerMonthly {
   if (!isRecord(json)) throw malformed('body is not an object');
   const properties = json.properties;
-  if (!isRecord(properties) || !isRecord(properties.parameter)) throw malformed('no properties.parameter');
+  if (!isRecord(properties) || !isRecord(properties.parameter)) {
+    const first = Array.isArray(json.messages) ? json.messages.find((m) => typeof m === 'string' && m.length > 0) : undefined;
+    throw malformed(first ? `no data. POWER says: ${String(first)}` : 'no properties.parameter');
+  }
   const parameter = properties.parameter;
 
   const header = json.header;
   const fills = new Set<number>([DEFAULT_FILL]);
   if (isRecord(header) && typeof header.fill_value === 'number') fills.add(header.fill_value);
 
+  // The full 1981-2025 grid, so a month POWER leaves out is a row of nulls and every share keeps 45 years.
   const rows = new Map<number, PowerMonth>();
+  for (let year = START_YEAR; year <= END_YEAR; year++) {
+    for (let month = 1; month <= 12; month++) rows.set(year * 100 + month, emptyMonth(year, month));
+  }
   for (const name of POWER_PARAMETERS) {
     const series = parameter[name];
     if (!isRecord(series)) throw malformed(`parameter ${name} missing`);
@@ -79,16 +94,13 @@ export function parsePowerMonthly(json: unknown, retrievedAt: string): PowerMont
       const year = Number(key.slice(0, 4));
       const month = Number(key.slice(4));
       if (month === 13) continue; // annual value
+      if (year < START_YEAR || year > END_YEAR) continue;
       if (month < 1 || month > 12) throw malformed(`bad month in ${key}`);
       if (raw !== null && (typeof raw !== 'number' || !Number.isFinite(raw))) throw malformed(`non-numeric ${name} at ${key}`);
       const value = raw === null || fills.has(raw) ? null : raw;
       const id = year * 100 + month;
-      let row = rows.get(id);
-      if (!row) {
-        row = { year, month, GWETROOT: null, GWETTOP: null, PRECTOTCORR: null, T2M_MAX: null, FROST_DAYS: null, EVPTRNS: null };
-        rows.set(id, row);
-      }
-      row[name] = value;
+      const row = rows.get(id);
+      if (row) row[name] = value;
     }
   }
 
@@ -97,6 +109,10 @@ export function parsePowerMonthly(json: unknown, retrievedAt: string): PowerMont
     for (const [name, meta] of Object.entries(json.parameters)) {
       if (isRecord(meta) && typeof meta.units === 'string') units[name] = meta.units;
     }
+  }
+
+  for (const [name, unit] of Object.entries(EXPECTED_UNITS)) {
+    if (units[name] !== undefined && units[name] !== unit) throw malformed(`${name} is in ${units[name]}, expected ${unit}`);
   }
 
   const months = [...rows.entries()].sort((a, b) => a[0] - b[0]).map(([, r]) => r);
@@ -113,8 +129,12 @@ export async function fetchPowerMonthly(lat: number, lon: number, fetchImpl: typ
   const url = powerMonthlyUrl(lat, lon);
   let res: Response;
   try {
-    res = await fetchImpl(url);
+    res = await fetchImpl(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (e) {
+    const name = typeof e === 'object' && e !== null && 'name' in e ? String((e as { name: unknown }).name) : '';
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      throw new SourceError(SOURCE, `NASA POWER did not answer within ${TIMEOUT_MS / 1000} s`);
+    }
     throw new SourceError(SOURCE, `NASA POWER could not be reached: ${e instanceof Error ? e.message : String(e)}`);
   }
   if (!res.ok) throw new SourceError(SOURCE, `NASA POWER answered with status ${res.status}`);
