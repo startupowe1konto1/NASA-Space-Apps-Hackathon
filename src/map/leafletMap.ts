@@ -26,12 +26,15 @@ export interface MapController {
   destroy(): void;
   /** True while a Geoman draw, edit or delete mode is on, so a map tap must not add a point field. */
   isEditing(): boolean;
+  /** Moves the map to a place found by the address search and marks it. One marker at a time. */
+  showPlace(lat: number, lon: number, label: string): void;
 }
 
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const START_VIEW: L.LatLngTuple = [46, -40]; // between the USA and Poland
 const START_ZOOM = 2;
+const PLACE_ZOOM = 16; // close enough to see field edges and tap the right one
 
 const toLatLngs = (field: Field): L.LatLngTuple[][] =>
   field.polygon.coordinates.map((ring) => ring.map(([lon = 0, lat = 0]) => [lat, lon] as L.LatLngTuple));
@@ -64,6 +67,7 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
   const map = L.map(container, { center: START_VIEW, zoom: START_ZOOM, worldCopyJump: true });
   const tiles = L.tileLayer(TILE_URL, { maxZoom: 19, attribution: ATTRIBUTION }).addTo(map);
   const fieldLayer = L.layerGroup().addTo(map);
+  const placeLayer = L.layerGroup().addTo(map);
 
   tiles.on('tileerror', () => handlers.onTileError());
 
@@ -122,5 +126,15 @@ export function createLeafletMap(container: HTMLElement, handlers: MapHandlers):
       map.remove();
     },
     isEditing,
+    showPlace(lat, lon, label) {
+      placeLayer.clearLayers();
+      // Not interactive: a tap on the marker still reaches the map, so it adds a field or a corner there.
+      L.circleMarker([lat, lon], { radius: 9, color: '#b45309', weight: 3, fillColor: '#fbbf24', fillOpacity: 0.9, interactive: false })
+        .bindTooltip(label, { permanent: false, direction: 'top' })
+        .addTo(placeLayer);
+      const size = map.getSize();
+      if (size.x === 0 || size.y === 0) map.setView([lat, lon], PLACE_ZOOM, { animate: false });
+      else map.flyTo([lat, lon], PLACE_ZOOM, { duration: 1.2 });
+    },
   };
 }

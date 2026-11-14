@@ -10,6 +10,7 @@ import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
 import { ParcelSearch } from './parcels/ParcelSearch';
 import { addFieldAt } from './parcels/tap';
+import { SearchBox } from './search/SearchBox';
 
 const BUTTON =
   'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
@@ -90,6 +91,8 @@ export function MapStep() {
           {t('map.demo.poznan')}
         </button>
       </div>
+
+      <SearchBox onPick={(place) => mapRef.current?.showPlace(place.lat, place.lon, place.label)} />
 
       {tilesFailed ? (
         <StateBoundary state="error" source={t('map.tiles.source')} reason={t('map.tiles.reason')} onRetry={retryTiles}>
