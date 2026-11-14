@@ -84,6 +84,30 @@ describe('waterScore', () => {
     expect(s.high).toBe(100);
   });
 
+  // #119 review: the value is pooled over all crop-years, the range over per-year shares, so the range must still
+  // contain the value (score schema: low <= value <= high).
+  it('keeps the range around the value when few years are covered', () => {
+    // 10 record years; maize covered only in 2020
+    const years = Array.from({ length: 10 }, (_, i) => 2020 + i);
+    const c = climate((year) => (year === 2020 ? 110 : 60), years);
+    const s = scored(waterScore([{ crop: 'maize' }, { crop: 'soybean' }], us, c, NEED)).score;
+    expect(s.value).toBeGreaterThan(0);
+    expect(s.low).toBeLessThanOrEqual(s.value);
+    expect(s.value).toBeLessThanOrEqual(s.high);
+  });
+
+  // #119 review: a crop's own need row (water.needMm.<crop>) wins over its class row.
+  it("uses a crop's own need when there is one, else its class need, and says which it used", () => {
+    // maize (high class 600 mm) has 500 mm of rain; with its own need of 450 mm it is covered
+    const c = climate(() => 500 / 6);
+    const byClass = scored(waterScore([{ crop: 'maize' }, { crop: 'soybean' }], us, c, NEED));
+    expect(byClass.score.value).toBe(50); // soybean (400) covered, maize (600) not
+    expect(byClass.needKeys).toEqual(['high', 'medium']);
+    const byCrop = scored(waterScore([{ crop: 'maize' }, { crop: 'soybean' }], us, c, NEED, { maize: 450 }));
+    expect(byCrop.score.value).toBe(100);
+    expect(byCrop.needKeys).toEqual(['maize', 'medium']);
+  });
+
   it('a winter crop counts rain from its autumn sowing in the previous calendar year', () => {
     // winter-wheat: sown October, harvested July = 10 months; needs 400 mm (medium); ET 500 mm would exceed rain,
     // so ET is set low here

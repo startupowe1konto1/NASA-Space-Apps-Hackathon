@@ -282,7 +282,13 @@ describe('analyzeField with fixture providers', () => {
   // #105 item 6: water is scored when the water need rows exist, otherwise it is named as not scored.
   describe('water priority', () => {
     const row = (id: string, value: unknown) => ({ id, value, unit: 'mm', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
-    const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
+    // the shipped rules without water need rows, so these cases do not depend on data/rules/water.json
+    const files = Object.fromEntries(
+      Object.entries(shippedRules.byFile).map(([name, rows]) => [
+        `../../data/rules/${name}.json`,
+        (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.')),
+      ]),
+    );
     const need = { low: 300, medium: 450, high: 600 };
     const needRows = (Object.keys(need) as (keyof typeof need)[]).map((c) => row(`water.needMm.${c}`, need[c]));
     const waterOn: Priorities = { ...priorities, on: ['water'] };
@@ -295,8 +301,26 @@ describe('analyzeField with fixture providers', () => {
       for (const r of a.rotations) {
         expect(r.priorityScores.water?.basis.code).toBe('priority.basis.water');
         expect(r.priorityScores.water!.low).toBeLessThanOrEqual(r.priorityScores.water!.value);
+        expect(r.priorityScores.water!.value).toBeLessThanOrEqual(r.priorityScores.water!.high);
         expect(r.gaps.map((g) => g.code)).not.toContain('gap.priority-not-scored');
       }
+      // #119 review: with water on, the whole analysis still meets the contract (low <= value <= high)
+      const parsed = analysisSchema.safeParse(a);
+      expect(parsed.success, parsed.success ? '' : JSON.stringify(parsed.error.issues.slice(0, 3))).toBe(true);
+    });
+
+    // #119 review: the evidence names only the need rows this card used: a crop's own row, else its class row.
+    it("names the crop's own need row when there is one, and the class row for the other crops", async () => {
+      const cur = iowaHistory.map((h) => h.crop);
+      const own = cur[0]!;
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': [...needRows, row(`water.needMm.${own}`, 500)] }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      const e = current(a).evidence.find((x) => x.message.code === 'evidence.water');
+      const crops = await fixtureProviders.context.getCrops('US');
+      const expected = [
+        ...new Set(current(a).years.map((y) => (y.crop === own ? `water.needMm.${own}` : `water.needMm.${crops.find((c) => c.id === y.crop)!.waterNeed}`))),
+      ];
+      expect(e!.ruleIds).toEqual(expected);
     });
 
     // Every number on screen is Sourced: the water evidence carries the POWER rain and evapotranspiration as model
@@ -307,7 +331,9 @@ describe('analyzeField with fixture providers', () => {
       const { source } = await fixtureProviders.profile.getClimate(demoFields.iowa);
       const e = current(a).evidence.find((x) => x.message.code === 'evidence.water');
       expect(e).toBeDefined();
-      expect(e!.ruleIds).toEqual(needRows.map((r) => r.id));
+      const crops = await fixtureProviders.context.getCrops('US');
+      const used = [...new Set(current(a).years.map((y) => `water.needMm.${crops.find((c) => c.id === y.crop)!.waterNeed}`))];
+      expect(e!.ruleIds).toEqual(used);
       const units = e!.values.map((v) => v.unit);
       expect(units).toEqual(['mm growing-season rain, mean of checked crop-years', 'mm growing-season evapotranspiration, mean of checked crop-years']);
       for (const v of e!.values) {

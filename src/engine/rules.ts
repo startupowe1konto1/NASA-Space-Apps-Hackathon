@@ -48,6 +48,8 @@ export interface EngineRules {
    * Undefined when data/rules has none of them: the water priority is then not scored and the card says so.
    */
   waterNeedMm?: Record<WaterNeed, number>;
+  /** A crop's own seasonal need in mm, from rows 'water.needMm.<crop id>'; it wins over the crop's class (#119 review). */
+  waterNeedByCropMm?: Record<string, number>;
   /** Rule ids behind each number above, for Evidence.ruleIds. */
   ids: {
     markShare: string;
@@ -79,11 +81,14 @@ function weightsOf(rules: LoadedRules, id: string): GoalWeights {
 const WATER_CLASSES: WaterNeed[] = ['low', 'medium', 'high'];
 
 /** All three water need rows, or none. Some but not all is a data error and throws, naming the missing row. */
-function waterNeedOf(rules: LoadedRules): Pick<EngineRules, 'waterNeedMm'> & { ids?: Record<WaterNeed, string> } {
+function waterNeedOf(rules: LoadedRules): Pick<EngineRules, 'waterNeedMm' | 'waterNeedByCropMm'> & { ids?: Record<WaterNeed, string> } {
   const ids = Object.fromEntries(WATER_CLASSES.map((c) => [c, `water.needMm.${c}`])) as Record<WaterNeed, string>;
   if (!WATER_CLASSES.some((c) => rules.byId.has(ids[c]))) return {};
   const waterNeedMm = Object.fromEntries(WATER_CLASSES.map((c) => [c, numberOf(rules, ids[c])])) as Record<WaterNeed, number>;
-  return { waterNeedMm, ids };
+  const prefix = 'water.needMm.';
+  const cropIds = [...rules.byId.keys()].filter((id) => id.startsWith(prefix) && !WATER_CLASSES.includes(id.slice(prefix.length) as WaterNeed));
+  const waterNeedByCropMm = Object.fromEntries(cropIds.map((id) => [id.slice(prefix.length), numberOf(rules, id)]));
+  return { waterNeedMm, waterNeedByCropMm, ids };
 }
 
 export function engineRules(rules: LoadedRules): EngineRules {
@@ -116,6 +121,7 @@ export function engineRules(rules: LoadedRules): EngineRules {
       ...(water.ids ? { waterNeed: water.ids } : {}),
     },
     ...(water.waterNeedMm ? { waterNeedMm: water.waterNeedMm } : {}),
+    ...(water.waterNeedByCropMm ? { waterNeedByCropMm: water.waterNeedByCropMm } : {}),
   };
 }
 

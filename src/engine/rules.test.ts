@@ -40,7 +40,13 @@ describe('loadRules', () => {
 
   // #105 item 6: the water priority needs a seasonal need in mm per water need class, from a sourced row.
   describe('water need per class', () => {
-    const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
+    // built on the shipped rules without any water need row, so the cases hold whether or not data/rules has them
+    const files = Object.fromEntries(
+      Object.entries(shippedRules.byFile).map(([name, rows]) => [
+        `../../data/rules/${name}.json`,
+        (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.')),
+      ]),
+    );
     const withRows = (rows: ReturnType<typeof row>[]) => loadRules({ ...files, '../../data/rules/zz-test.json': rows });
     const ids = ['water.needMm.low', 'water.needMm.medium', 'water.needMm.high'];
 
@@ -57,6 +63,12 @@ describe('loadRules', () => {
       const r = engineRules(withRows([row(ids[0]!, 400), row(ids[1]!, 550), row(ids[2]!, 700)]));
       expect(r.waterNeedMm).toEqual({ low: 400, medium: 550, high: 700 });
       expect(r.ids.waterNeed).toEqual({ low: ids[0], medium: ids[1], high: ids[2] });
+    });
+
+    it('reads a need per crop next to the class rows, with its rule id', () => {
+      const r = engineRules(withRows([row(ids[0]!, 400), row(ids[1]!, 550), row(ids[2]!, 700), row('water.needMm.maize', 650)]));
+      expect(r.waterNeedByCropMm).toEqual({ maize: 650 });
+      expect(r.waterNeedMm).toEqual({ low: 400, medium: 550, high: 700 });
     });
 
     it('throws when only some classes have a row, naming the missing one', () => {

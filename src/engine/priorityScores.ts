@@ -35,7 +35,7 @@ const percentile = (sorted: number[], p: number) => sorted[Math.round(p * (sorte
 
 /** Water priority outcome. 'not-scored' leaves the score unset; the card then names the priority as not scored. */
 export type WaterOutcome =
-  | { status: 'scored'; score: Score; meanRainMm: number; meanEtMm: number }
+  | { status: 'scored'; score: Score; meanRainMm: number; meanEtMm: number; needKeys: string[] }
   | { status: 'not-scored'; reason: 'no-data' | 'no-need-class' };
 
 /**
@@ -45,13 +45,16 @@ export type WaterOutcome =
  * confidence to weak. A crop without a water need class is skipped. `meanRainMm` and `meanEtMm` are the means over the
  * checked crop-years, for the card's evidence.
  *
- * `waterNeedMm` is the seasonal need in mm per class, from the 'water.needMm.<class>' rows.
+ * `waterNeedMm` is the seasonal need in mm per class, from the 'water.needMm.<class>' rows; `byCropMm` a crop's own
+ * need from 'water.needMm.<crop>', which wins over its class (#119 review). `needKeys` lists the keys used (crop id or
+ * class), in order of first use, so the evidence can name the rows behind the score.
  */
 export function waterScore(
   years: Years,
   crops: CropTraits[],
   climate: ClimateProfile,
   waterNeedMm: Record<WaterNeed, number>,
+  byCropMm: Record<string, number> = {},
 ): WaterOutcome {
   if (!years.some((y) => cropById(crops, y.crop).waterNeed !== undefined)) return { status: 'not-scored', reason: 'no-need-class' };
   const rain = new Map<string, number | null>();
@@ -69,6 +72,7 @@ export function waterScore(
   let etTotal = 0;
   let gaps = false;
   const perYear: number[] = [];
+  const needKeys: string[] = [];
   for (const year of recordYears) {
     let yearChecked = 0;
     let yearCovered = 0;
@@ -95,7 +99,10 @@ export function waterScore(
       yearChecked++;
       rainTotal += seasonRain;
       etTotal += seasonEt;
-      if (seasonRain >= Math.max(waterNeedMm[need], seasonEt)) yearCovered++;
+      const key = byCropMm[crop.id] !== undefined ? crop.id : need;
+      if (!needKeys.includes(key)) needKeys.push(key);
+      const needMm = byCropMm[crop.id] ?? waterNeedMm[need];
+      if (seasonRain >= Math.max(needMm, seasonEt)) yearCovered++;
     }
     if (yearChecked > 0) perYear.push(yearCovered / yearChecked);
     checked += yearChecked;
@@ -104,16 +111,20 @@ export function waterScore(
 
   if (checked === 0) return { status: 'not-scored', reason: 'no-data' };
   const sorted = [...perYear].sort((a, b) => a - b);
+  // The value pools all crop-years, the range is the 10th to 90th percentile of the per-year shares; with few covered
+  // years the pooled value can fall outside that range, so the range is widened to contain it (as resilience.ts does).
+  const value = round((100 * covered) / checked);
   return {
     status: 'scored',
     score: {
-      value: round((100 * covered) / checked),
-      low: round(100 * percentile(sorted, 0.1)),
-      high: round(100 * percentile(sorted, 0.9)),
+      value,
+      low: Math.min(value, round(100 * percentile(sorted, 0.1))),
+      high: Math.max(value, round(100 * percentile(sorted, 0.9))),
       confidence: gaps ? 'weak' : 'moderate', // coarse check: one need per class
       basis: { code: 'priority.basis.water', params: { coveredYears: covered, cropYears: checked } },
     },
     meanRainMm: round(rainTotal / checked),
     meanEtMm: round(etTotal / checked),
+    needKeys,
   };
 }

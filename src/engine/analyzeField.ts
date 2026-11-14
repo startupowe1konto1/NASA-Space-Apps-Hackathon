@@ -324,10 +324,10 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
         // water needs the sourced need rows; without them, or without data, it stays unscored and the card names it
         let water: WaterEvidenceInput | undefined;
         if (on.includes('water') && rules.waterNeedMm && rules.ids.waterNeed) {
-          const w = waterScore(years, crops, climate, rules.waterNeedMm);
+          const w = waterScore(years, crops, climate, rules.waterNeedMm, rules.waterNeedByCropMm);
           if (w.status === 'scored') {
             priorityScores.water = w.score;
-            water = { meanRainMm: w.meanRainMm, meanEtMm: w.meanEtMm, ruleIds: Object.values(rules.ids.waterNeed) };
+            water = { meanRainMm: w.meanRainMm, meanEtMm: w.meanEtMm, ruleIds: w.needKeys.map((k) => `water.needMm.${k}`) };
           }
         }
         candidates.push({
