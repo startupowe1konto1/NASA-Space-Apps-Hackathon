@@ -420,7 +420,7 @@ Anything outside your folders is a separate `[contract]` PR reviewed by O1. Pitc
 
 ## 15. Allowed data sources
 
-`power.larc.nasa.gov`, `gibs.earthdata.nasa.gov`, `planetarycomputer.microsoft.com` and its blob storage, `gaez-services.fao.org`, `nassgeodata.gmu.edu`, `quickstats.nass.usda.gov`, `sdmdataaccess.sc.egov.usda.gov`, `rest.isric.org`, `services.gugik.gov.pl`, `uldk.gugik.gov.pl`, `integracja.gugik.gov.pl`, `geocoding.geo.census.gov`, `nominatim.openstreetmap.org` (max 1 request per second), `tile.openstreetmap.org`, `ec.europa.eu` (Eurostat) including `gisco-services.ec.europa.eu` (NUTS regions), `www2.census.gov` (US county centroids, build scripts only; D38). Any other server: ask a human.
+`power.larc.nasa.gov`, `gibs.earthdata.nasa.gov`, `planetarycomputer.microsoft.com` and its blob storage, `gaez-services.fao.org`, `nassgeodata.gmu.edu`, `quickstats.nass.usda.gov`, `sdmdataaccess.sc.egov.usda.gov`, `rest.isric.org`, `services.gugik.gov.pl`, `uldk.gugik.gov.pl`, `integracja.gugik.gov.pl` and `integracja02.gugik.gov.pl` (the KIEG parcel map; D49), `geocoding.geo.census.gov`, `nominatim.openstreetmap.org` (max 1 request per second), `tile.openstreetmap.org`, `ec.europa.eu` (Eurostat) including `gisco-services.ec.europa.eu` (NUTS regions), `www2.census.gov` (US county centroids, build scripts only; D38). Any other server: ask a human.
 
 ## 16. Submission
 
