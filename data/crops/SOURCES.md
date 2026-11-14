@@ -18,6 +18,13 @@
 | USDA NRCS Washington, Technical Note Agronomy 22 (2025) | https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf | pages 3 to 5: high residue and low residue crop lists, fragile and non-fragile residue list |
 | USDA NRCS Nebraska Conservation Planning Sheet No. 4, Crop Residue Management (2006) | https://www.mssoy.org/sites/default/files/documents/residue-mgmt-nrcs-2006.pdf | section "Residue type": soybeans are a low residue crop |
 | Iowa State University Extension, Alfalfa Seeding Recommendations (17 April 2024) | https://crops.extension.iastate.edu/post/alfalfa-seeding-recommendations | alfalfa is commonly spring-planted with an oat companion crop |
+| Hatfield and Prueger (2015), Temperature extremes: Effect on plant growth and development, Weather and Climate Extremes 10: 4-10, doi:10.1016/j.wace.2015.08.001 (open access copy opened) | https://pages.uoregon.edu/chendon/coffee_literature/old_literature/2015%20Weather%20Clim.%20Extremes,%20Temperature%20extremes%20on%20plant%20growth.pdf | page 5: maize pollen viability falls above 35 °C; soybean seed set falls from 30 to 35 °C and sterility is complete above 35 °C |
+| FAO Irrigation and Drainage Paper 66, crop chapters | https://www.fao.org/4/i2800e/i2800e.pdf | wheat page 93 (frost at head development and flowering) and page 98 (above 34 °C during grain filling); soybean page 128 (frost at emergence and pod filling) and page 129 (flower and fruit abortion at 35 °C); potato page 187 (frost at 1 °C and less, heat at 35 °C or higher) |
+| Barlow et al. (2013), Simulating the impact of extreme heat and frost events on wheat production: the first steps, MODSIM 2013 | https://mssanz.org.au/modsim2013/B2/barlow2.pdf | page 1: heat shock (>35 °C) and frost do most damage at ear emergence and anthesis; heat events cost 17-35 percent of yield |
+| USDA NRCS and Iowa State University, Cereal Rye Cover Crop Fact Sheet for Iowa (May 2024) | https://www.nrcs.usda.gov/sites/default/files/2024-04/Cereal%20Rye%20Cover%20Crop%20Fact%20Sheet.pdf | seeding mid August to late October; grazing quality excellent; lasting residue excellent |
+| USDA NRCS and Iowa State University, Red Clover Cover Crop Fact Sheet for Iowa (May 2024) | https://www.nrcs.usda.gov/sites/default/files/2024-05/Red%20Clover%20Crop%20Fact%20Sheet.pdf | winter seeding early August to mid September; grow until at least mid-May for nitrogen; grazing quality very good; lasting residue fair |
+| Iowa State University Extension, Terminating cover crops ahead of corn (22 April 2026) | https://crops.extension.iastate.edu/post/terminating-cover-crops-ahead-corn | terminate the cover crop at least 10 days before planting corn |
+| IUNG-PIB, Uprawa międzyplonów, instrukcja upowszechnieniowa (2025) | https://www.iung.pl/wp-content/uploads/2026/03/instrukcja.pdf | PDF pages 9, 13, 23-26: stubble catch crop sowing window, latest sowing dates for mustard and phacelia (Tabele 11 and 12), ARiMR rule to keep them until 15 October, termination in October, use of each species |
 
 ## How the numbers were derived
 
@@ -28,13 +35,16 @@
 - Residue cover: crops on the NRCS high residue list are `high`, crops on the low residue list are `low`. Alfalfa hay is on the low residue list (residue removed) but is non-fragile, so it is `medium`.
 - Forage: `true` only where the calendar source lists a forage use (Iowa "Corn for silage" and "Hay, alfalfa"; the COBORU silage maize series).
 - Family and legume flag: copied from `src/fixtures/crops.ts`, as task O4-A2 requires.
+- Heat: a source temperature for damage at flowering or grain filling is used as the threshold for the monthly maximum of NASA POWER T2M_MAX, in the same flowering and yield-formation months as drought. A short spell above the source temperature is enough to do the damage the sources describe, so the monthly maximum is compared with it directly.
+- Frost: where a source says the crop is damaged by frost at a stage, the threshold is 1 frost day (NASA POWER FROST_DAYS) in the months of that stage. Wheat: heading and grain filling. Soybean (Iowa): emergence in May and pod filling in August and September (FAO-56 Table 11 stages from the sowing midpoint). Potato: emergence in May (FAO-56 initial stage from planting).
+- Cover crops (`kind: 'cover'`): no water need or yield response factor (contract PR #44), and no hazard rows, since they are not harvested for yield. Sowing month is the midpoint of the seeding window for Iowa (NRCS fact sheets). For the Polish stubble catch crops it is August: IUNG gives the latest sowing date as 10 August (phacelia mixtures) or 15 August (mustard) and says they follow the cereal harvest, which COBORU puts in August. `harvestMonth` is the termination month. Residue: the NRCS Washington note puts any cover crop left on the field on the high residue list; a cover crop the note lists as fragile (mustard, fall seeded cover crops) is `medium`.
 
 ## Team rules of thumb
 
 These values have no document behind them. Each row says so in a source entry titled "team rule of thumb" that points to SPEC section 7.
 
 - Drought threshold 20: the 20th percentile of the field's own root-zone wetness (SPEC section 7).
-- Drought `lossShare` 0.2: no source gives a share of yield lost in a drought month. The income score uses the yield response factor for water shortfall, so this number only matters where the engine reads `lossShare` for drought.
+- `lossShare` 0.2 for drought, and for heat and frost where no source gives a loss share: no opened document gives a share of yield lost in a damaging month. The income score uses the yield response factor for water shortfall, so the drought value only matters where the engine reads `lossShare` for drought. Winter wheat heat uses 0.17, the low end of the 17-35 percent loss in Barlow et al. (2013).
 
 ## Missing
 
@@ -42,18 +52,24 @@ Crops left out of the files, with the trait that has no opened source:
 
 | Crop | File | Missing trait |
 |---|---|---|
-| oats | us-ia | yield response factor: FAO Paper 33/66 Table 1 has no oats value |
-| cereal-rye (cover) | us-ia | yield response factor and water need: no FAO value for rye; no sowing calendar opened for the cover crop |
-| red-clover (cover) | us-ia | yield response factor and water need: no FAO value; no sowing calendar opened for the cover crop |
-| spring-barley | pl | yield response factor: no barley value in FAO Table 1 (the calendar is in COBORU Zboża jare 2024, Tabela "JĘCZMIEŃ JARY. Warunki prowadzenia doświadczeń") |
+| oats | us-ia | yield response factor: FAO Paper 66 Table 1 (the FAO-33 seasonal values) has no oats value |
+| spring-barley | pl | yield response factor: no barley value in FAO Table 1 (the calendar is in COBORU Zboża jare 2024, "JĘCZMIEŃ JARY. Warunki prowadzenia doświadczeń") |
 | rye | pl | yield response factor and water need: not in FAO Table 1 or Table 14 (the calendar is in COBORU Zboża ozime 2024, "ŻYTO OZIME. Warunki prowadzenia doświadczeń") |
 | winter-rapeseed | pl | yield response factor and water need: not in FAO Table 1 or Table 14 (the calendar is in COBORU Oleiste 2024, Tabela 5) |
-| white-mustard (cover) | pl | yield response factor, water need and sowing calendar |
-| phacelia (cover) | pl | yield response factor, water need and sowing calendar |
 
-Hazard rows left out of every crop:
+Proxy values (for example the wheat Ky for oats or rye) were not approved, so these crops stay out until a document with their own Ky is opened.
 
-- Heat and frost: no crop-specific monthly maximum temperature or frost-day threshold was found in an opened document. FAO EcoCrop (https://ecocrop.apps.fao.org/ecocrop/srv/en/home) opened but its search returned no records on 14 Nov 2026. The `sensitive` arrays therefore hold drought only, and the engine will not count heat or frost damage for any crop until thresholds are sourced.
+Heat and frost rows missing (these crops have drought only):
+
+| Crop | File | Missing |
+|---|---|---|
+| maize | us-ia, pl | frost: no opened source names a damaging frost stage for maize |
+| alfalfa | us-ia | heat and frost |
+| field-pea | pl | heat and frost |
+| sugar-beet | pl | heat and frost |
+| cover crops | us-ia, pl | not scored for hazards (not harvested for yield) |
+
+FAO EcoCrop (https://ecocrop.apps.fao.org/ecocrop/srv/en/home) opened, but its name search returned no records on 14 Nov 2026, so it gave no thresholds.
 
 ## Opened but not used for values
 

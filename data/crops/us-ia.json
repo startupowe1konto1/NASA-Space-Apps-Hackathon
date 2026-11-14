@@ -15,6 +15,15 @@
         ],
         "threshold": 20,
         "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 35,
+        "lossShare": 0.2
       }
     ],
     "waterNeed": "high",
@@ -55,7 +64,12 @@
       {
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
-        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      },
+      {
+        "title": "Hatfield and Prueger (2015), Temperature extremes: Effect on plant growth and development, Weather and Climate Extremes 10: 4-10 (open access)",
+        "url": "https://pages.uoregon.edu/chendon/coffee_literature/old_literature/2015%20Weather%20Clim.%20Extremes,%20Temperature%20extremes%20on%20plant%20growth.pdf",
+        "locator": "page 5, section 1.2: maize pollen viability decreases above 35 °C, and kernel growth rate falls as temperature rises from 30 to 35 °C; heat threshold 35 °C compared with the monthly maximum of NASA POWER T2M_MAX in the pollination and kernel-filling months"
       }
     ]
   },
@@ -74,6 +88,25 @@
           8
         ],
         "threshold": 20,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          7,
+          8
+        ],
+        "threshold": 35,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          5,
+          8,
+          9
+        ],
+        "threshold": 1,
         "lossShare": 0.2
       }
     ],
@@ -115,7 +148,22 @@
       {
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
-        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Soybean chapter, page 129: abortion of flowers and newly set fruit at 35 °C; heat threshold 35 °C compared with the monthly maximum of NASA POWER T2M_MAX in the flowering and pod-setting months"
+      },
+      {
+        "title": "Hatfield and Prueger (2015), Temperature extremes: Effect on plant growth and development, Weather and Climate Extremes 10: 4-10 (open access)",
+        "url": "https://pages.uoregon.edu/chendon/coffee_literature/old_literature/2015%20Weather%20Clim.%20Extremes,%20Temperature%20extremes%20on%20plant%20growth.pdf",
+        "locator": "page 5: soybean seed set decreased as daytime temperature rose from 30 to 35 °C and sterility was complete above 35 °C"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Soybean chapter, page 128: soybean is very sensitive to frost at seed emergence and pod filling; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months; emergence month May (FAO-56 Table 11 initial stage from the 20 May sowing midpoint), pod filling August and September (second half of the FAO-56 mid-season stage)"
       }
     ]
   },
@@ -134,6 +182,24 @@
           6
         ],
         "threshold": 20,
+        "lossShare": 0.2
+      },
+      {
+        "hazard": "heat",
+        "months": [
+          5,
+          6
+        ],
+        "threshold": 34,
+        "lossShare": 0.17
+      },
+      {
+        "hazard": "frost",
+        "months": [
+          5,
+          6
+        ],
+        "threshold": 1,
         "lossShare": 0.2
       }
     ],
@@ -175,7 +241,22 @@
       {
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
-        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Wheat chapter, page 98: temperatures above 34 °C during grain filling reduce grain size and yield; heat threshold 34 °C compared with the monthly maximum of NASA POWER T2M_MAX in the heading and grain-filling months"
+      },
+      {
+        "title": "Barlow et al. (2013), Simulating the impact of extreme heat and frost events on wheat production: the first steps, MODSIM 2013",
+        "url": "https://mssanz.org.au/modsim2013/B2/barlow2.pdf",
+        "locator": "Abstract and Introduction, page 1: heat shock (>35 °C) and frost do most damage at ear emergence and around anthesis; heat events cause yield losses of 17-35 percent, heat lossShare 0.17 is the low end"
+      },
+      {
+        "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
+        "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
+        "locator": "Wheat chapter, page 93: during head development and flowering frost may lead to loss of spikelets; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months (heading and grain-filling months)"
       }
     ]
   },
@@ -242,7 +323,73 @@
       {
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
-        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; drought lossShare 0.2 has no source and is a team rule of thumb"
+        "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
+      }
+    ]
+  },
+  {
+    "id": "cereal-rye",
+    "family": "Poaceae",
+    "legume": false,
+    "kind": "cover",
+    "sowMonth": 9,
+    "harvestMonth": 4,
+    "sensitive": [],
+    "forage": true,
+    "residueCover": "high",
+    "sources": [
+      {
+        "title": "USDA NRCS and Iowa State University, Cereal Rye Cover Crop Fact Sheet for Iowa (May 2024)",
+        "url": "https://www.nrcs.usda.gov/sites/default/files/2024-04/Cereal%20Rye%20Cover%20Crop%20Fact%20Sheet.pdf",
+        "locator": "page 1, \"Cultural Traits\": seeding date mid August to late October (Midwest Cover Crop Council), midpoint in September; page 2, \"Performance Ratings\": grazing quality excellent (forage use), lasting residue excellent"
+      },
+      {
+        "title": "Iowa State University Extension, Integrated Crop Management News: Terminating cover crops ahead of corn (22 April 2026)",
+        "url": "https://crops.extension.iastate.edu/post/terminating-cover-crops-ahead-corn",
+        "locator": "terminate the cover crop at least 10 days before planting corn; with the NASS Iowa corn planting midpoint (6 May) termination falls in late April, so harvestMonth (termination) is April"
+      },
+      {
+        "title": "USDA NASS, Field Crops Usual Planting and Harvesting Dates (Agricultural Handbook 628), October 2010",
+        "url": "https://esmis.nal.usda.gov/sites/default/release-files/vm40xr56k/dv13zw65p/w9505297d/planting-10-29-2010.pdf",
+        "locator": "Iowa table, page 39, \"Corn for grain\": most active planting Apr 25 - May 18"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": any cover crop where the residue is not removed; page 5 lists rye as non-fragile, so residueCover high"
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
+      }
+    ]
+  },
+  {
+    "id": "red-clover",
+    "family": "Fabaceae",
+    "legume": true,
+    "kind": "cover",
+    "sowMonth": 8,
+    "harvestMonth": 5,
+    "sensitive": [],
+    "forage": true,
+    "residueCover": "medium",
+    "sources": [
+      {
+        "title": "USDA NRCS and Iowa State University, Red Clover Cover Crop Fact Sheet for Iowa (May 2024)",
+        "url": "https://www.nrcs.usda.gov/sites/default/files/2024-05/Red%20Clover%20Crop%20Fact%20Sheet.pdf",
+        "locator": "page 1, \"Cultural Traits\": winter red clover seeding date early August to mid September (Midwest Cover Crop Council), midpoint in August; page 2: grazing quality very good (forage use), lasting residue fair, and \"to produce measurable nitrogen for a cash crop, allow red clover to grow until at least mid-May\", so harvestMonth (termination) is May"
+      },
+      {
+        "title": "USDA NRCS Washington, Technical Note Agronomy 22: high vs low residue and fragile vs non-fragile crop residue (2025)",
+        "url": "https://nrcs.usda.gov/plantmaterials/wapmctn15062.pdf",
+        "locator": "page 3, \"High Residue Crop List\": any cover crop where the residue is not removed; page 5 lists fall seeded cover crops as fragile; high but fragile maps to residueCover medium, which matches the fact sheet rating \"lasting residue: fair\""
+      },
+      {
+        "title": "Field Shift plan: crop ids and families are fixed by the fixture",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/PLAN.md",
+        "locator": "task O4-A2; family and legume flag copied from src/fixtures/crops.ts"
       }
     ]
   }
