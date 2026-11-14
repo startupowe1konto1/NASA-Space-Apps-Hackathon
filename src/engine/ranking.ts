@@ -110,8 +110,8 @@ export const INCOME_NOT_WIRED: AsyncResult<Score> = { status: 'no-data', reason:
 /**
  * Totals, ranks, soil floor and shown lists. The current rotation is ranked with the others. Each goal with totals
  * shows the current rotation plus the best `shownOthers` others, best first; the soil floor removes others from
- * keepSoil and income; no two shown others differ only by a cover crop (the current rotation's own cover-crop
- * variant may be shown next to it: adding a cover crop is the smallest change a farm can make).
+ * keepSoil and income; no two shown rotations differ only by a cover crop, the current one included (SPEC section 7
+ * diversity rule), so a cover-crop variant of the current rotation is never shown next to it.
  */
 export function rankByGoal(
   items: Scored[],
@@ -152,7 +152,7 @@ export function rankByGoal(
 
     const floor = goal === 'keepSoil' || goal === 'income';
     const picked: Ranked[] = [];
-    const mains = new Set<string>();
+    const mains = new Set<string>(current ? [mainCropKey(current.years)] : []);
     for (const r of order) {
       if (picked.length >= rules.shownOthers) break;
       if (r.isCurrent || (floor && r.belowSoilFloor)) continue;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Score } from '../contracts';
-import { changedYears, goalTotal, rankByGoal, rankSoil, type Scored } from './ranking';
+import { changedYears, goalTotal, mainCropKey, rankByGoal, rankSoil, type Scored } from './ranking';
 import { engineRules, loadRules } from './rules';
 
 const rules = engineRules(loadRules({}));
@@ -52,6 +52,7 @@ describe('rankByGoal', () => {
     item('maize+red-clover/soybean', [{ crop: 'maize', coverCrop: 'red-clover' }, { crop: 'soybean' }], 59, 60),
     item('maize/soybean/oats', [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'oats' }], 55, 62),
     item('maize/soybean/alfalfa', [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'alfalfa' }], 70, 50),
+    item('maize/soybean/wheat', [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'wheat' }], 54, 61),
     item('soybean/soybean/maize', [{ crop: 'soybean' }, { crop: 'soybean' }, { crop: 'maize' }], 40, 90), // below the floor
   ];
   const result = rankByGoal([current, ...others], rules, []);
@@ -59,7 +60,7 @@ describe('rankByGoal', () => {
 
   it('ranks every rotation per goal, 1 = best, the current one included', () => {
     const ranks = result.items.map((r) => r.rankByGoal.keepSoil).sort((a, b) => a! - b!);
-    expect(ranks).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(ranks).toEqual([1, 2, 3, 4, 5, 6, 7]);
     expect(byId.get('soybean/soybean/maize')?.rankByGoal.keepSoil).toBe(1); // best total, but below the floor
   });
 
@@ -83,6 +84,15 @@ describe('rankByGoal', () => {
   it('never shows two others that differ only by a cover crop', () => {
     const shown = result.shownByGoal.keepSoil!;
     expect(shown.includes('maize+cereal-rye/soybean') && shown.includes('maize+red-clover/soybean')).toBe(false);
+  });
+
+  it('never shows a cover-crop variant of the current rotation next to it (SPEC section 7 diversity rule)', () => {
+    const currentMains = mainCropKey(current.years);
+    for (const goal of ['keepSoil', 'improveSoil'] as const) {
+      const others = result.shownByGoal[goal]!.filter((id) => id !== current.id);
+      expect(others.length).toBeGreaterThan(0);
+      for (const id of others) expect(mainCropKey(byId.get(id)!.years)).not.toBe(currentMains);
+    }
   });
 
   it('has no income list and an income total of no-data while income is not wired', () => {
