@@ -17,8 +17,7 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       expect(errors).toEqual([]);
     });
 
-    // Enabled when O2-B3 (cards, source chips) and O2-B4 (calendar strip) are on main.
-    test.fixme('each card has a calendar strip and at least one source chip', async ({ page }) => {
+    test('each card has a calendar strip and at least one source chip', async ({ page }) => {
       await walkToPriorities(page, demo);
       await next(page);
       const cards = await expectFourCards(page);
@@ -43,8 +42,7 @@ test('offline on step 5 shows "No connection" instead of an empty screen, and re
   await expectFourCards(page);
 });
 
-// Added once O3-B6 wires the real engine: fixtures never call NASA POWER, so blocking it changes nothing today.
-test.fixme('NASA POWER blocked shows a source error with a retry', async ({ page }) => {
+test('NASA POWER blocked shows a source error with a retry', async ({ page }) => {
   await page.route('**/power.larc.nasa.gov/**', (route) => route.abort());
   await walkToPriorities(page, 'Iowa demo field');
   await next(page);
