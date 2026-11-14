@@ -63,7 +63,7 @@ def request(url, data=None, attempts=4):
     last = None
     for attempt in range(attempts):
         try:
-            headers = {'User-Agent': 'curl/8.5.0'}
+            headers = {'User-Agent': 'field-shift-tool/0.1 (NASA Space Apps 2026 build script)'}
             if data is not None:
                 headers['Content-Type'] = 'application/json'
             with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers), timeout=60) as r:
