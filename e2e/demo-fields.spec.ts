@@ -5,7 +5,7 @@ import { expectFourCards, next, walkToPriorities } from './helpers';
 
 for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
   test.describe(demo, () => {
-    test('goal, field, crops and priorities end on four rotation cards', async ({ page }) => {
+    test('field, goal, crops and priorities end on four rotation cards', async ({ page }) => {
       const errors: string[] = [];
       page.on('pageerror', (e) => errors.push(e.message));
 
