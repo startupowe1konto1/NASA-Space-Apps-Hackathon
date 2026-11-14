@@ -12,7 +12,7 @@ const DECIMALS = 0;
 /** The bad or good year as a value of its own, with the same sources as the mean. */
 const yearValue = (m: Sourced, value: number): Sourced => ({ ...m, value, range: undefined });
 
-function Margins({ m, datasets }: { m: Sourced; datasets: Dataset[] }) {
+export function Margins({ m, datasets }: { m: Sourced; datasets: Dataset[] }) {
   const rows: [string, Sourced][] = [['steps.rotations.income.average', { ...m, range: undefined }]];
   if (m.value !== null && m.range) {
     rows.push(['steps.rotations.income.bad', yearValue(m, m.range.low)]);
@@ -37,7 +37,7 @@ function Margins({ m, datasets }: { m: Sourced; datasets: Dataset[] }) {
   );
 }
 
-function Payments({ money, datasets }: { money: MoneyEstimate; datasets: Dataset[] }) {
+export function Payments({ money, datasets }: { money: MoneyEstimate; datasets: Dataset[] }) {
   const headingId = useId();
   return (
     <div role="group" aria-labelledby={headingId} className="grid gap-2">
