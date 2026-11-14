@@ -98,7 +98,7 @@ Read by the water priority (SPEC section 7, O3's #119). One row per crop, `water
 | Source | URL | Used for |
 |---|---|---|
 | FAO Irrigation Water Management Training Manual No. 3, chapter 3, Table 14 "Indicative values of crop water needs" | https://www.fao.org/4/s2022e/s2022e07.htm | mm per total growing period: Barley/Oats/Wheat 450–650, Maize 500–800, Alfalfa 800–1600, Pea 350–500, Potato 500–700, Soybean 450–700, Sugarbeet 550–750; excerpt `data/samples/rules/fao-manual3-table14-crop-water-needs.txt` |
-| FAO Irrigation and Drainage Paper 24, Table 20, page 36 | https://www.fao.org/3/s8376e/s8376e.pdf | rye (Grains, small, 300–450 mm) and winter rapeseed (Oil seeds, 300–600 mm), which have no Table 14 row |
+| FAO Irrigation and Drainage Paper 24, Table 20, page 36 (PDF page 46) | https://www.fao.org/3/s8376e/s8376e.pdf | rye (Grains, small, 300–450 mm) and winter rapeseed (Oil seeds, 300–600 mm), which have no Table 14 row; excerpt `data/samples/rules/fao-paper24-table20.txt` (the PDF is a scan, so the excerpt is its OCR text) |
 
 - **Crop rows:** the midpoint of each range. FAO's text above Table 14 says to use the minimum for a short growing period, the maximum for a long one and "an average value … with a medium total growing period". The midpoint is that average. It is labelled "team calculation from …", because the choice of a medium season is ours.
 - **Class rows:** the mean of the crop midpoints in each class, with the class taken from `data/crops`:
