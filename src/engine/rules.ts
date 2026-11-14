@@ -124,7 +124,12 @@ const LB_PER_ACRE_TO_KG_PER_HA = 1.121;
 const SMALL_GRAINS = new Set(['oats', 'winter-wheat', 'spring-barley', 'rye', 'wheat', 'barley']);
 const CROP_STAGES = ['seedbed', 'establishment', 'development', 'maturing80', 'maturing90', 'maturing96'];
 
-export interface SoilRuleSet { rules: SoilRules; sourceIds: Record<string, string[]> }
+export interface SoilRuleSet {
+  rules: SoilRules;
+  sourceIds: Record<string, string[]>;
+  /** Main or cover crops of this rotation with no sourced C factor row for one of their cover states. */
+  erosionNoRow: string[];
+}
 
 const meanOf = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
@@ -245,8 +250,10 @@ export function toSoilRules(
   };
   const mains = [...new Set(years.map((y) => y.crop))];
   const covers = [...new Set(years.map((y) => y.coverCrop).filter((x): x is string => x !== undefined))];
+  const erosionNoRow = new Set<string>();
   const combine = (list: string[], f: (id: string) => { c: number; from: string } | undefined) => {
     const parts = list.map(f);
+    list.forEach((id, i) => parts[i] === undefined && erosionNoRow.add(id));
     if (parts.length === 0 || parts.some((p) => p === undefined)) return undefined;
     const ok = parts as { c: number; from: string }[];
     return { c: r3(meanOf(ok.map((p) => p.c))), from: [...new Set(ok.map((p) => p.from))] };
@@ -313,5 +320,5 @@ export function toSoilRules(
       add('pestBreak', derivedRow(`pestBreak.minReturn.${family}`, anyFamily.value, 'years', anyFamily, `crop family ${family}`), [anyFamily.id]);
     }
   }
-  return { rules: out, sourceIds };
+  return { rules: out, sourceIds, erosionNoRow: [...erosionNoRow] };
 }

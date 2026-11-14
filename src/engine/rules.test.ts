@@ -90,11 +90,12 @@ describe('toSoilRules on the rows in data/rules', () => {
   });
 
   it('leaves erosion C factors out for a cover crop without a row', () => {
-    const { rules } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
+    const { rules, erosionNoRow } = toSoilRules(loaded, 'PL', fixtureCrops.PL, [{ crop: 'winter-wheat', coverCrop: 'white-mustard' }, { crop: 'maize' }], {
       monthly: poznanClimate.monthly,
       slopePct: poznanSlope,
     });
     expect(find(rules.erosion, 'erosion.cFactor.cover-crop')).toBeUndefined();
+    expect(erosionNoRow).toContain('white-mustard');
   });
 
   it('gives each family a minimum return from its crop rows, else the any-family row', () => {

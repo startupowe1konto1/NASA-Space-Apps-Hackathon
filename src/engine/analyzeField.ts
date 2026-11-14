@@ -277,6 +277,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           ruleIds: [...new Set(e.ruleIds.flatMap((id) => soilRules.sourceIds[id] ?? [id]))],
         }));
         markNotAdjusted(soilOut, soilRules.rules);
+        soilOut.erosionNoRow = soilRules.erosionNoRow;
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
         candidates.push({

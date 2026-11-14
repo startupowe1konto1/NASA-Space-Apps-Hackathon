@@ -275,4 +275,23 @@ describe('analyzeField with fixture providers', () => {
       expect(gapCodes(a)).not.toContain('gap.humus-not-adjusted');
     });
   });
+
+  it('names the crop when erosion is left out for want of a soil cover row (alfalfa residue)', async () => {
+    const history: CropYear[] = [
+      { year: 2023, crop: 'maize', source: 'farmer' },
+      { year: 2024, crop: 'alfalfa', source: 'farmer' },
+      { year: 2025, crop: 'alfalfa', source: 'farmer' },
+    ];
+    const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: history, priorities }, fixtureProviders);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    const noRow = current.gaps.filter((g) => g.code === 'gap.erosion-no-row');
+    if (current.indicators.erosion) {
+      expect(noRow).toEqual([]);
+    } else {
+      expect(noRow.map((g) => g.params?.crop)).toContain('alfalfa');
+      // the specific gap replaces the generic one for erosion
+      expect(current.gaps.some((g) => g.code === 'gap.rule-missing' && g.params?.indicator === 'erosion')).toBe(false);
+    }
+    expect('gap.erosion-no-row' in en).toBe(true);
+  });
 });
