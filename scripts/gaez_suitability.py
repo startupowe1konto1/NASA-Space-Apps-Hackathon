@@ -11,11 +11,15 @@ Per crop: one `query` finds the raster ids, then one `identify` per raster with 
 Rasters used, rain-fed, high input (name prefix + GAEZ crop code):
   sxHr  suitability index 0-10000, all land in the grid cell  -> suitabilityIndex (divided by 100, so 0-100)
   siHr  suitability class, all land in the grid cell          -> classCode
-  ycHr  average attainable yield of current cropland, kg DW/ha -> attainableYieldKgHa
+  ycHr  average attainable yield of current cropland -> attainableYieldKgHa, with attainableYieldUnit: kg DW/ha for most
+        crops, alfalfa converted from 10 kg DW/ha, sugar beet in kg sugar/ha (GAEZ v4 Model Documentation, Table 7-4)
 Periods: 1981-2010 (CRU TS 3.2 climate) and 2041-2070 under RCP4.5 and RCP8.5 with CO2 fertilization. GAEZ ships
 an ENSEMBLE raster for some crops only; for a crop without one, the script averages the five GCM rasters
 (GFDL-ESM2M, HadGEM2-ES, IPSL-CM5A-LR, MIROC-ESM-CHEM, NorESM1-M) and marks the entry "ensemble": "mean of 5 GCMs
 (our calculation)". The class of such a mean comes from the legend bounds, not from a GAEZ class raster.
+The class raster (si) is derived from the suitability distribution inside the grid cell, while sx is the average index
+of the grid cell (GAEZ v4 Model Documentation, Table 7-4), so a GAEZ class can differ from the class that the legend
+bounds give for sx (for example wheat at the Poznań field: sx 67.2, GAEZ class Good).
 
 Suitability classes (legend of the res05 service, data/samples/gaez/res05-legend-suitability-classes.json on the
 rules branch): 1 Very high (SI > 75), 2 High (> 63), 3 Good (> 50), 4 Medium (> 35), 5 Moderate (> 20),
@@ -186,7 +190,20 @@ def crop_values(lat, lon, crop_id, pool, save_samples=False):
 
         result[period] = entry(gaez_name, period, mean('sx'), None, mean('yc'),
                                f'mean of {len(GCMS)} GCMs (our calculation)')
-    return result
+    return {period: with_yield_unit(e, code) for period, e in result.items()}
+
+
+# GAEZ v4 Model Documentation (FAO and IIASA 2021), Table 7-4 footnote: yields are kg dry weight per hectare for most
+# crops, 10 kg dry weight per hectare for alfalfa, kg sugar per hectare for sugar beet.
+YIELD_UNITS = {'alf': (10, 'kg DW/ha (GAEZ gives 10 kg DW/ha; multiplied by 10)'), 'sub': (1, 'kg sugar/ha')}
+
+
+def with_yield_unit(e, code):
+    factor, unit = YIELD_UNITS.get(code, (1, 'kg DW/ha'))
+    if e.get('attainableYieldKgHa') is not None and factor != 1:
+        e['attainableYieldKgHa'] = round(e['attainableYieldKgHa'] * factor)
+    e['attainableYieldUnit'] = unit
+    return e
 
 
 def write_text(path, text):
@@ -230,7 +247,9 @@ def main():
             'sourceUrl': BASE,
         },
         'datasetId': 'fao-gaez-v4',
-        'variant': 'rain-fed, high input, with CO2 fertilization (future)',
+        'variant': 'rain-fed, high input; 1981-2010 baseline climate; future periods with CO2 fertilization',
+        'classNote': 'suitabilityClass is the GAEZ class raster (si, from the suitability distribution in the grid cell); '
+                     'suitabilityIndex is the average index of the grid cell (sx). They can disagree with the legend bounds.',
         'fields': fields,
     }
     write_text(OUT, json.dumps(out, ensure_ascii=False, indent=2))

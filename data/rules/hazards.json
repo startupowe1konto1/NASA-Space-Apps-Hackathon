@@ -4,9 +4,9 @@
     "value": 20,
     "unit": "percentile of the field's own monthly root-zone wetness (NASA POWER GWETROOT), all years of the record",
     "appliesTo": "drought check for every crop in its sensitive months; a month below this percentile counts as drought",
-    "sourceTitle": "U.S. Drought Monitor, Drought Classification",
+    "sourceTitle": "borrowed from U.S. Drought Monitor, Drought Classification",
     "sourceUrl": "https://droughtmonitor.unl.edu/About/AbouttheData/DroughtClassification.aspx",
-    "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00",
+    "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00. The Drought Monitor applies percentiles to its own indicators; applying the D1 bound to NASA POWER root-zone wetness (GWETROOT) is our mapping",
     "checkedBy": "O4, source opened Sat 14 Nov 2026"
   },
   {
@@ -72,7 +72,7 @@
       "notSuitable": 0
     },
     "unit": "lower SI bound per GAEZ class, scale 0-100, exclusive ('SI > bound'); notSuitable means SI = 0. Labels: veryHigh 'Very high', high 'High', good 'Good', medium 'Medium', moderate 'Moderate', marginal 'Marginal', veryMarginal 'Very marginal', notSuitable 'Not suitable'",
-    "appliesTo": "labels for GAEZ suitability on cards and in gaps",
+    "appliesTo": "labels for GAEZ suitability on cards and in gaps. Where GAEZ ships a class raster (data/precomputed/gaez.json suitabilityClass), that class wins: it comes from the suitability distribution in the grid cell (GAEZ v4 Model Documentation, Table 7-4) and can differ from these bounds applied to the average index",
     "sourceTitle": "FAO GAEZ v4 res05 ImageServer legend, renderer 'Crop Suitability Index in Classes - All Land in Grid Cell'",
     "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
     "sourceLocator": "legend labels 'SI > 75 : Very high' ... 'SI > 0 : Very marginal'",
