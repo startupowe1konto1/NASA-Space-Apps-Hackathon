@@ -61,7 +61,8 @@ export function createLiveContextProvider(options: LiveContextOptions): ContextP
   const demoPoints = options.demoPoints ?? precomputedDemoPoints();
   const doFetch: typeof fetch = options.fetchImpl ?? ((input, init) => fetch(input, init));
   const timeoutMs = options.timeoutMs ?? 20_000;
-  const soilgridsTimeoutMs = options.soilgridsTimeoutMs ?? 60_000;
+  // SoilGrids answered in 13–102 s in our tests (#88), so its limit is 120 s; it starts in the background on the crop step.
+  const soilgridsTimeoutMs = options.soilgridsTimeoutMs ?? 120_000;
   const today = options.today ?? (() => new Date().toISOString().slice(0, 10));
   const cache = new Map<string, Promise<unknown>>();
 
