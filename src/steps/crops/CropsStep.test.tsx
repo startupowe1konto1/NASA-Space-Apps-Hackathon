@@ -3,7 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { providers } from '../../app/providers';
 import { canContinue, useAppStore } from '../../app/store';
 import { SourceError } from '../../contracts';
+import type { CropYear } from '../../contracts';
 import { demoFields, fixtureCrops } from '../../fixtures';
+import { cropName } from '../shared/cropName';
 import { CropsStep, lastSeasons } from './CropsStep';
 
 beforeEach(() => {
@@ -14,6 +16,15 @@ beforeEach(() => {
     country === 'OTHER' ? [] : fixtureCrops[country],
   );
 });
+
+// Values come from the data, never typed into the test (CLAUDE.md): the proposed history from the provider,
+// the crop tiles from the fixture crop lists the provider is mocked with.
+async function proposedHistory(): Promise<CropYear[]> {
+  const h = await providers.context.getCropHistory(demoFields.iowa);
+  if (h.status !== 'ready') throw new Error('the Iowa demo field should have a crop history');
+  return [...h.data].sort((a, b) => a.year - b.year);
+}
+const mainCrops = (country: 'US' | 'PL') => fixtureCrops[country].filter((c) => c.kind !== 'cover');
 
 const atStep3 = (field = demoFields.iowa) => {
   useAppStore.getState().addField(field);
@@ -26,9 +37,11 @@ describe('CropsStep with a proposed history (CropScape)', () => {
     render(<CropsStep />);
     expect(await screen.findByText(/Is this right\?/)).toBeInTheDocument();
     const list = screen.getByRole('list', { name: /crops on this field/i });
-    expect(within(list).getByText('2025')).toBeInTheDocument();
-    expect(within(list).getAllByText('Maize').length).toBeGreaterThan(0);
-    expect(within(list).getAllByText('Soybean').length).toBeGreaterThan(0);
+    const history = await proposedHistory();
+    for (const y of history) {
+      expect(within(list).getByText(String(y.year))).toBeInTheDocument();
+      expect(within(list).getAllByText(cropName(y.crop)).length).toBeGreaterThan(0);
+    }
   });
 
   it('"Yes" stores the history with source cropscape', async () => {
@@ -47,12 +60,16 @@ describe('CropsStep with a proposed history (CropScape)', () => {
     const user = userEvent.setup();
     atStep3();
     render(<CropsStep />);
-    await user.click(await screen.findByRole('button', { name: 'Change 2025' }));
-    const picker = await screen.findByRole('radiogroup', { name: /2025/ });
-    await user.click(within(picker).getByRole('radio', { name: 'Winter wheat' }));
+    const history = await proposedHistory();
+    const newest = history[history.length - 1]!;
+    const other = history[0]!;
+    const replacement = mainCrops('US').find((c) => c.id !== newest.crop)!;
+    await user.click(await screen.findByRole('button', { name: `Change ${newest.year}` }));
+    const picker = await screen.findByRole('radiogroup', { name: new RegExp(String(newest.year)) });
+    await user.click(within(picker).getByRole('radio', { name: cropName(replacement.id) }));
     const stored = useAppStore.getState().cropHistory[demoFields.iowa.id] ?? [];
-    expect(stored.find((y) => y.year === 2025)).toEqual({ year: 2025, crop: 'winter-wheat', source: 'farmer' });
-    expect(stored.find((y) => y.year === 2024)?.source).toBe('cropscape');
+    expect(stored.find((y) => y.year === newest.year)).toEqual({ year: newest.year, crop: replacement.id, source: 'farmer' });
+    expect(stored.find((y) => y.year === other.year)?.source).toBe('cropscape');
   });
 });
 
@@ -63,7 +80,7 @@ describe('CropsStep without a history (most of Poland)', () => {
     expect(await screen.findByText(/Which crops grew here/)).toBeInTheDocument();
     for (const year of lastSeasons()) {
       const group = screen.getByRole('radiogroup', { name: new RegExp(String(year)) });
-      expect(within(group).getByRole('radio', { name: 'Winter rapeseed' })).toBeInTheDocument();
+      for (const crop of mainCrops('PL')) expect(within(group).getByRole('radio', { name: cropName(crop.id) })).toBeInTheDocument();
     }
   });
 
@@ -72,9 +89,10 @@ describe('CropsStep without a history (most of Poland)', () => {
     atStep3(demoFields.poznan);
     render(<CropsStep />);
     const [first, second] = lastSeasons();
+    const [cropA, cropB] = mainCrops('PL');
     await user.click(
       within(await screen.findByRole('radiogroup', { name: new RegExp(String(first)) })).getByRole('radio', {
-        name: 'Winter wheat',
+        name: cropName(cropA!.id),
       }),
     );
     expect(canContinue(useAppStore.getState())).toBe(false);
@@ -82,13 +100,13 @@ describe('CropsStep without a history (most of Poland)', () => {
 
     await user.click(
       within(screen.getByRole('radiogroup', { name: new RegExp(String(second)) })).getByRole('radio', {
-        name: 'Winter rapeseed',
+        name: cropName(cropB!.id),
       }),
     );
     const stored = useAppStore.getState().cropHistory[demoFields.poznan.id] ?? [];
     expect(stored).toEqual([
-      { year: second, crop: 'winter-rapeseed', source: 'farmer' },
-      { year: first, crop: 'winter-wheat', source: 'farmer' },
+      { year: second, crop: cropB!.id, source: 'farmer' },
+      { year: first, crop: cropA!.id, source: 'farmer' },
     ]);
     expect(canContinue(useAppStore.getState())).toBe(true);
     expect(await screen.findByText(/Saved 2 years of crops/)).toBeInTheDocument();
@@ -98,7 +116,8 @@ describe('CropsStep without a history (most of Poland)', () => {
     atStep3(demoFields.poznan);
     render(<CropsStep />);
     const group = await screen.findByRole('radiogroup', { name: new RegExp(String(lastSeasons()[0])) });
-    expect(within(group).queryByRole('radio', { name: 'Phacelia' })).not.toBeInTheDocument();
+    const cover = fixtureCrops.PL.find((c) => c.kind === 'cover')!;
+    expect(within(group).queryByRole('radio', { name: cropName(cover.id) })).not.toBeInTheDocument();
   });
 });
 
