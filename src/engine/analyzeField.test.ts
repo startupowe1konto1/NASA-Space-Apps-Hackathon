@@ -2,9 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { SourceError, type Analysis, type CropYear, type Message, type Priorities, type Providers } from '../contracts';
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
-import { analyzeField, createAnalyzeField, emptyReason } from './analyzeField';
-import { loadRules, shippedRules } from './rules';
+import { MONEY_SOURCE, analyzeField, incomeMessage, createAnalyzeField, emptyReason } from './analyzeField';
+import { incomeEstimate } from './income';
+import { engineRules, loadRules, shippedRules } from './rules';
 import en from './messages/en.json';
+import moneyMessages from '../money/messages/en.json';
+import { tableMoneyProvider } from '../money/provider';
+import moneyPl from '../../data/money/pl.json';
+import moneyUs from '../../data/money/us-ia.json';
+
+const shippedDrought = engineRules(shippedRules).droughtPercentile;
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
 const iowaHistory: CropYear[] = [2019, 2020, 2021, 2022, 2023, 2024, 2025].map((year, i) => ({
@@ -293,5 +300,140 @@ describe('analyzeField with fixture providers', () => {
       expect(current.gaps.some((g) => g.code === 'gap.rule-missing' && g.params?.indicator === 'erosion')).toBe(false);
     }
     expect('gap.erosion-no-row' in en).toBe(true);
+  });
+});
+
+describe('analyzeField with a money provider (income, O3-B7)', () => {
+  const moneyEn = moneyMessages as Record<string, string>;
+  const tables = { US: moneyUs, PL: moneyPl } as const;
+  const withMoney = (money: Providers['money']): Providers => ({ ...fixtureProviders, money });
+  const runGoal = (field: 'iowa' | 'poznan', providers: Providers, goal: Priorities['goal'] = 'keepSoil') =>
+    analyzeField(
+      { field: demoFields[field], cropHistory: field === 'iowa' ? iowaHistory : poznanHistory, priorities: { ...priorities, goal } },
+      providers,
+    );
+
+  for (const field of ['iowa', 'poznan'] as const) {
+    it(`${field}: every card's money and income match a replay of the provider's tables`, async () => {
+      const a = await runGoal(field, withMoney(tableMoneyProvider));
+      const parsed = analysisSchema.safeParse(a);
+      expect(parsed.success, parsed.success ? '' : parsed.error.message).toBe(true);
+      const f = demoFields[field];
+      const table = tables[f.country as 'US' | 'PL'];
+      const crops = await fixtureProviders.context.getCrops(f.country);
+      const climate = await fixtureProviders.profile.getClimate(f);
+      for (const r of a.rotations) {
+        const ids = [...new Set(r.years.flatMap((y) => [y.crop, ...(y.coverCrop ? [y.coverCrop] : [])]))];
+        const econ = await tableMoneyProvider.getEconomics(f, ids);
+        const pay = await tableMoneyProvider.getPayments(f, r.years);
+        if (econ.status !== 'ready') {
+          expect(econ.status).toBe('no-data');
+          const shown = econ.status === 'no-data' ? { ...econ, reason: incomeMessage(econ.reason) } : econ;
+          expect(r.money).toEqual(shown);
+          expect(r.income).toEqual(shown);
+          if (shown.status === 'no-data') expect(r.gaps).toContainEqual(shown.reason);
+          continue;
+        }
+        const expected = incomeEstimate(
+          r.years, crops, climate, econ.data, pay.status === 'ready' ? pay.data : [], table.currency as 'USD' | 'PLN', table.campaign, shippedDrought,
+        );
+        if (expected.status !== 'ready') {
+          expect(expected.status).toBe('no-data');
+          const shown = expected.status === 'no-data' ? { ...expected, reason: incomeMessage(expected.reason) } : expected;
+          expect(r.money).toEqual(shown);
+          expect(r.income).toEqual(shown);
+          continue;
+        }
+        expect(r.money).toEqual({ status: 'ready', data: expected.data.estimate });
+        expect(r.income.status).toBe('ready');
+        if (r.income.status === 'ready') {
+          expect(r.income.data.confidence).not.toBe('strong');
+          expect(r.income.data.basis.code).toBe('income.basis.replay');
+        }
+        for (const g of expected.data.gaps) expect(r.gaps).toContainEqual(incomeMessage(g));
+        expect(r.gaps.some((g) => g.code === 'gap.income-not-wired')).toBe(false);
+      }
+      const missing = [...codes(a)].filter((c) => !(c in en) && !(c in moneyEn) && !c.startsWith('fx.'));
+      expect(missing).toEqual([]);
+    });
+
+    it(`${field}: the income goal ranks only rotations with an income, the current one included, above the soil floor`, async () => {
+      const a = await runGoal(field, withMoney(tableMoneyProvider), 'income');
+      const current = a.rotations.find((r) => r.isCurrent)!;
+      if (current.income.status !== 'ready') {
+        expect(a.shownByGoal.income).toBeUndefined();
+        return;
+      }
+      const shown = a.shownByGoal.income!;
+      expect(shown).toContain(current.id);
+      for (const id of shown) {
+        const r = a.rotations.find((x) => x.id === id)!;
+        expect(r.income.status).toBe('ready');
+        expect(r.totals.income.status).toBe('ready');
+        expect(r.rankByGoal.income).toBeGreaterThan(0);
+        expect(r.belowSoilFloor).toBe(false);
+        // D9: the income total always includes soil health and climate resilience
+        if (r.totals.income.status === 'ready') {
+          expect(Number(r.totals.income.data.basis.params?.soil)).toBeGreaterThan(0);
+          expect(Number(r.totals.income.data.basis.params?.climate)).toBeGreaterThan(0);
+        }
+      }
+      for (const r of a.rotations.filter((x) => x.income.status !== 'ready')) {
+        expect(r.totals.income.status).not.toBe('ready');
+        expect(r.rankByGoal.income).toBeUndefined();
+      }
+    });
+  }
+
+  it('a money provider that throws becomes an error state on every card, never a failed analysis', async () => {
+    const a = await run('iowa', withMoney({
+      getEconomics: () => Promise.reject(new SourceError('Money tables test source')),
+      getPayments: () => Promise.reject(new SourceError('Money tables test source')),
+    }));
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    expect(a.rotations.length).toBeGreaterThan(0);
+    expect(a.shownByGoal.keepSoil!.length).toBeGreaterThan(0);
+    expect(a.shownByGoal.income).toBeUndefined();
+    for (const r of a.rotations) {
+      expect(r.money).toEqual({ status: 'error', source: 'Money tables test source', reason: { code: 'income.error', params: { source: 'Money tables test source' } } });
+      expect(r.income).toEqual(r.money);
+      expect(r.totals.income.status).toBe('error');
+      expect(r.gaps).toContainEqual({ code: 'income.error', params: { source: 'Money tables test source' } });
+    }
+    const missing = [...codes(a)].filter((c) => !(c in en) && !c.startsWith('fx.'));
+    expect(missing).toEqual([]);
+  });
+
+  it('a plain Error from the money provider names the money tables as the source', async () => {
+    const a = await run('poznan', withMoney({ getEconomics: () => Promise.reject(new Error('x')), getPayments: async () => ({ status: 'ready', data: [] }) }));
+    for (const r of a.rotations) expect(r.money.status === 'error' && r.money.source).toBe(MONEY_SOURCE);
+  });
+
+  it('a money provider with no data gives no-data with its reason on money, income and the gaps', async () => {
+    const reason = { code: 'income.no-climate-years' };
+    const a = await run('iowa', withMoney({ getEconomics: async () => ({ status: 'no-data', reason }), getPayments: async () => ({ status: 'no-data', reason }) }));
+    for (const r of a.rotations) {
+      expect(r.money).toEqual({ status: 'no-data', reason });
+      expect(r.income).toEqual({ status: 'no-data', reason });
+      expect(r.gaps).toContainEqual(reason);
+    }
+    expect(a.shownByGoal.income).toBeUndefined();
+  });
+
+  it('payments that throw leave the margin, with no payments and a gap naming the source', async () => {
+    const a = await run('iowa', withMoney({ ...tableMoneyProvider, getPayments: () => Promise.reject(new SourceError('Payments test source')) }));
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    expect(current.money.status).toBe('ready');
+    if (current.money.status === 'ready') expect(current.money.data.payments).toEqual([]);
+    expect(current.gaps).toContainEqual({ code: 'gap.payments-error', params: { source: 'Payments test source' } });
+  });
+
+  it('the fixture money provider (not loaded) keeps money not-loaded and says income is not wired', async () => {
+    const a = await run('iowa');
+    for (const r of a.rotations) {
+      expect(r.money).toEqual({ status: 'not-loaded' });
+      expect(r.income).toEqual({ status: 'no-data', reason: { code: 'income.not-wired' } });
+      expect(r.gaps.some((g) => g.code === 'gap.income-not-wired')).toBe(true);
+    }
   });
 });

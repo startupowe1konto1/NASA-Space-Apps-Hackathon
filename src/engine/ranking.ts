@@ -12,8 +12,10 @@ export interface Scored {
   soilHealth: Score;
   climateResilience: Score;
   priorityScores: Partial<Record<PriorityId, Score>>;
-  /** Income score when the income module is wired (O3-B7); absent until then. */
+  /** Income score (O3-B7), scaled across the rotations that have one; absent when this rotation has none. */
   income?: Score;
+  /** Why `income` is absent: the money provider's no-data or error, or not wired. Defaults to not wired. */
+  incomeStatus?: Exclude<AsyncResult<Score>, { status: 'ready' }>;
   /** Soil health for ranking and the soil floor, compared with the current rotation (see rankSoil). */
   rankSoil?: Score;
 }
@@ -106,9 +108,13 @@ export function mainCropKey(years: Years): string {
 }
 
 export const INCOME_NOT_WIRED: AsyncResult<Score> = { status: 'no-data', reason: { code: 'income.not-wired' } };
+/** The income total of a rotation that has an income while the current rotation has none: nothing to compare with. */
+export const INCOME_CURRENT_MISSING: AsyncResult<Score> = { status: 'no-data', reason: { code: 'income.current-missing' } };
 
 /**
- * Totals, ranks, soil floor and shown lists. The current rotation is ranked with the others. Each goal with totals
+ * Totals, ranks, soil floor and shown lists. The current rotation is ranked with the others. The income goal ranks
+ * only the rotations with an income score, and only when the current rotation has one; the others keep their
+ * no-data or error reason as their income total and get no income rank. Each goal with totals
  * shows the current rotation plus the best `shownOthers` others, best first; the soil floor removes others from
  * keepSoil and income; no two shown rotations differ only by a cover crop, the current one included (SPEC section 7
  * diversity rule), so a cover-crop variant of the current rotation is never shown next to it.
@@ -119,14 +125,20 @@ export function rankByGoal(
   on: PriorityId[],
 ): { items: Ranked[]; shownByGoal: Partial<Record<GoalId, string[]>> } {
   const current = items.find((i) => i.isCurrent);
-  const hasIncome = items.length > 0 && items.every((i) => i.income !== undefined);
+  // The income goal compares rotations that have an income, and only when the current one has one too.
+  const hasIncome = current?.income !== undefined;
 
   const ranked: Ranked[] = items.map((item) => ({
     ...item,
     totals: {
       keepSoil: { status: 'ready', data: goalTotal(item, rules.weights.keepSoil, on) },
       improveSoil: { status: 'ready', data: goalTotal(item, rules.weights.improveSoil, on) },
-      income: hasIncome ? { status: 'ready', data: goalTotal(item, rules.weights.income, on) } : INCOME_NOT_WIRED,
+      income:
+        hasIncome && item.income
+          ? { status: 'ready', data: goalTotal(item, rules.weights.income, on) }
+          : item.income
+            ? INCOME_CURRENT_MISSING
+            : (item.incomeStatus ?? INCOME_NOT_WIRED),
     },
     rankByGoal: {},
     belowSoilFloor:
@@ -141,8 +153,11 @@ export function rankByGoal(
       const t = r.totals[goal];
       return t.status === 'ready' ? t.data.value : null;
     };
-    if (ranked.some((r) => total(r) === null)) continue;
-    const order = [...ranked].sort(
+    // income: the rotations without an income are left out of its ranking and its list; the other goals need all
+    const pool = goal === 'income' ? ranked.filter((r) => total(r) !== null) : ranked;
+    if (pool.length === 0 || (pool.length < ranked.length && goal !== 'income')) continue;
+    if (current && !pool.some((r) => r.isCurrent)) continue;
+    const order = [...pool].sort(
       (a, b) =>
         total(b)! - total(a)! ||
         (goal === 'keepSoil' ? changes.get(a.id)! - changes.get(b.id)! : 0) ||

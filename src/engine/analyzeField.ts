@@ -1,33 +1,39 @@
 // The real analyzeField (task O3-B6): profile → GAEZ gate → candidates → scores → ranking by goal → card texts.
 // Only the climate record is required: when it fails, analyzeField rejects with the SourceError (DECISIONS D20 c).
-// Every other provider failure turns into a missing value or an error result for that part.
-import type {
-  AnalyzeField,
-  AnalyzeInput,
-  IndicatorId,
-  Message,
-  Analysis,
-  AsyncResult,
-  CalendarMonth,
-  CropId,
-  CropTraits,
-  Dataset,
-  Field,
-  FieldProfile,
-  GoalId,
-  PriorityId,
-  Providers,
-  RotationOption,
-  Score,
-  Soil,
-  Sourced,
-  TwinEvidence,
+// Every other provider failure turns into a missing value or an error result for that part. A money provider that
+// throws gives each card a money and income error naming the source (O3-B7); the analysis still returns its cards.
+import {
+  SourceError,
+  type AnalyzeField,
+  type AnalyzeInput,
+  type IndicatorId,
+  type Message,
+  type Analysis,
+  type AsyncResult,
+  type CalendarMonth,
+  type CropId,
+  type CropTraits,
+  type Dataset,
+  type Field,
+  type FieldProfile,
+  type GoalId,
+  type PriorityId,
+  type Providers,
+  type RotationOption,
+  type Score,
+  type Soil,
+  type Sourced,
+  type TwinEvidence,
+  type MoneyEstimate,
 } from '../contracts';
+import moneyPl from '../../data/money/pl.json';
+import moneyUs from '../../data/money/us-ia.json';
 import { datasets as datasetRegistry } from '../app/datasets';
 import { buildCalendar } from './calendar';
 import { currentRotation, generateCandidates } from './candidates';
 import { CROP_CALENDARS_ID } from './datasets';
 import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome } from './messages';
+import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, type IncomeResult, type IncomeTotal } from './income';
 import { forageScore } from './priorityScores';
 import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, rankSoil, type Scored } from './ranking';
 import { resilienceScore, withExposure } from './resilience';
@@ -36,7 +42,33 @@ import { soilHealth, type SoilRules } from './soilHealth';
 
 type Years = RotationOption['years'];
 
-const MONEY_NOT_LOADED = { status: 'not-loaded' } as const;
+/** Source named in the error state when the money provider throws something other than a SourceError. */
+export const MONEY_SOURCE = 'Money tables';
+type NotReady<T> = Exclude<AsyncResult<T>, { status: 'ready' }>;
+
+/**
+ * Currency and campaign label for the field's country, from the money tables in data/money. The MoneyProvider
+ * contract returns neither, so the engine reads the same tables the provider is built on.
+ */
+const MONEY_LABELS: Record<'US' | 'PL', { currency: MoneyEstimate['currency']; campaign: string }> = {
+  US: { currency: moneyUs.currency as MoneyEstimate['currency'], campaign: moneyUs.campaign },
+  PL: { currency: moneyPl.currency as MoneyEstimate['currency'], campaign: moneyPl.campaign },
+};
+
+const INCOME_CODES = new Set<string>(INCOME_MESSAGE_CODES);
+/** An income message as the card shows it: the crop id in an income text becomes its plain label. */
+export const incomeMessage = (msg: Message): Message =>
+  INCOME_CODES.has(msg.code) && typeof msg.params?.crop === 'string' ? { ...msg, params: { ...msg.params, crop: cropLabel(msg.params.crop) } } : msg;
+
+/** What the money step gives one rotation: the card's money, the income result or why there is none, and its gaps. */
+interface MoneyOutcome {
+  money: AsyncResult<MoneyEstimate>;
+  result?: IncomeResult;
+  status?: NotReady<Score>;
+  gaps: Message[];
+}
+
+const sourceOf = (e: unknown) => (e instanceof SourceError ? e.source : MONEY_SOURCE);
 const RULE_OF_THUMB = 0.15;
 const round1 = (x: number) => Math.round(x * 10) / 10;
 const today = () => new Date().toISOString().slice(0, 10);
@@ -310,13 +342,69 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       if (r.partial) sharedOf.set(c.id, r.shared);
     }
 
-    // 7. ranking
+    // 7. money and income for every candidate: the income score is scaled across all of them (SPEC section 7)
+    const labels = MONEY_LABELS[country];
+    const economicsCache = new Map<string, ReturnType<Providers['money']['getEconomics']>>();
+    const economicsFor = (ids: CropId[]) => {
+      const key = [...ids].sort().join(',');
+      if (!economicsCache.has(key)) economicsCache.set(key, providers.money.getEconomics(field, ids));
+      return economicsCache.get(key)!;
+    };
+    const moneyStep = async (years: Years): Promise<MoneyOutcome> => {
+      const ids = [...new Set(years.flatMap((y) => [y.crop, ...(y.coverCrop ? [y.coverCrop] : [])]))];
+      let economics: Awaited<ReturnType<Providers['money']['getEconomics']>>;
+      try {
+        economics = await economicsFor(ids);
+      } catch (e) {
+        const source = sourceOf(e);
+        const failed = { status: 'error', source, reason: { code: 'income.error', params: { source } } } as const;
+        return { money: failed, status: failed, gaps: [failed.reason] };
+      }
+      if (economics.status === 'not-loaded') {
+        return { money: economics, status: INCOME_NOT_WIRED as NotReady<Score>, gaps: [{ code: 'gap.income-not-wired' }] };
+      }
+      if (economics.status !== 'ready') return { money: economics, status: economics, gaps: [incomeMessage(economics.reason)] };
+
+      const paymentGaps: Message[] = [];
+      let payments: MoneyEstimate['payments'] = [];
+      try {
+        const p = await providers.money.getPayments(field, years);
+        if (p.status === 'ready') payments = p.data;
+        else if (p.status === 'error') paymentGaps.push({ code: 'gap.payments-error', params: { source: p.source } });
+        else if (p.status === 'no-data') paymentGaps.push(p.reason);
+        else paymentGaps.push({ code: 'gap.payments-not-loaded' });
+      } catch (e) {
+        paymentGaps.push({ code: 'gap.payments-error', params: { source: sourceOf(e) } });
+      }
+      const income = incomeEstimate(years, crops, climate, economics.data, payments, labels.currency, labels.campaign, rules.droughtPercentile);
+      if (income.status !== 'ready') {
+        const status = income.status === 'not-loaded' ? (INCOME_NOT_WIRED as NotReady<Score>) : income.status === 'no-data' ? { ...income, reason: incomeMessage(income.reason) } : income;
+        return { money: status, status, gaps: [...('reason' in status ? [status.reason] : []), ...paymentGaps] };
+      }
+      return {
+        money: { status: 'ready', data: income.data.estimate },
+        result: income.data,
+        gaps: [...income.data.gaps.map(incomeMessage), ...paymentGaps],
+      };
+    };
+    const moneyOf = new Map<string, MoneyOutcome>(
+      await Promise.all(candidates.map(async (c) => [c.id, await moneyStep(c.years)] as const)),
+    );
+    const totals: Record<string, IncomeTotal> = {};
+    for (const [id, out] of moneyOf) if (out.result) totals[id] = incomeTotal(out.result);
+    const scores = incomeScores(totals);
+    for (const c of candidates) {
+      if (scores[c.id]) c.income = scores[c.id];
+      else c.incomeStatus = moneyOf.get(c.id)!.status ?? (INCOME_NOT_WIRED as NotReady<Score>);
+    }
+
+    // 8. ranking
     const ranked = rankByGoal(candidates, rules, on);
     const shownIds = new Set(Object.values(ranked.shownByGoal).flat());
     const byId = new Map(candidates.map((c) => [c.id, c]));
     const shown = ranked.items.filter((r) => shownIds.has(r.id));
 
-    // 8. card texts; 9. twins and money
+    // 9. card texts and twins
     const soilInputsMissing = (Object.keys(SOIL_INPUT_LABEL) as (keyof Soil)[])
       .filter((k) => soil[k].value === null)
       .map((k) => SOIL_INPUT_LABEL[k]);
@@ -358,6 +446,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           unknownCrops,
           soilComparedOn: sharedOf.get(r.id),
           history: r.isCurrent ? { source: historySource, years: history.map((h) => h.year), cropscape: history.some((h) => h.source === 'cropscape') } : undefined,
+          incomeGaps: moneyOf.get(r.id)!.gaps,
         });
         let twins: AsyncResult<TwinEvidence>;
         try {
@@ -376,12 +465,12 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           indicators: c.soil.indicators,
           climateResilience: r.climateResilience,
           priorityScores: r.priorityScores,
-          income: INCOME_NOT_WIRED,
+          income: c.income ? { status: 'ready', data: c.income } : (c.incomeStatus ?? INCOME_NOT_WIRED),
           ...texts,
           calendar,
           bareMonths: c.bareMonths,
           twins,
-          money: MONEY_NOT_LOADED,
+          money: moneyOf.get(r.id)!.money,
         };
       }),
     );
