@@ -4,7 +4,8 @@
 import type { Field } from '../contracts';
 import { demoFields } from '../fixtures';
 
-export const DEMO_SNAP_M = 1000;
+// 2 km: Nominatim puts "220th Street, Nevada, Iowa", the address the animation types, about 1.3 km from the centroid.
+export const DEMO_SNAP_M = 2000;
 const METRES_PER_DEGREE = 111_320;
 
 /** The Iowa demo field when the point is within DEMO_SNAP_M of its centroid, else null. Flat-earth metres. */
