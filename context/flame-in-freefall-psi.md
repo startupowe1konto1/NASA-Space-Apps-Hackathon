@@ -2,7 +2,7 @@
 
 Research question 5 from HANDOFF.md, checked Sat 14 Nov 11:55–12:25 CET.
 
-**Answer: enough for a real data product, no login needed.** PSI lists 24 combustion investigations. All have full metadata (objectives, hypothesis, approach, Earth and space benefits, keywords, publications with DOIs, related investigations). 20 of them publish experimental tables as CSV: 22 files, 2,870 rows, 211 KB, all downloaded in 27 s. Licence CC0-1.0 with a dataset DOI on each investigation except one.
+**Answer: enough for a real data product, no login needed.** PSI lists 24 combustion investigations. All have full metadata (objectives, hypothesis, approach, Earth and space benefits, keywords, publications with DOIs, related investigations). 20 of them publish experimental tables as CSV: 22 files, 2,009 non-empty rows, 211 KB, all downloaded in 27 s. Licence CC0-1.0 with a dataset DOI on each investigation except one.
 
 ## Endpoints (all public)
 
@@ -26,7 +26,7 @@ Tables by investigation (rows):
 | PSI-69 FLEX | 274 | fuel, pressure, O2/N2/CO2/He fractions, droplet diameter, extinction diameter, burning rate, burn time, test end |
 | PSI-68 FLEX-2 | 8 | fuel, droplet diameter, gas mixture, O2 fraction, pressure, temperature, flow velocity |
 | PSI-39 CFI | 87 | pressure, O2, N2, He |
-| PSI-159 ACME CFI-G | 179 + 1,015 | fuel, cool flame yes/no, O2 before/after, pressure |
+| PSI-159 ACME CFI-G | 179 + 154 (the second file also has 861 empty rows) | fuel, cool flame yes/no, O2 before/after, pressure |
 | PSI-10 ACME Flame Design | 207 + 120 | fuel fraction and flow, O2, N2 |
 | PSI-20/21/22/23 ACME (BRE, CLD, E-field, s-Flame) | 18–32 each | burner, fuel, O2, flames ignited |
 | PSI-107 SPICE | 469 | fuel, nozzle, fuel rate |

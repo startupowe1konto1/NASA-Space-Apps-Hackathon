@@ -49,8 +49,8 @@ Real requests from the venue network, not guesses. Where a point was needed for 
 |---|---|
 | [NASA POWER API](https://power.larc.nasa.gov/) | No key, CORS `*`. Point: 45 years (1981–2025) of monthly agroclimate and soil wetness in about 1 s. Grid: a 10°×10° box (357 cells) in 2.5–7 s, one parameter per request. Details: [context/trend-detective.md](context/trend-detective.md), [context/field-shift-data.md](context/field-shift-data.md). |
 | [FAO GAEZ v4](https://gaez.fao.org/) (Field Shift partner resource) | No key. Crop suitability for 50 crops at any point, about 4 s per crop; each global layer is a 3 MB GeoTIFF. Details: [context/field-shift-data.md](context/field-shift-data.md). |
-| [ASF search API](https://search.asf.alaska.edu/) for NISAR | No key for search. 226 granules at the test point over one year. Geocoded browse PNGs (2–4 MB) download without a login; HDF5 files return 401 without Earthdata, size unknown. Details: [context/sars-nisar-data.md](context/sars-nisar-data.md). |
-| [PSI](https://psi.nasa.gov/physci/repo/search?q=combustion) | No key. 24 combustion investigations with full metadata; 20 have CSV experimental tables (22 files, 2,870 rows, 211 KB, CC0, DOI). CORS limited to psi.nasa.gov, so fetch at build time. Details: [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md). |
+| [ASF search API](https://search.asf.alaska.edu/) for NISAR | No key for search. 226 granules at the test point over one year. Geocoded browse PNGs (2–4 MB) download without a login; HDF5 files need an Earthdata login: GCOV 1.3–2.1 GB, GUNW about 2.5 GB, SME2 63–136 MB (O1). NISAR GCOV is also a NASA GIBS map layer with no login (O1). Details: [context/sars-nisar-data.md](context/sars-nisar-data.md). |
+| [PSI](https://psi.nasa.gov/physci/repo/search?q=combustion) | No key. 24 combustion investigations with full metadata; 20 have CSV experimental tables (22 files, 2,009 non-empty rows, 211 KB, CC0, DOI). CORS limited to psi.nasa.gov, so fetch at build time. Details: [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md). |
 | [Mars Trek](https://trek.nasa.gov/mars/) | No key, CORS open. Tiles, 1 m DEM heights in metres, Curiosity route as GeoJSON. No radiation layer in the Trek catalogue. Details: [context/martian-map-trek.md](context/martian-map-trek.md). |
 | [AppEEARS](https://appeears.earthdatacloud.nasa.gov/), [Giovanni](https://giovanni.gsfc.nasa.gov/) | Need an Earthdata login. Not tested: the login in the browser pane failed at 12:20. |
 
@@ -63,10 +63,10 @@ Scores out of 5, updated after the research. Build = chance of a working demo on
 | Challenge | Build | Pitch | Data | Login | One-line verdict |
 |---|---|---|---|---|---|
 | Martian Map | 4 | 5 | 5 | no | best demo; every layer tested in a browser |
-| Flame in Freefall | 4 | 4 | 4 | no | real ISS flight data (2,870 rows, CC0); AI is the core of the brief |
+| Flame in Freefall | 4 | 4 | 4 | no | real ISS flight data (2,009 non-empty rows, CC0); AI is the core of the brief |
 | Trend Detective | 5 | 3 | 4 | no | working trend map in a browser already; must not look like Giovanni |
 | Field Shift | 4 | 4 | 4 | no | POWER + GAEZ work for any point; rotation rules are ours |
-| Dancing with the SARs | 3 | 4 | 2 | for real values | browse images only without a login; no measured change |
+| Dancing with the SARs | 4 | 4 | 3 | for measured values | NISAR GCOV is on NASA GIBS without a login (O1, `context/sar-data.md`); measured change needs 1.3–2.1 GB HDF5 files |
 
 ### Interplanetary Survival Guide: Martian Map
 
@@ -133,11 +133,11 @@ Ideas:
 - **Lessons-learned timeline.** Apollo 1, Apollo 13 and Mir mapped to the PSI experiments that later studied the same failure.
 - **Earth spinoff view.** The same findings applied to firefighting on Earth, as the brief suggests.
 
-Research result (question 5, done): 24 combustion investigations with full metadata through a public API; 20 publish CSV experimental tables (22 files, 2,870 rows, 211 KB, CC0, each with a DOI), all downloaded without a login in 27 s. Examples: FLEX droplet tests (274 rows: fuel, pressure, O2/CO2/He, burn time, extinction), SAFFIRE large-scale fires on Cygnus (material, thickness, air flow, O2), BASS and ACME flame tests. CORS allows only psi.nasa.gov, so the app ships the data as static JSON. The PSI site asks users to cite each dataset's DOI. The AI layer must only summarize what the PSI records say, with links, so judges can check every claim.
+Research result (question 5, done): 24 combustion investigations with full metadata through a public API; 20 publish CSV experimental tables (22 files, 2,009 non-empty rows, 211 KB, CC0, each with a DOI), all downloaded without a login in 27 s. Examples: FLEX droplet tests (274 rows: fuel, pressure, O2/CO2/He, burn time, extinction), SAFFIRE large-scale fires on Cygnus (material, thickness, air flow, O2), BASS and ACME flame tests. CORS allows only psi.nasa.gov, so the app ships the data as static JSON. The PSI site asks users to cite each dataset's DOI. The AI layer must only summarize what the PSI records say, with links, so judges can check every claim.
 
 ## Comparison table
 
-Data quality, data usefulness, access, existing tools and the gap each challenge leaves: [context/challenge-comparison.md](context/challenge-comparison.md). Totals out of 30: Martian Map 26, Flame in Freefall 26, Field Shift 23, Trend Detective 22, Dancing with the SARs 17 (22 with an Earthdata login and HDF5 processing).
+Data quality, data usefulness, access, existing tools and the gap each challenge leaves: [context/challenge-comparison.md](context/challenge-comparison.md). Totals out of 30: Martian Map 26, Flame in Freefall 26, Field Shift 23, Trend Detective 22, Dancing with the SARs 22 (up from 17 after O1 found NISAR GCOV on NASA GIBS without a login).
 
 ## Recommended solution per challenge
 
@@ -157,14 +157,14 @@ Ranking for the 13:10 decision, against the proposed rejection criteria:
 2. **Flame in Freefall** passes all three. It is the only one where AI is the brief itself, and its data is real flight data that few teams will have parsed. Its weak point is the schema work on 22 different tables.
 3. **Trend Detective** passes all three and is already half-built (`data/samples/power/trend-spike.html`). Weakest "wow".
 4. **Field Shift** passes, but the value depends on rotation rules we would have to write and defend.
-5. **Dancing with the SARs** fails "no demo on real data by T+8" for measured change unless a login and HDF5 processing work in the next hour.
+5. **Dancing with the SARs** now passes for a visual change viewer (NISAR GCOV on GIBS, no login). It still fails for measured change unless a login and 1.3–2.1 GB HDF5 files can be processed in time.
 
 ## Research questions (status)
 
-1. **Martian Map:** done. [context/martian-map-trek.md](context/martian-map-trek.md) (PR #5). The Trek catalogue has no radiation layer (searched "radiation", "dust"); TES dust and thermal inertia layers exist.
-2. **Field Shift:** done without SMAP. [context/field-shift-data.md](context/field-shift-data.md). POWER point + GAEZ: a clicked point gets climate and three crops in about 13 s (1 s + 3 × 4 s), or under 2 s with preprocessed GAEZ layers. SMAP via Earthdata not tested.
-3. **Trend Detective:** done with POWER. [context/trend-detective.md](context/trend-detective.md) (PR #10). Giovanni/AppEEARS not tested (login).
-4. **Dancing with the SARs:** half done. [context/sars-nisar-data.md](context/sars-nisar-data.md). Open: HDF5 size and processing time, needs an Earthdata login.
-5. **Flame in Freefall:** done. [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md).
+1. **Martian Map:** done. [context/martian-map-trek.md](context/martian-map-trek.md). The Trek catalogue has no radiation layer (searched "radiation", "dust"); TES dust and thermal inertia layers exist.
+2. **Field Shift:** done. O1: [context/field-shift-data.md](context/field-shift-data.md) (SMAP via GIBS without login, GAEZ past and future, a clicked point in 1–2 s). Ours: [context/field-shift-power-gaez.md](context/field-shift-power-gaez.md) (NASA POWER 45 years + GAEZ at several test points). POWER point + GAEZ: a clicked point gets climate and three crops in about 13 s (1 s + 3 × 4 s), or under 2 s with preprocessed GAEZ layers. SMAP via Earthdata not tested.
+3. **Trend Detective:** done with POWER. [context/trend-detective.md](context/trend-detective.md). Giovanni/AppEEARS not tested (login).
+4. **Dancing with the SARs:** done. O1: [context/sar-data.md](context/sar-data.md) (file sizes, NISAR GCOV on GIBS, download speed). Ours: [context/sars-nisar-data.md](context/sars-nisar-data.md) (ASF search and browse images). Open: HDF5 processing time, needs an Earthdata login.
+5. **Flame in Freefall:** done. O1: [context/flame-psi-data.md](context/flame-psi-data.md). Ours: [context/flame-in-freefall-psi.md](context/flame-in-freefall-psi.md). Both found the same API and 22 tables; the correct row count is 2,009 non-empty rows.
 
 Proposed idea rejection criteria (agree by 12:10): no demo on real NASA data by T+8; data needs more than 1 h of preprocessing; an existing NASA tool already does the same thing without a clear difference.
