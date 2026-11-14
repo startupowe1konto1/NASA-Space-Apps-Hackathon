@@ -6,8 +6,9 @@ export const RETRIEVED_AT = '2026-11-14';
 
 export const datasets: Dataset[] = [
   {
-    id: 'usda-nass-quickstats', name: 'USDA NASS Quick Stats: Story County yields and Iowa prices received', provider: 'USDA NASS',
-    url: 'https://quickstats.nass.usda.gov/', nasa: false, resolution: 'county (yield), state (price)', period: 'yields 2021–2025, price 2025 marketing year',
+    id: 'usda-nass-quickstats', name: 'USDA NASS Quick Stats: Story County and Iowa yields, Iowa prices received', provider: 'USDA NASS',
+    url: 'https://quickstats.nass.usda.gov/', nasa: false,
+    resolution: 'county (maize and soybean yields), state (oat and alfalfa yields, prices)', period: 'yields 2021–2025, prices 2025 marketing year',
     kind: 'observation',
   },
   {
@@ -16,19 +17,25 @@ export const datasets: Dataset[] = [
     kind: 'model',
   },
   {
-    id: 'nrcs-payment-schedule-ia', name: 'NRCS EQIP payment schedule, Iowa, Story County', provider: 'USDA NRCS',
-    url: 'https://www.nrcs.usda.gov/getting-assistance/payment-schedules', nasa: false, resolution: 'county', period: 'schedule served on 14 Nov 2026, fiscal year not stated',
+    id: 'nrcs-ia-fy2026-booklet', name: 'Iowa Financial Assistance Program Scenario Booklet FY2026 (practices 340 and 328)', provider: 'USDA NRCS Iowa',
+    url: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet_April%2028%202026.pdf', nasa: false,
+    resolution: 'Iowa', period: 'fiscal year 2026 (Oct 2025 to Sep 2026), booklet of 28 Apr 2026',
     kind: 'observation',
   },
   {
-    id: 'eurostat-apro-cpnhr', name: 'Eurostat crop production by NUTS 2 region (apro_cpnhr), Wielkopolskie', provider: 'Eurostat',
-    url: 'https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table', nasa: false, resolution: 'NUTS 2 region (PL41)', period: '2020–2024',
+    id: 'gus-produkcja-upraw', name: 'GUS crop production (Produkcja upraw rolnych i ogrodniczych), Wielkopolskie yields', provider: 'Statistics Poland (GUS)',
+    url: 'https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/', nasa: false, resolution: 'voivodeship (Wielkopolskie)',
+    period: '2021–2025 (field pea 2023–2025)', kind: 'observation',
+  },
+  {
+    id: 'mrirw-zsrir', name: 'ZSRIR weekly grain and oilseed purchase prices', provider: 'Polish Ministry of Agriculture (MRiRW)',
+    url: 'https://zsrir.minrol.gov.pl/', nasa: false, resolution: 'north-west macroregion (grain), Poland (rapeseed)', period: 'week 45/2026 (2–8 Nov 2026)',
     kind: 'observation',
   },
   {
-    id: 'eurostat-apri-ap-crpouta', name: 'Eurostat selling prices of crop products (apri_ap_crpouta), Poland', provider: 'Eurostat',
-    url: 'https://ec.europa.eu/eurostat/databrowser/view/apri_ap_crpouta/default/table', nasa: false, resolution: 'country', period: '2024',
-    kind: 'observation',
+    id: 'gus-skup-i-ceny-2025', name: 'GUS procurement prices of agricultural products in 2025', provider: 'Statistics Poland (GUS)',
+    url: 'https://publikacje.new.stat.gov.pl/portal-publikacje/skup-i-ceny-produktow-rolnych-w-2025-r', nasa: false,
+    resolution: 'voivodeship (sugar beet), Poland (field pea)', period: '2025 yearly average', kind: 'observation',
   },
   {
     id: 'gus-ceny-produktow-rolnych', name: 'GUS agricultural product prices, September 2026', provider: 'Statistics Poland (GUS)',
@@ -41,21 +48,29 @@ export const datasets: Dataset[] = [
     kind: 'model',
   },
   {
+    id: 'pl-eco-scheme-2026', name: 'Estimated 2026 eco-scheme rates (MRiRW) and 2026 practice pages (ARiMR)', provider: 'Polish Ministry of Agriculture and ARiMR',
+    url: 'https://www.gov.pl/web/rolnictwo/zaliczki-doplat-dla-rolnikow-juz-od-8-wrzesnia', nasa: false, resolution: 'Poland',
+    period: '2026 estimates for advance payments (19 Aug 2026)', kind: 'observation',
+  },
+  {
     id: 'pl-dziennik-ustaw', name: 'Dziennik Ustaw: eco-scheme rates and conditions, GAEC norms', provider: 'Polish Ministry of Agriculture (via Sejm ELI)',
     url: 'https://api.sejm.gov.pl/eli/acts/DU', nasa: false, resolution: 'Poland', period: '2025 rates; rules in force in 2026',
     kind: 'observation',
   },
 ];
 
-/** Which dataset a source URL in data/money belongs to. */
+/** Which dataset a source URL in data/money belongs to. The first matching prefix wins, so specific prefixes come first. */
 const SOURCE_PREFIXES: { prefix: string; id: string }[] = [
   { prefix: 'https://quickstats.nass.usda.gov/', id: 'usda-nass-quickstats' },
   { prefix: 'https://www.extension.iastate.edu/agdm/', id: 'isu-agdm-a1-20' },
-  { prefix: 'https://www.nrcs.usda.gov/getting-assistance/payment-schedules', id: 'nrcs-payment-schedule-ia' },
-  { prefix: 'https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/', id: 'eurostat-apro-cpnhr' },
-  { prefix: 'https://ec.europa.eu/eurostat/databrowser/view/apri_ap_crpouta/', id: 'eurostat-apri-ap-crpouta' },
+  { prefix: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet', id: 'nrcs-ia-fy2026-booklet' },
+  { prefix: 'https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/', id: 'gus-produkcja-upraw' },
   { prefix: 'https://stat.gov.pl/', id: 'gus-ceny-produktow-rolnych' },
+  { prefix: 'https://zsrir.minrol.gov.pl/', id: 'mrirw-zsrir' },
+  { prefix: 'https://publikacje.new.stat.gov.pl/', id: 'gus-skup-i-ceny-2025' },
   { prefix: 'https://www.wodr.poznan.pl/', id: 'wodr-poznan-kalkulacje' },
+  { prefix: 'https://www.gov.pl/web/rolnictwo/', id: 'pl-eco-scheme-2026' },
+  { prefix: 'https://www.gov.pl/web/arimr/', id: 'pl-eco-scheme-2026' },
   { prefix: 'https://api.sejm.gov.pl/eli/acts/DU/', id: 'pl-dziennik-ustaw' },
 ];
 

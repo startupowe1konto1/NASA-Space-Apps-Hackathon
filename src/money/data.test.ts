@@ -35,3 +35,11 @@ describe.each(Object.entries(files))('data/money/%s', (_name, file) => {
     for (const p of file.payments) expect(en).toHaveProperty([p.condition]);
   });
 });
+
+describe('src/money/datasets', () => {
+  it('registers only datasets that a row in data/money cites', () => {
+    const refs = Object.values(files).flatMap((f) => [...f.economics.flatMap((r) => r.sources), ...f.payments.flatMap((p) => p.sources)]);
+    const used = new Set(refs.map((r) => datasetIdForSource(r.url)));
+    for (const d of datasets) expect(used.has(d.id), d.id).toBe(true);
+  });
+});

@@ -18,13 +18,14 @@ const byCode = (list: Payments, code: string) => list.find((p) => p.condition.co
 describe('getPayments, Iowa', () => {
   const iowa = demoFields.iowa;
 
-  it('a rotation with a cover crop qualifies for practice 340, labelled as unconfirmed', async () => {
+  it('a rotation with a cover crop qualifies for practice 340 at the confirmed FY2026 rate', async () => {
     const list = await payments(iowa, [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean', coverCrop: 'cereal-rye' }]);
     const cover = byCode(list, 'money.condition.us-340');
     expect(cover).toBeDefined();
-    expect(cover!.confirmed).toBe(false);
-    expect(cover!.amountPerHa.value).toBeCloseTo(184.71, 2);
+    expect(cover!.confirmed).toBe(true);
+    expect(cover!.amountPerHa.value).toBeCloseTo(183.7, 2);
     expect(cover!.amountPerHa.unit).toBe('USD/ha per year');
+    expect(cover!.amountPerHa.datasetIds).toEqual(['nrcs-ia-fy2026-booklet']);
   });
 
   it('a rotation without a cover crop does not get the cover crop payment', async () => {
@@ -35,13 +36,42 @@ describe('getPayments, Iowa', () => {
   it('a cover crop in half of the years earns half the rate per year of the rotation', async () => {
     const list = await payments(iowa, [{ crop: 'maize', coverCrop: 'cereal-rye' }, { crop: 'soybean' }]);
     const cover = byCode(list, 'money.condition.us-340')!;
-    expect(cover.amountPerHa.value).toBeCloseTo(184.71 / 2, 1);
+    expect(cover.amountPerHa.value).toBeCloseTo(183.7 / 2, 1);
     expect(cover.amountPerHa.kind).toBe('derived');
   });
 
-  it('practice 328 needs at least two different main crops', async () => {
-    expect(byCode(await payments(iowa, [{ crop: 'maize' }, { crop: 'soybean' }]), 'money.condition.us-328')).toBeDefined();
-    expect(byCode(await payments(iowa, [{ crop: 'maize' }]), 'money.condition.us-328')).toBeUndefined();
+  it('practice 328 basic needs at least two different main crops', async () => {
+    const basic = byCode(await payments(iowa, [{ crop: 'maize' }, { crop: 'soybean' }]), 'money.condition.us-328-basic');
+    expect(basic).toBeDefined();
+    expect(basic!.confirmed).toBe(true);
+    expect(basic!.amountPerHa.value).toBeCloseTo(28.49, 2);
+    expect(byCode(await payments(iowa, [{ crop: 'maize' }]), 'money.condition.us-328-basic')).toBeUndefined();
+  });
+
+  it('practice 328 small grain: oats added to a rotation of two other crops, instead of the basic rate', async () => {
+    const list = await payments(iowa, [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'oats' }]);
+    expect(byCode(list, 'money.condition.us-328-small-grain')!.amountPerHa.value).toBeCloseTo(112.04, 2);
+    expect(byCode(list, 'money.condition.us-328-basic')).toBeUndefined();
+  });
+
+  it('practice 328 small grain needs two other crops besides the small grain', async () => {
+    const list = await payments(iowa, [{ crop: 'maize' }, { crop: 'oats' }]);
+    expect(byCode(list, 'money.condition.us-328-small-grain')).toBeUndefined();
+    expect(byCode(list, 'money.condition.us-328-basic')).toBeDefined();
+  });
+
+  it('practice 328 perennial: alfalfa kept at least two years after two other crops, one 328 payment only', async () => {
+    const years: Years = [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'oats' }, { crop: 'alfalfa' }, { crop: 'alfalfa' }];
+    const list = await payments(iowa, years);
+    expect(byCode(list, 'money.condition.us-328-perennial')!.amountPerHa.value).toBeCloseTo(127.01, 2);
+    expect(byCode(list, 'money.condition.us-328-small-grain')).toBeUndefined();
+    expect(byCode(list, 'money.condition.us-328-basic')).toBeUndefined();
+  });
+
+  it('a single year of alfalfa does not meet the two-year minimum of 328 perennial', async () => {
+    const list = await payments(iowa, [{ crop: 'maize' }, { crop: 'soybean' }, { crop: 'alfalfa' }]);
+    expect(byCode(list, 'money.condition.us-328-perennial')).toBeUndefined();
+    expect(byCode(list, 'money.condition.us-328-basic')).toBeDefined();
   });
 
   it('every amount is a valid Sourced value', async () => {
@@ -57,7 +87,7 @@ describe('getPayments, Poland', () => {
     const list = await payments(poznan, [{ crop: 'winter-wheat', coverCrop: 'phacelia' }, { crop: 'sugar-beet' }]);
     const cover = byCode(list, 'money.condition.pl-cover-crop');
     expect(cover).toBeDefined();
-    expect(cover!.amountPerHa.value).toBeCloseTo(218.8, 2);
+    expect(cover!.amountPerHa.value).toBeCloseTo(463.8 / 2, 2);
     expect(cover!.confirmed).toBe(false);
   });
 
@@ -73,6 +103,19 @@ describe('getPayments, Poland', () => {
     expect(byCode(noLegume, 'money.condition.pl-crop-diversity')).toBeUndefined();
   });
 
+  it('the diverse crop structure is not claimed when a main crop is not placed on the annex 5 lists', async () => {
+    // rye is a cereal, but which annex 5 list it is on has not been copied from the regulation yet
+    const list = await payments(poznan, [{ crop: 'winter-wheat' }, { crop: 'field-pea' }, { crop: 'maize' }, { crop: 'rye' }]);
+    expect(byCode(list, 'money.condition.pl-crop-diversity')).toBeUndefined();
+  });
+
+  it('eco-scheme rates are the 2026 estimates, unconfirmed', async () => {
+    const list = await payments(poznan, [{ crop: 'winter-wheat' }, { crop: 'field-pea' }, { crop: 'sugar-beet' }, { crop: 'maize' }]);
+    const diverse = byCode(list, 'money.condition.pl-crop-diversity')!;
+    expect(diverse.amountPerHa.value).toBeCloseTo(278.28, 2);
+    expect(diverse.confirmed).toBe(false);
+  });
+
   it('the diverse crop structure allows beet and potato on at most 30% of the years', async () => {
     const list = await payments(poznan, [{ crop: 'winter-wheat' }, { crop: 'field-pea' }, { crop: 'sugar-beet' }]);
     expect(byCode(list, 'money.condition.pl-crop-diversity')).toBeUndefined();
@@ -80,7 +123,7 @@ describe('getPayments, Poland', () => {
 
   it('straw points are paid in the years with a grain crop only', async () => {
     const list = await payments(poznan, [{ crop: 'winter-wheat' }, { crop: 'sugar-beet' }]);
-    expect(byCode(list, 'money.condition.pl-straw')!.amountPerHa.value).toBeCloseTo(43.76, 2);
+    expect(byCode(list, 'money.condition.pl-straw')!.amountPerHa.value).toBeCloseTo(92.76 / 2, 2);
   });
 
   it('always reports the GAEC 7 rotation rule, with no money of its own', async () => {

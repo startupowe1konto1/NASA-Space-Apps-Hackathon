@@ -51,6 +51,10 @@ export function gaec7(years: Years, exempt: (crop: CropId) => boolean): Gaec7Res
 const SOM_POSITIVE: CropId[] = ['field-pea']; // wykaz nr 1: groch siewny
 const CEREALS: CropId[] = ['winter-wheat']; // wykaz nr 2: pszenica ozima (maize is not on the list)
 const SOM_NEGATIVE: CropId[] = ['sugar-beet', 'potato']; // wykaz nr 3: burak cukrowy, ziemniak
+const ON_NO_LIST: CropId[] = ['maize'];
+/** Main crops whose place on the annex 5 lists has been copied from the regulation. Rye, spring barley and winter
+ * rapeseed have not: until they are, a rotation with them does not claim the diverse crop structure. */
+const ANNEX5_KNOWN = new Set<CropId>([...SOM_POSITIVE, ...CEREALS, ...SOM_NEGATIVE, ...ON_NO_LIST]);
 
 const share = (years: Years, test: (y: Years[number]) => boolean) => years.filter(test).length / years.length;
 
@@ -60,6 +64,7 @@ function diverseStructure(years: Years): boolean {
   for (const y of years) counts.set(y.crop, (counts.get(y.crop) ?? 0) + 1);
   const largest = Math.max(...counts.values()) / years.length;
   return (
+    years.every((y) => ANNEX5_KNOWN.has(y.crop)) &&
     counts.size >= 3 &&
     largest <= 0.65 &&
     share(years, (y) => SOM_POSITIVE.includes(y.crop)) >= 0.2 &&
@@ -68,11 +73,39 @@ function diverseStructure(years: Years): boolean {
   );
 }
 
+// NRCS Iowa practice 328 (FY2026 booklet, pp. 32–33). One scenario is paid per field: the perennial one if it applies,
+// else the small grain one, else the basic one.
+const SMALL_GRAINS: CropId[] = ['oats', 'winter-wheat', 'spring-barley', 'rye'];
+type TraitsOf = (crop: CropId) => CropTraits | undefined;
+
+/** Distinct main crops of the rotation other than those matching `added`. */
+const otherCrops = (years: Years, added: (crop: CropId) => boolean) => new Set(years.map((y) => y.crop).filter((c) => !added(c))).size;
+
+/** 328-138: a short-term perennial grown at least two years in a row, added to a rotation of at least two other crops. */
+function perennialRotation(years: Years, traits: TraitsOf): boolean {
+  const isPerennial = (crop: CropId) => traits(crop)?.kind === 'perennial';
+  const n = years.length;
+  const twoYears = years.some((y, i) => isPerennial(y.crop) && years[(i + 1) % n]!.crop === y.crop && n > 1);
+  return twoYears && otherCrops(years, isPerennial) >= 2;
+}
+
+/** 328-139: a winter annual or small grain added to a rotation of at least two other crop types. */
+function smallGrainRotation(years: Years): boolean {
+  const isSmallGrain = (crop: CropId) => SMALL_GRAINS.includes(crop);
+  return years.some((y) => isSmallGrain(y.crop)) && otherCrops(years, isSmallGrain) >= 2;
+}
+
+/** 328-1: an annual rotation with at least two different crop types. */
+const basicRotation = (years: Years, traits: TraitsOf) =>
+  new Set(years.filter((y) => traits(y.crop)?.kind !== 'perennial').map((y) => y.crop)).size >= 2;
+
 /** Share of the rotation's years that earn each payment; 0 means the rotation does not qualify. */
-const RULES: Record<string, (years: Years, traits: (crop: CropId) => CropTraits | undefined) => number> = {
+const RULES: Record<string, (years: Years, traits: TraitsOf) => number> = {
   'us-nrcs-340-cover-crop': (years) => share(years, (y) => !!y.coverCrop),
-  'us-nrcs-328-crop-rotation': (years, traits) =>
-    new Set(years.filter((y) => traits(y.crop)?.kind !== 'perennial').map((y) => y.crop)).size >= 2 ? 1 : 0,
+  'us-nrcs-328-perennial': (years, traits) => (perennialRotation(years, traits) ? 1 : 0),
+  'us-nrcs-328-small-grain': (years, traits) => (!perennialRotation(years, traits) && smallGrainRotation(years) ? 1 : 0),
+  'us-nrcs-328-basic': (years, traits) =>
+    !perennialRotation(years, traits) && !smallGrainRotation(years) && basicRotation(years, traits) ? 1 : 0,
   'pl-eco-cover-crop': (years) => share(years, (y) => !!y.coverCrop),
   'pl-eco-crop-diversity': (years) => (diverseStructure(years) ? 1 : 0),
   // § 12 ust. 2: straw of cereals including maize, oilseeds and legumes.
