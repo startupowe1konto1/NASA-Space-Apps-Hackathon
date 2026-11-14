@@ -34,7 +34,7 @@ import { currentRotation, generateCandidates } from './candidates';
 import { CROP_CALENDARS_ID } from './datasets';
 import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome } from './messages';
 import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, type IncomeResult, type IncomeTotal } from './income';
-import { forageScore } from './priorityScores';
+import { forageScore, waterScore } from './priorityScores';
 import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, rankSoil, type Scored } from './ranking';
 import { resilienceScore, withExposure } from './resilience';
 import { engineRules, shippedRules, toSoilRules, type EngineRules, type LoadedRules } from './rules';
@@ -312,6 +312,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
         soilOut.erosionNoRow = soilRules.erosionNoRow;
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
+        // water needs the sourced need rows; without them it stays unscored and the card names it (#105 item 6)
+        if (on.includes('water') && rules.waterNeedMm) priorityScores.water = waterScore(years, crops, climate, rules.waterNeedMm);
         candidates.push({
           id: rotationId(years),
           isCurrent,

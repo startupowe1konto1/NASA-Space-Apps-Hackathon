@@ -2,10 +2,10 @@
 //
 // Water method (one of the two SPEC options): the crop's growing-season rain on this field, summed over its months
 // in the ground (sowMonth..harvestMonth; a winter crop starts in the previous calendar year), is compared with a
-// seasonal need in mm for its need class. The thresholds come in as `waterNeedMm` because no sourced table exists
-// yet; O3-B6 passes them from data/rules once one does. Evapotranspiration is not used.
-// Until a sourced data/rules row backs those thresholds, the water score is never 'strong': 'moderate' with a
-// complete record, 'weak' when a season had to be skipped for a gap in the rain record.
+// seasonal need in mm for its need class. analyzeField passes the needs from the data/rules rows
+// 'water.needMm.<class>' (EngineRules.waterNeedMm) and scores water only when they exist (#105 item 6).
+// Evapotranspiration is not used. Rain alone against a class need is a coarse check, so the water score is never
+// 'strong': 'moderate' with a complete record, 'weak' when a season had to be skipped for a gap in the rain record.
 import type { ClimateProfile, CropTraits, RotationOption, Score, WaterNeed } from '../contracts';
 import { cropById } from './calendar';
 
@@ -40,8 +40,8 @@ const percentile = (sorted: number[], p: number) => sorted[Math.round(p * (sorte
  * missing month is left out and lowers confidence to weak. A crop without a water need class is skipped; when every
  * crop is, the basis is 'priority.basis.water-no-need-class'.
  *
- * `waterNeedMm` (seasonal need in mm per class) is not backed by any data/rules row yet, so confidence starts at
- * 'moderate', not 'strong'. Raise it once a sourced row exists.
+ * `waterNeedMm` is the seasonal need in mm per class, from the 'water.needMm.<class>' rows. Confidence is at most
+ * 'moderate', because rain alone against a class need is a coarse check.
  */
 export function waterScore(
   years: Years,
@@ -99,7 +99,7 @@ export function waterScore(
     value: round((100 * covered) / checked),
     low: round(100 * percentile(sorted, 0.1)),
     high: round(100 * percentile(sorted, 0.9)),
-    confidence: gaps ? 'weak' : 'moderate', // no rule row behind waterNeedMm yet
+    confidence: gaps ? 'weak' : 'moderate', // coarse check: rain only, one need per class
     basis: { code: 'priority.basis.water', params: { coveredYears: covered, cropYears: checked } },
   };
 }

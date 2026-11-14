@@ -233,6 +233,34 @@ describe('analyzeField with fixture providers', () => {
     if (current.soilHealth.basis.code === 'soil.basis.total') expect(String(current.soilHealth.basis.params?.missing)).not.toMatch(/organicMatter|pestBreak/);
   });
 
+  // #105 item 6: water is scored when the water need rows exist, otherwise it is named as not scored.
+  describe('water priority', () => {
+    const row = (id: string, value: unknown) => ({ id, value, unit: 'mm', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
+    const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
+    const need = { low: 300, medium: 450, high: 600 };
+    const needRows = (Object.keys(need) as (keyof typeof need)[]).map((c) => row(`water.needMm.${c}`, need[c]));
+    const waterOn: Priorities = { ...priorities, on: ['water'] };
+    const current = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!;
+
+    it('scores water on every candidate with the rows, and gives no not-scored gap', async () => {
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': needRows }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      expect(a.rotations.length).toBeGreaterThan(0);
+      for (const r of a.rotations) {
+        expect(r.priorityScores.water?.basis.code).toMatch(/^priority\.basis\.water/);
+        expect(r.priorityScores.water!.low).toBeLessThanOrEqual(r.priorityScores.water!.value);
+      }
+      expect(current(a).gaps.map((g) => g.code)).not.toContain('gap.priority-not-scored');
+    });
+
+    it('without the rows, water has no score and the card names it as not scored', async () => {
+      if (['low', 'medium', 'high'].every((c) => shippedRules.byId.has(`water.needMm.${c}`))) return;
+      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      expect(current(a).priorityScores.water).toBeUndefined();
+      expect(current(a).gaps.map((g) => g.code)).toContain('gap.priority-not-scored');
+    });
+  });
+
   describe('soil adjustments without a sourced rule are named, not shown as a measured zero', () => {
     const row = (id: string, value: unknown) => ({ id, value, unit: 'test', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
     const files = Object.fromEntries(Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, rows]));
