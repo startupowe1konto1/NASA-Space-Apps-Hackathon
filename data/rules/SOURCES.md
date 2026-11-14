@@ -29,7 +29,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Soil health tables (second O4-B0 pull request)
 
-Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
+Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
 
 ### Sources opened
 
@@ -45,6 +45,7 @@ Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 row
 | Wischmeier and Smith (1978), USDA Agriculture Handbook 537 | https://www.ars.usda.gov/ARSUserFiles/60600505/RUSLE/AH_537%20Predicting%20Rainfall%20Soil%20Losses.pdf | Table 5 (pp. 22–24) soil loss ratios by crop stage for maize, soybean, small grain and potato; Table 5-B and 5-C (p. 26) meadow, sugar beet and residue cover; Table 3 (p. 12) LS factor by slope | `usda-ah537-tables.txt` |
 | USDA NRCS Conservation Practice Standard 328, Conservation Crop Rotation (Sept 2014) | https://www.nrcs.usda.gov/sites/default/files/2022-09/Conservation_Crop_Rotation_328_CPS.pdf | p. 328-3: three years or longer between plantings of the same family, at least three families | `nrcs-cps-328.txt` |
 | Mohler and Johnson, eds. (2009), SARE "Crop Rotation on Organic Farms: A Planning Manual" (NRAES-177) | https://www.sare.org/wp-content/uploads/Crop-Rotation-on-Organic-Farms.pdf | Sidebar 5.4, p. 70: four to five years for most soilborne diseases; Appendix 3, pp. 125–136: return times per crop and disease | `sare-crop-rotation-organic.txt` |
+| Lundvall, Martins, Sawyer (2021), ISU final report to the Leopold Center "Integrating Rye Seed Production and Red Clover into Corn Systems and Nitrogen Management" | https://www.agronext.iastate.edu/soilfertility/info/Final%20Report%20Corn%20N%20with%20Rye-Red%20Clover-ForSFWebSite.pdf | p. 7 and p. 9: red clover supplied about 50 lb N/acre fertilizer equivalent to the following maize (`nitrogen.credit.red-clover.us-ia`) | `isu-rye-red-clover-2021.txt` |
 
 ### Choices the team made on top of the sources
 
@@ -90,3 +91,21 @@ Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 row
 - `hazards.gaez.notSuitableBelowSI`: the check is "at or below", on the 0–100 SI scale. `hazards.gaez.classes` uses stable keys (`veryHigh` … `notSuitable`).
 - Relabelled as what they are: `nitrogen.credit.alfalfa.us-ia` and `nitrogen.credit.alfalfaSecondYear.us-ia` ("team calculation from …"), `erosion.ls.slopeLength75ft` ("team choice of the 75 ft column from …"), `humus.coef.soybean.pl`, `humus.coef.alfalfa.pl`, `humus.coef.red-clover.pl` ("borrowed from …").
 - Istanbulluoglu et al. 2010 (an abstract on a third-party index, R10) is not used anywhere (D37).
+
+## Seasonal crop water need (`water.json`)
+
+Read by the water priority (SPEC section 7, O3's #119). One row per crop, `water.needMm.<cropId>`, and one per water need class, `water.needMm.low|medium|high`, as a fallback.
+
+| Source | URL | Used for |
+|---|---|---|
+| FAO Irrigation Water Management Training Manual No. 3, chapter 3, Table 14 "Indicative values of crop water needs" | https://www.fao.org/4/s2022e/s2022e07.htm | mm per total growing period: Barley/Oats/Wheat 450–650, Maize 500–800, Alfalfa 800–1600, Pea 350–500, Potato 500–700, Soybean 450–700, Sugarbeet 550–750; excerpt `data/samples/rules/fao-manual3-table14-crop-water-needs.txt` |
+| FAO Irrigation and Drainage Paper 24, Table 20, page 36 (PDF page 46) | https://www.fao.org/3/s8376e/s8376e.pdf | rye (Grains, small, 300–450 mm) and winter rapeseed (Oil seeds, 300–600 mm), which have no Table 14 row; excerpt `data/samples/rules/fao-paper24-table20.txt` (the PDF is a scan, so the excerpt is its OCR text) |
+
+- **Crop rows:** the midpoint of each range. FAO's text above Table 14 says to use the minimum for a short growing period, the maximum for a long one and "an average value … with a medium total growing period". The midpoint is that average. It is labelled "team calculation from …", because the choice of a medium season is ours.
+- **Class rows:** the mean of the crop midpoints in each class, with the class taken from `data/crops`:
+  - low 417 mm (field pea, rye, winter rapeseed);
+  - medium 579 mm (wheat, oats, spring barley, soybean, potato, sugar beet);
+  - high 925 mm (maize, alfalfa).
+
+  The engine should prefer a crop's own row. The high class mixes maize (650) and alfalfa (1200).
+- **Missing:** cover crops have no water need class and no row (they are not harvested; contract PR #44).

@@ -234,10 +234,15 @@ describe('analyzeField with fixture providers', () => {
 
   // #105 item 7 and the #124 review: the soil total on a card is the number the goals rank on, and a farmer can rebuild
   // it from what the cards show. A card scored on the same indicators as the current rotation shows the mean of its
-  // own indicators. A card scored on fewer or other indicators shows the current total plus the mean difference on the
+  // own indicators. A card scored on fewer or other indicators shows the current total plus the weighted difference on the
   // indicators both have, and a gap says so and names them.
   it('shows the soil total the goals rank on, and says how to rebuild it when the indicator sets differ', async () => {
-    const withRules = createAnalyzeField({ rules: shippedRules });
+    // Needs cards whose indicator sets differ. With every Iowa legume credited in data/rules they no longer do, so the
+    // test leaves out the red clover N row to keep the partial path covered.
+    const files = Object.fromEntries(
+      Object.entries(shippedRules.byFile).map(([name, rows]) => [`../../data/rules/${name}.json`, (rows as { id: string }[]).filter((r) => r.id !== 'nitrogen.credit.red-clover.us-ia')]),
+    );
+    const withRules = createAnalyzeField({ rules: loadRules(files) });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const current = a.rotations.find((r) => r.isCurrent)!;
     const mean = (xs: number[]) => xs.reduce((x, y) => x + y, 0) / xs.length;
@@ -269,14 +274,93 @@ describe('analyzeField with fixture providers', () => {
   });
 
   // #124 review: the cover-crop rotations are what keepSoil showed on main for Iowa; the erosion change must not drop them.
-  it('shows a rotation with each Iowa cover crop among the keep-soil cards', async () => {
+  // The keep-soil cards show the best rotations as ranked. With the red clover N credit (#137) every Iowa card may be a
+  // red-clover rotation; the ranking is not bent to show each cover crop, but a cover crop must reach the cards.
+  it('shows at least one rotation with a cover crop among the Iowa keep-soil cards', async () => {
     const withRules = createAnalyzeField({ rules: shippedRules });
     const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
     const coverIds = new Set(fixtureCrops.US.filter((c) => c.kind === 'cover').map((c) => c.id));
     const keep = new Set(a.shownByGoal.keepSoil ?? []);
     const withCover = a.rotations.filter((r) => keep.has(r.id) && !r.isCurrent && r.years.some((y) => y.coverCrop && coverIds.has(y.coverCrop)));
-    const shownCovers = new Set(withCover.flatMap((r) => r.years.map((y) => y.coverCrop).filter((x): x is string => !!x)));
-    expect([...coverIds].filter((id) => !shownCovers.has(id))).toEqual([]);
+    expect(withCover.length).toBeGreaterThan(0);
+  });
+
+  // #105 item 6: water is scored when the water need rows exist, otherwise it is named as not scored.
+  describe('water priority', () => {
+    const row = (id: string, value: unknown) => ({ id, value, unit: 'mm', appliesTo: 'test', sourceTitle: 'test', sourceUrl: 'https://example.org', sourceLocator: 'test' });
+    // the shipped rules without water need rows, so these cases do not depend on data/rules/water.json
+    const files = Object.fromEntries(
+      Object.entries(shippedRules.byFile).map(([name, rows]) => [
+        `../../data/rules/${name}.json`,
+        (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.')),
+      ]),
+    );
+    const need = { low: 300, medium: 450, high: 600 };
+    const needRows = (Object.keys(need) as (keyof typeof need)[]).map((c) => row(`water.needMm.${c}`, need[c]));
+    const waterOn: Priorities = { ...priorities, on: ['water'] };
+    const current = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!;
+
+    it('scores water on every candidate with the rows, and gives no not-scored gap', async () => {
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': needRows }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      expect(a.rotations.length).toBeGreaterThan(0);
+      for (const r of a.rotations) {
+        expect(r.priorityScores.water?.basis.code).toBe('priority.basis.water');
+        expect(r.priorityScores.water!.low).toBeLessThanOrEqual(r.priorityScores.water!.value);
+        expect(r.priorityScores.water!.value).toBeLessThanOrEqual(r.priorityScores.water!.high);
+        expect(r.gaps.map((g) => g.code)).not.toContain('gap.priority-not-scored');
+      }
+      // #119 review: with water on, the whole analysis still meets the contract (low <= value <= high)
+      const parsed = analysisSchema.safeParse(a);
+      expect(parsed.success, parsed.success ? '' : JSON.stringify(parsed.error.issues.slice(0, 3))).toBe(true);
+    });
+
+    // #119 review: the evidence names only the need rows this card used: a crop's own row, else its class row.
+    it("names the crop's own need row when there is one, and the class row for the other crops", async () => {
+      const cur = iowaHistory.map((h) => h.crop);
+      const own = cur[0]!;
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': [...needRows, row(`water.needMm.${own}`, 500)] }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      const e = current(a).evidence.find((x) => x.message.code === 'evidence.water');
+      const crops = await fixtureProviders.context.getCrops('US');
+      const expected = [
+        ...new Set(current(a).years.map((y) => (y.crop === own ? `water.needMm.${own}` : `water.needMm.${crops.find((c) => c.id === y.crop)!.waterNeed}`))),
+      ];
+      expect(e!.ruleIds).toEqual(expected);
+    });
+
+    // Every number on screen is Sourced: the water evidence carries the POWER rain and evapotranspiration as model
+    // values and names the need rows it used.
+    it('puts the growing-season rain and evapotranspiration on the card as model values with the need rule ids', async () => {
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': needRows }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      const { source } = await fixtureProviders.profile.getClimate(demoFields.iowa);
+      const e = current(a).evidence.find((x) => x.message.code === 'evidence.water');
+      expect(e).toBeDefined();
+      const crops = await fixtureProviders.context.getCrops('US');
+      const used = [...new Set(current(a).years.map((y) => `water.needMm.${crops.find((c) => c.id === y.crop)!.waterNeed}`))];
+      expect(e!.ruleIds).toEqual(used);
+      const units = e!.values.map((v) => v.unit);
+      expect(units).toEqual(['mm growing-season rain, mean of checked crop-years', 'mm growing-season evapotranspiration, mean of checked crop-years']);
+      for (const v of e!.values) {
+        expect(v.kind).toBe(source.kind);
+        expect(v.datasetIds).toEqual(source.datasetIds);
+        expect(typeof v.value).toBe('number');
+      }
+    });
+
+    it('without the rows, water has no score and the card names it as not scored', async () => {
+      const withoutWater = Object.fromEntries(
+        Object.entries(files).map(([name, rows]) => [name, (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.'))]),
+      );
+      const a = await createAnalyzeField({ rules: loadRules(withoutWater) })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      expect(a.rotations.length).toBeGreaterThan(0);
+      for (const r of a.rotations) {
+        expect(r.priorityScores.water).toBeUndefined();
+        expect(r.gaps.map((g) => g.code)).toContain('gap.priority-not-scored');
+        expect(r.evidence.map((x) => x.message.code)).not.toContain('evidence.water');
+      }
+    });
   });
 
   describe('soil adjustments without a sourced rule are named, not shown as a measured zero', () => {

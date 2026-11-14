@@ -1,6 +1,8 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { setLang } from '../../app/i18n';
 import terms from './terms.en.json';
+import plTerms from './terms.pl.json';
 import { GlossaryPage } from './GlossaryPage';
 
 describe('GlossaryPage', () => {
@@ -35,5 +37,32 @@ describe('GlossaryPage', () => {
     render(<GlossaryPage />);
     await screen.findByText('Words used in this tool');
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  describe('in Polish', () => {
+    afterEach(() => act(() => setLang('en')));
+
+    it('lists the Polish terms in Polish alphabetical order', async () => {
+      act(() => setLang('pl'));
+      render(<GlossaryPage />);
+      const page = await screen.findByRole('region', { name: 'Pojęcia używane w tym narzędziu' });
+      expect(await within(page).findByText(plTerms['root-zone'].explanation)).toBeInTheDocument();
+      const labels = within(page)
+        .getAllByRole('term')
+        .map((el) => el.textContent ?? '');
+      expect(labels).toEqual(expect.arrayContaining([plTerms['root-zone'].label, plTerms.evapotranspiration.label]));
+      expect(labels).not.toContain(terms['root-zone'].label);
+      const sorted = [...labels].sort((a, b) => a.localeCompare(b, 'pl', { sensitivity: 'base' }));
+      expect(labels).toEqual(sorted);
+    });
+
+    it('switches to English when the language changes, without a reload', async () => {
+      act(() => setLang('pl'));
+      render(<GlossaryPage />);
+      await screen.findByText(plTerms.anomaly.explanation);
+      act(() => setLang('en'));
+      expect(await screen.findByText(terms.anomaly.explanation)).toBeInTheDocument();
+      expect(screen.queryByText(plTerms.anomaly.explanation)).not.toBeInTheDocument();
+    });
   });
 });

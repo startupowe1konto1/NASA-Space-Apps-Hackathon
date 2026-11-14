@@ -17,7 +17,7 @@
   },
   "root-zone": {
     "label": "strefa korzeniowa",
-    "explanation": "Warstwa gleby, do której sięgają korzenie roślin i z której pobierają wodę. W naszych danych to górny metr gleby."
+    "explanation": "Warstwa gleby, do której sięgają korzenie roślin i z której pobierają wodę; w naszych danych to górny metr gleby."
   },
   "soil-wetness-index": {
     "label": "wskaźnik wilgotności gleby",
@@ -49,6 +49,6 @@
   },
   "margin": {
     "label": "nadwyżka bezpośrednia",
-    "explanation": "Przychód ze sprzedaży plonu z hektara minus koszty bezpośrednie, takie jak nasiona, nawozy, środki ochrony roślin i paliwo, bez kosztów ziemi, pracy i posiadania maszyn oraz bez dopłat."
+    "explanation": "Przychód ze sprzedaży plonu z hektara minus koszty bezpośrednie (nasiona, nawozy, środki ochrony roślin, paliwo), bez kosztów ziemi, pracy, posiadania maszyn i bez dopłat."
   }
 }
