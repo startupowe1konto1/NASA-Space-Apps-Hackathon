@@ -6,15 +6,21 @@ export const RETRIEVED_AT = '2026-11-14';
 
 export const datasets: Dataset[] = [
   {
-    id: 'usda-nass-quickstats', name: 'USDA NASS Quick Stats: Story County and Iowa yields, Iowa prices received', provider: 'USDA NASS',
+    id: 'usda-nass-quickstats-yields', name: 'USDA NASS Quick Stats: Story County and Iowa yields', provider: 'USDA NASS',
     url: 'https://quickstats.nass.usda.gov/', nasa: false,
-    resolution: 'county (maize and soybean yields), state (oat and alfalfa yields, prices)', period: 'yields 2021–2025, prices 2025 marketing year',
+    resolution: 'county (maize and soybean), state (oats and alfalfa)', period: '2021–2025 mean',
+    kind: 'observation',
+  },
+  {
+    id: 'usda-nass-quickstats-prices', name: 'USDA NASS Quick Stats: Iowa prices received', provider: 'USDA NASS',
+    url: 'https://quickstats.nass.usda.gov/', nasa: false, resolution: 'state (Iowa)',
+    period: '2025 marketing year (maize and soybean Sep 2025 to Aug 2026, maize preliminary; oats Jul 2025 to Jun 2026; alfalfa hay Jun 2025 to May 2026)',
     kind: 'observation',
   },
   {
     id: 'isu-agdm-a1-20', name: 'Estimated Costs of Crop Production in Iowa – 2026 (Ag Decision Maker A1-20)', provider: 'Iowa State University Extension',
-    url: 'https://www.extension.iastate.edu/agdm/crops/html/a1-20.html', nasa: false, resolution: 'Iowa, typical farm budget', period: '2026',
-    kind: 'model',
+    url: 'https://www.extension.iastate.edu/agdm/crops/html/a1-20.html', nasa: false, resolution: 'Iowa, typical farm budget',
+    period: '2026 budget (A1-20 revised January 2026)', kind: 'model',
   },
   {
     id: 'nrcs-ia-fy2026-booklet', name: 'Iowa Financial Assistance Program Scenario Booklet FY2026 (practices 340 and 328)', provider: 'USDA NRCS Iowa',
@@ -25,7 +31,7 @@ export const datasets: Dataset[] = [
   {
     id: 'gus-produkcja-upraw', name: 'GUS crop production (Produkcja upraw rolnych i ogrodniczych), Wielkopolskie yields', provider: 'Statistics Poland (GUS)',
     url: 'https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/', nasa: false, resolution: 'voivodeship (Wielkopolskie)',
-    period: '2021–2025 (field pea 2023–2025)', kind: 'observation',
+    period: '2021–2025 mean (field pea 2023–2025 mean)', kind: 'observation',
   },
   {
     id: 'mrirw-zsrir', name: 'ZSRIR weekly grain and oilseed purchase prices', provider: 'Polish Ministry of Agriculture (MRiRW)',
@@ -44,7 +50,7 @@ export const datasets: Dataset[] = [
   },
   {
     id: 'wodr-poznan-kalkulacje', name: 'WODR Poznań crop budgets (kalkulacje rolnicze), February 2026', provider: 'Wielkopolski Ośrodek Doradztwa Rolniczego',
-    url: 'https://www.wodr.poznan.pl/doradztwo/ekonomika', nasa: false, resolution: 'Wielkopolska, model farm budget', period: '2026',
+    url: 'https://www.wodr.poznan.pl/doradztwo/ekonomika', nasa: false, resolution: 'Wielkopolska, model farm budget', period: 'February 2026 budget',
     kind: 'model',
   },
   {
@@ -59,9 +65,25 @@ export const datasets: Dataset[] = [
   },
 ];
 
-/** Which dataset a source URL in data/money belongs to. The first matching prefix wins, so specific prefixes come first. */
-const SOURCE_PREFIXES: { prefix: string; id: string }[] = [
-  { prefix: 'https://quickstats.nass.usda.gov/', id: 'usda-nass-quickstats' },
+/** The value an economics source backs, from the start of its locator; undefined for payment sources. */
+export type MoneyRole = 'yield' | 'price' | 'costs';
+const ROLE_PREFIXES: { prefix: string; role: MoneyRole }[] = [
+  { prefix: 'yield:', role: 'yield' },
+  { prefix: 'price:', role: 'price' },
+  { prefix: 'direct costs:', role: 'costs' },
+];
+export function roleOf(locator: string): MoneyRole | undefined {
+  return ROLE_PREFIXES.find((r) => locator.startsWith(r.prefix))?.role;
+}
+
+/**
+ * Which dataset a source in data/money belongs to. The first matching prefix (and role, where given) wins, so
+ * specific prefixes come first. Quick Stats serves both Iowa yields and prices, which date from different periods,
+ * so each role gets its own dataset and the source chip shows the right period (issue #79 item 4).
+ */
+const SOURCE_PREFIXES: { prefix: string; id: string; role?: MoneyRole }[] = [
+  { prefix: 'https://quickstats.nass.usda.gov/', role: 'yield', id: 'usda-nass-quickstats-yields' },
+  { prefix: 'https://quickstats.nass.usda.gov/', role: 'price', id: 'usda-nass-quickstats-prices' },
   { prefix: 'https://www.extension.iastate.edu/agdm/', id: 'isu-agdm-a1-20' },
   { prefix: 'https://www.nrcs.usda.gov/sites/default/files/2026-04/FY26%20FA%20Program%20Scenario%20Booklet', id: 'nrcs-ia-fy2026-booklet' },
   { prefix: 'https://stat.gov.pl/obszary-tematyczne/rolnictwo-lesnictwo/uprawy-rolne-i-ogrodnicze/', id: 'gus-produkcja-upraw' },
@@ -74,6 +96,6 @@ const SOURCE_PREFIXES: { prefix: string; id: string }[] = [
   { prefix: 'https://api.sejm.gov.pl/eli/acts/DU/', id: 'pl-dziennik-ustaw' },
 ];
 
-export function datasetIdForSource(url: string): string | undefined {
-  return SOURCE_PREFIXES.find((s) => url.startsWith(s.prefix))?.id;
+export function datasetIdForSource(url: string, role?: MoneyRole): string | undefined {
+  return SOURCE_PREFIXES.find((s) => url.startsWith(s.prefix) && (s.role === undefined || s.role === role))?.id;
 }

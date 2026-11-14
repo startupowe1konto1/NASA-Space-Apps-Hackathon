@@ -8,7 +8,7 @@ import cropsPl from '../../data/crops/pl.json';
 import cropsUs from '../../data/crops/us-ia.json';
 import moneyPl from '../../data/money/pl.json';
 import moneyUs from '../../data/money/us-ia.json';
-import { RETRIEVED_AT, datasetIdForSource } from './datasets';
+import { RETRIEVED_AT, datasetIdForSource, roleOf, type MoneyRole } from './datasets';
 import { paymentsFor } from './payments';
 
 export type MoneyFile = z.infer<typeof moneyFile>;
@@ -19,19 +19,16 @@ export interface CropTables { US: CropTraits[]; PL: CropTraits[] }
  * Each source locator in data/money starts with the value it backs ('yield:', 'price:' or 'direct costs:'), so every
  * value gets the dataset it came from. The yield is a mean over years (our calculation from official statistics), the
  * price is an official statistic, the direct costs come from an extension service budget (an estimate).
+ * Each value's period (the row's yieldPeriod, pricePeriod or costsPeriod) reaches the source chip as the period of
+ * that dataset: Sourced has no period field, and SourcedNumber shows dataset.period (issue #79 item 4).
  */
-const ROLES = {
-  yield: { prefix: 'yield:', kind: 'derived' as ValueKind },
-  price: { prefix: 'price:', kind: 'observation' as ValueKind },
-  costs: { prefix: 'direct costs:', kind: 'model' as ValueKind },
-};
+const KINDS: Record<MoneyRole, ValueKind> = { yield: 'derived', price: 'observation', costs: 'model' };
 
-function value(sources: SourceRef[], role: keyof typeof ROLES, amount: number, unit: string): Sourced {
-  const { prefix, kind } = ROLES[role];
-  const ids = sources.filter((s) => s.locator.startsWith(prefix)).map((s) => datasetIdForSource(s.url));
+function value(sources: SourceRef[], role: MoneyRole, amount: number, unit: string): Sourced {
+  const ids = sources.filter((s) => roleOf(s.locator) === role).map((s) => datasetIdForSource(s.url, role));
   const datasetIds = [...new Set(ids.filter((id): id is string => !!id))];
   if (datasetIds.length === 0) throw new Error(`money: no registered dataset for the ${role} source`);
-  return { value: amount, unit, datasetIds, kind, retrievedAt: RETRIEVED_AT };
+  return { value: amount, unit, datasetIds, kind: KINDS[role], retrievedAt: RETRIEVED_AT };
 }
 
 const NO_TABLES: AsyncResult<never> = { status: 'no-data', reason: { code: 'money.no-tables' } };
