@@ -29,7 +29,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Soil health tables (second O4-B0 pull request)
 
-Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
+Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
 
 ### Sources opened
 
