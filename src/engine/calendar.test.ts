@@ -94,6 +94,15 @@ describe('buildCalendar', () => {
     expect(count(a, 'maize')).toBe(count(b, 'maize'));
   });
 
+  it('[maize, winter-wheat] and [winter-wheat, maize] give the same calendar rotated by one year (D27)', () => {
+    const a = buildCalendar([{ crop: 'maize' }, { crop: 'winter-wheat' }], us);
+    const b = buildCalendar([{ crop: 'winter-wheat' }, { crop: 'maize' }], us);
+    const key = (c: (typeof a.months)[number]) => `${c.crop ?? ''}:${c.cover}`;
+    const rotatedB = [...b.months.slice(12), ...b.months.slice(0, 12)].map(key);
+    expect(a.months.map(key)).toEqual(rotatedB);
+    expect(a.bareMonths).toBe(b.bareMonths);
+  });
+
   it('in an impossible sequence the crop already in the ground keeps its months', () => {
     // winter rapeseed sown in 8 cannot follow maize harvested in 10
     const { months } = buildCalendar([{ crop: 'maize' }, { crop: 'winter-rapeseed' }], pl);
