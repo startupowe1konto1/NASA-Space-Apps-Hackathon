@@ -90,7 +90,12 @@ export const moneyFile = z.object({
       referenceYieldTPerHa: z.number().positive(),
       pricePerT: z.number().positive(),
       directCostsPerHa: z.number().min(0),
-      year: z.number().int(),
+      // Each value has its own period (issue #79 item 4): yields are a mean over past years, prices a marketing year
+      // or a week, costs a budget year. Optional until data/money fills them (src/money/data.test.ts then requires them).
+      yieldPeriod: z.string().min(1).optional(), // e.g. '2021–2025 mean'
+      pricePeriod: z.string().min(1).optional(), // e.g. '2025 marketing year', '2–8 Nov 2026'
+      costsPeriod: z.string().min(1).optional(), // e.g. '2026 budget'
+      year: z.number().int().optional(), // deprecated: one year per row could not say which value it dated
       sources: z.array(sourceRef).min(1),
     }),
   ),

@@ -1,16 +1,21 @@
 // ProfileProvider on NASA POWER monthly data.
+import hazards from '../../data/rules/hazards.json';
 import { SourceError, type ClimateProfile, type Field, type ProfileProvider } from '../contracts';
 import { droughtYears, monthlyRisk, toMonthly, yearly, type Thresholds } from './climate';
 import { fetchPowerMonthly, type PowerMonthly } from './power';
 import { trends } from './trend';
 
+/** A numeric rule value from data/rules/hazards.json, or null when the row is missing, so the summary names the gap. */
+function hazardValue(id: string): number | null {
+  const row = hazards.find((r) => r.id === id);
+  return row && typeof row.value === 'number' ? row.value : null;
+}
+
+/** Crop-independent thresholds for the field summary, read from the rule table (D26). Crops keep their own in data/crops. */
 export const DEFAULT_THRESHOLDS: Thresholds = {
-  // Rule id 'hazards.drought.percentile' in data/rules/hazards.json (U.S. Drought Monitor D1 = 20th percentile).
-  // Copied here until that file is on main; read it from there once it is.
-  droughtPercentile: 20,
-  // data/rules/hazards.json has no crop-independent heat or frost threshold; crops carry their own.
-  heatC: null,
-  frostDays: null,
+  droughtPercentile: hazardValue('hazards.drought.percentile') ?? 20,
+  heatC: hazardValue('hazards.heat.generalThresholdC'),
+  frostDays: hazardValue('hazards.frost.generalThresholdDays'),
 };
 
 export function buildClimateProfile(power: PowerMonthly, thresholds: Thresholds): ClimateProfile {

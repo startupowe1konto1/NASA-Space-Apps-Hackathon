@@ -84,7 +84,7 @@ def fetch(url, attempts=4):
     last = None
     for attempt in range(attempts):
         try:
-            req = urllib.request.Request(url, headers={'User-Agent': 'curl/8.5.0'})
+            req = urllib.request.Request(url, headers={'User-Agent': 'field-shift-tool/0.1 (NASA Space Apps 2026 build script)'})
             with urllib.request.urlopen(req, timeout=30) as response:
                 return response.read().decode('utf-8')
         except Exception as error:  # network hiccups: retry gently

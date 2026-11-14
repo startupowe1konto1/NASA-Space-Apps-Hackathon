@@ -1,13 +1,15 @@
-// Step 2: find the field. Demo buttons, a tap on the map, and the list of fields, which works even when the map does not.
-// List entries are plain text on purpose: a button named "Iowa demo field, 30.0 ha" would clash with the demo button in e2e role queries.
+// Step 2: find the field. Demo buttons, a tap on the map, a drawn outline, and the list of fields, which works even when the map does not.
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../app/i18n';
 import { useAppStore } from '../app/store';
 import type { Field } from '../contracts';
 import { demoFields } from '../fixtures';
 import { StateBoundary } from '../ui-kit/StateBoundary';
+import { FieldList } from './draw/FieldList';
+import { drawnField, reshapedField } from './draw/drawnField';
 import { createLeafletMap, type MapController } from './leafletMap';
-import { pointToField } from './pointToField';
+import { ParcelSearch } from './parcels/ParcelSearch';
+import { addFieldAt } from './parcels/tap';
 
 const BUTTON =
   'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
@@ -28,9 +30,23 @@ export function MapStep() {
     try {
       mapRef.current = createLeafletMap(container, {
         // Read the store at call time, so the handlers never hold a stale action.
-        onClick: (lat, lon) => useAppStore.getState().addField(pointToField(lat, lon)),
+        onClick: (lat, lon) => {
+          // While drawing, editing or deleting, a tap belongs to that tool, not to the quick add.
+          if (mapRef.current?.isEditing()) return;
+          void addFieldAt(lat, lon); // in Poland, the ULDK parcel; elsewhere a 4 ha square
+        },
         onTileError: () => setTilesFailed(true),
         onSelectField: (id) => useAppStore.getState().selectField(id),
+        onDrawn: (polygon) => {
+          const { fields, addField } = useAppStore.getState();
+          addField(drawnField(polygon, fields)); // addField also selects it
+        },
+        onEdited: (id, polygon) => {
+          const { fields, updateField } = useAppStore.getState();
+          const field = fields.find((f) => f.id === id);
+          if (field) updateField(reshapedField(field, polygon));
+        },
+        onRemoved: (id) => useAppStore.getState().removeField(id),
       });
     } catch {
       setMapFailed(true);
@@ -94,30 +110,12 @@ export function MapStep() {
           className="h-[55vh] min-h-64 w-full overflow-hidden rounded-lg border border-slate-300 bg-slate-100 md:h-[60vh]"
         />
         <p className="mt-2 text-sm text-slate-600">{t('map.hint')}</p>
+        <p className="mt-1 text-sm text-slate-600">{t('draw.hint')}</p>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold text-slate-900">{t('map.fields')}</h2>
-        {fields.length === 0 ? (
-          <p className="mt-1 text-slate-700">{t('map.fields.empty')}</p>
-        ) : null}
-        <ul aria-label={t('map.fields')} className="mt-2 grid gap-2">
-          {fields.map((f) => {
-            const selected = f.id === selectedFieldId;
-            return (
-              <li
-                key={f.id}
-                aria-current={selected ? 'true' : undefined}
-                className={`rounded-lg border px-4 py-3 text-base ${
-                  selected ? 'border-emerald-700 bg-emerald-50 font-medium text-emerald-950' : 'border-slate-300 bg-white text-slate-900'
-                }`}
-              >
-                {t('map.fields.item', { name: f.name, area: f.areaHa.toFixed(1) })}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      <ParcelSearch />
+
+      <FieldList />
     </div>
   );
 }

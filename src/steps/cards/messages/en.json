@@ -55,5 +55,7 @@
   "steps.rotations.month.12": "December",
   "steps.rotations.goalTotalSource": "the score for this goal",
   "steps.rotations.goalTotalNotLoaded": "This part of the analysis is not wired yet.",
-  "steps.rotations.sectionEmpty": "Nothing listed here for this rotation."
+  "steps.rotations.sectionEmpty": "Nothing listed here for this rotation.",
+  "steps.rotations.summary.droughtNote": "A drought year means the {rootZone} was unusually dry in the growing season, by NASA POWER's {wetness}. Both are a {model}, not a measurement on your field.",
+  "steps.rotations.rangeNote": "The range under each score is a {range}: most past years fall inside it."
 }

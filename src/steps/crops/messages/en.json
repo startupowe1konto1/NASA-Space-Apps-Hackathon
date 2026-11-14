@@ -14,5 +14,7 @@
   "steps.crops.pickerLabel": "Main crop in {year}",
   "steps.crops.needTwo": "Pick at least two years to continue.",
   "steps.crops.saved": "Saved {n} years of crops.",
-  "steps.crops.otherCountry": "Crop lists exist for the USA and Poland only, so there is nothing to pick here."
+  "steps.crops.otherCountry": "Crop lists exist for the USA and Poland only, so there is nothing to pick here.",
+  "steps.crops.saved.one": "Saved 1 year of crops.",
+  "steps.crops.showEarlier": "Show {n} earlier years"
 }

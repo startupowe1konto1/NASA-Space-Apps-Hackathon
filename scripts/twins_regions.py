@@ -46,7 +46,7 @@ def download(url, name):
         last = None
         for attempt in range(4):
             try:
-                req = urllib.request.Request(url, headers={'User-Agent': 'curl/8.5.0'})
+                req = urllib.request.Request(url, headers={'User-Agent': 'field-shift-tool/0.1 (NASA Space Apps 2026 build script)'})
                 with urllib.request.urlopen(req, timeout=120) as response:
                     data = response.read()
                 with open(path + '.part', 'wb') as f:

@@ -24,7 +24,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Missing
 
-- Heat and frost per crop group: not in this table. Crop rows in `data/crops` carry their own sourced thresholds; `hazards.heat.generalThresholdC` (35 °C) and `hazards.frost.generalThresholdDays` (0) are crop-independent team rules of thumb for the field summary (D26).
+- Heat and frost per crop group: not in this table. Crop rows in `data/crops` carry their own sourced thresholds; `hazards.heat.generalThresholdC` (35 °C) and `hazards.frost.generalThresholdDays` (10 frost days in a month) are crop-independent team rules of thumb for the field summary (D26).
 - Soil health gaps (the second O4-B0 pull request): listed under "Missing: soil health tables" below.
 
 ## Soil health tables (second O4-B0 pull request)

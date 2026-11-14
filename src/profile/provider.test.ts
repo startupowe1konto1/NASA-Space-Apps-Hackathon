@@ -1,3 +1,4 @@
+import hazards from '../../data/rules/hazards.json';
 import sample from '../../data/samples/power/point-monthly-1981-2025-ag.json';
 import { SourceError, type Field } from '../contracts';
 import { climateProfile, fieldProfile } from '../contracts/schemas';
@@ -52,10 +53,13 @@ describe('buildClimateProfile from the saved sample', () => {
     expect(profile.droughtYears.length).toBeGreaterThanOrEqual(9);
   });
 
-  it('has no crop-independent heat or frost probability', () => {
-    const heat = profile.monthlyRisk.filter((r) => r.hazard !== 'drought');
-    expect(heat).toHaveLength(24);
-    expect(heat.every((r) => r.probability.value === null && !!r.probability.missingReason)).toBe(true);
+  it('has heat and frost probabilities from the crop-independent thresholds in hazards.json', () => {
+    const other = profile.monthlyRisk.filter((r) => r.hazard !== 'drought');
+    expect(other).toHaveLength(24);
+    // Every month gets a share between 0 and 1, and the Iowa record has frost in winter and none in summer.
+    expect(other.every((r) => typeof r.probability.value === 'number' && r.probability.value >= 0 && r.probability.value <= 1)).toBe(true);
+    const frost = (month: number) => other.find((r) => r.hazard === 'frost' && r.month === month)?.probability.value ?? NaN;
+    expect(frost(1)).toBeGreaterThan(frost(7));
   });
 
   it('returns four trends', () => {
@@ -120,5 +124,16 @@ describe('powerProfileProvider', () => {
       throw new TypeError('Failed to fetch');
     }) as unknown as typeof fetch);
     await expect(provider.getClimate(field)).rejects.toBeInstanceOf(SourceError);
+  });
+});
+
+describe('DEFAULT_THRESHOLDS', () => {
+  it('reads drought, heat and frost from data/rules/hazards.json, so the field summary follows the rule table', () => {
+    const value = (id: string) => hazards.find((r) => r.id === id)?.value;
+    expect(DEFAULT_THRESHOLDS.droughtPercentile).toBe(value('hazards.drought.percentile'));
+    expect(DEFAULT_THRESHOLDS.heatC).toBe(value('hazards.heat.generalThresholdC'));
+    expect(DEFAULT_THRESHOLDS.frostDays).toBe(value('hazards.frost.generalThresholdDays'));
+    expect(DEFAULT_THRESHOLDS.heatC).not.toBeNull();
+    expect(DEFAULT_THRESHOLDS.frostDays).not.toBeNull();
   });
 });
