@@ -8,7 +8,9 @@ import { PrioritiesStep } from '../steps/priorities/PrioritiesStep';
 import { ReportStep } from '../steps/report/ReportStep';
 import { PROJECT_NAME } from './brand';
 import { t } from './i18n';
+import { StateBoundary } from '../ui-kit';
 import { STEP_COUNT, canContinue, useAppStore } from './store';
+import { useOnline } from './useOnline';
 
 // One component per step (SPEC section 12). O2 replaces the placeholders file by file; the paths stay.
 const steps: { key: string; component: ComponentType }[] = [
@@ -25,6 +27,7 @@ export function App() {
   const state = useAppStore();
   const current = steps[state.step - 1] ?? steps[0]!;
   const Step = current.component;
+  const online = useOnline();
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col bg-white text-slate-900">
@@ -47,7 +50,12 @@ export function App() {
       </header>
 
       <main className="flex-1 px-4 py-4">
-        <Step />
+        {/* The analysis needs NASA POWER, so step 5 waits for a connection instead of starting a request that will fail. */}
+        {current.key === 'rotations' && !online && state.analysis.status !== 'ready' ? (
+          <StateBoundary state="offline">{null}</StateBoundary>
+        ) : (
+          <Step />
+        )}
       </main>
 
       <footer className="flex justify-between gap-3 border-t border-slate-200 px-4 py-3">
