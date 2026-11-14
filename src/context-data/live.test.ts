@@ -122,6 +122,33 @@ describe('live context provider', () => {
     }
   });
 
+  it('SoilGrids gets 120 s by default: a slow answer at 100 s is used, no answer by 120 s is a SourceError', async () => {
+    vi.useFakeTimers();
+    try {
+      const slow: Handler = (url) =>
+        new Promise((resolve) => setTimeout(() => resolve(samplesFetch()(url) as Response), 100_000));
+      const slowProvider = live(slow).provider; // no soilgridsTimeoutMs: the default applies
+      const answered = slowProvider.getSoil(polandElsewhere);
+      await vi.advanceTimersByTimeAsync(100_000);
+      await expect(answered).resolves.toMatchObject({ sandPct: { kind: 'model' } });
+
+      const hang: Handler = (_url, init) =>
+        new Promise((_, reject) => init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError'))));
+      const hangProvider = live(hang).provider;
+      let settled = false;
+      const pending = hangProvider.getSoil(polandElsewhere).finally(() => { settled = true; });
+      const check = expect(pending).rejects.toSatisfy(
+        (e: unknown) => e instanceof SourceError && e.source === 'SoilGrids' && /within 120 s/.test(e.message),
+      );
+      await vi.advanceTimersByTimeAsync(119_000);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1_000);
+      await check;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('a SoilGrids HTTP error is a SourceError naming SoilGrids', async () => {
     const { provider } = live(() => new Response('busy', { status: 503 }));
     await expect(provider.getSoil(polandElsewhere)).rejects.toMatchObject({ source: 'SoilGrids' });
