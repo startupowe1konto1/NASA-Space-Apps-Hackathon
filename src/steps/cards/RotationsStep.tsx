@@ -1,4 +1,5 @@
-// Step 5: the field summary, a goal switcher, the current rotation plus the three best others, and the sources.
+// Step 5: the field summary, the current rotation plus the three best others ranked on the goal from step 2, and the
+// sources, folded. The goal is changed on its own step, not here (HANDOFF-frontend step 5).
 import { useEffect } from 'react';
 import { t } from '../../app/i18n';
 import { liveSoilData } from '../../app/providers';
@@ -6,14 +7,12 @@ import { useAppStore } from '../../app/store';
 import { StateBoundary } from '../../ui-kit';
 import { CalendarStrip } from '../calendar/CalendarStrip';
 import { FieldSummary } from './FieldSummary';
-import { GoalSwitcher } from './GoalSwitcher';
 import { RotationCard } from './RotationCard';
 import { SourcesPanel } from './SourcesPanel';
 
 export function RotationsStep() {
   const analysis = useAppStore((s) => s.analysis);
   const goal = useAppStore((s) => s.goal);
-  const setGoal = useAppStore((s) => s.setGoal);
   const runAnalysis = useAppStore((s) => s.runAnalysis);
 
   useEffect(() => {
@@ -57,7 +56,6 @@ export function RotationsStep() {
         <>
           <div className="grid gap-2">
             <p className="text-base text-slate-700">{t('steps.rotations.intro')}</p>
-            <GoalSwitcher goal={goal} onChange={setGoal} />
             {ranking !== goal ? (
               <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-base text-amber-900">
                 {t('steps.rotations.goalNoData')}

@@ -17,10 +17,8 @@
   "steps.rotations.twinsReady": "Podobne regiony: {count}, średnie podobieństwo {similarity}%.",
   "steps.rotations.gaps": "Czego nie wiemy",
   "steps.rotations.risks": "Sprawdź na miejscu",
-  "steps.rotations.weakTitle": "Najpierw przeczytaj to",
   "steps.rotations.noCrops": "Listy upraw mamy tylko dla USA i Polski, więc dla tego pola nie zaproponujemy płodozmianów. Dane klimatyczne powyżej nadal dotyczą tego pola.",
-  "steps.rotations.intro": "Twój płodozmian i trzy najlepsze warianty dla tego pola, od najlepszego. Dotknij celu, żeby zmienić kolejność.",
-  "steps.rotations.goalSwitch": "Ułóż płodozmiany według",
+  "steps.rotations.intro": "Twój płodozmian i trzy najlepsze warianty dla tego pola, od najlepszego.",
   "steps.rotations.summary.title": "To pole",
   "steps.rotations.summary.droughtYears": "Lata suszy",
   "steps.rotations.summary.droughtYears.unit": "z {n} lat",
@@ -76,5 +74,7 @@
   "steps.rotations.twinsCrops": "Uprawy",
   "steps.rotations.twinsSimilarity": "Podobieństwo",
   "steps.rotations.twinsYield": "Plon",
-  "steps.rotations.loadingNote": "Dane o glebie pobieramy na żywo z SoilGrids, a to może potrwać do dwóch minut. Zostaw tę stronę otwartą."
+  "steps.rotations.loadingNote": "Dane o glebie pobieramy na żywo z SoilGrids, a to może potrwać do dwóch minut. Zostaw tę stronę otwartą.",
+  "steps.rotations.whyMore": "Więcej powodów ({count})",
+  "steps.rotations.rangeNoteTitle": "Jak czytać zakresy"
 }

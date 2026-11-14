@@ -70,11 +70,17 @@ function Payments({ money, datasets }: { money: MoneyEstimate; datasets: Dataset
   );
 }
 
-export function IncomeSection({ money, datasets }: { money: RotationOption['money']; datasets: Dataset[] }) {
+export function IncomeSection(props: {
+  money: RotationOption['money'];
+  datasets: Dataset[];
+  /** Inside a fold the fold's title already says "Income": the heading stays for screen readers only. */
+  headingHidden?: boolean;
+}) {
+  const { money, datasets, headingHidden = false } = props;
   const headingId = useId();
   return (
     <section aria-labelledby={headingId} className="grid gap-2">
-      <h3 id={headingId} className="text-base font-semibold text-slate-900">
+      <h3 id={headingId} className={headingHidden ? 'sr-only' : 'text-base font-semibold text-slate-900'}>
         {t('steps.rotations.income.title')}
       </h3>
       <p className="text-sm font-medium text-slate-800">{t('steps.rotations.income.notForecast')}</p>

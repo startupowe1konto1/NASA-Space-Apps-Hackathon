@@ -17,12 +17,14 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       expect(errors).toEqual([]);
     });
 
-    test('each card has a calendar strip and at least one source chip', async ({ page }) => {
+    // Step 5 folds the evidence (HANDOFF-frontend, the user's decision), so the source chips show once it is opened.
+    test('each card has a calendar strip and at least one source chip behind its evidence', async ({ page }) => {
       await walkToPriorities(page, demo);
       await next(page);
       const cards = await expectFourCards(page);
       for (const card of await cards.all()) {
         await expect(card.getByRole('table', { name: /calendar/i })).toHaveCount(1);
+        await card.locator('summary', { hasText: 'Evidence' }).click();
         await expect(card.getByRole('button', { name: /source/i }).first()).toBeVisible();
       }
     });
