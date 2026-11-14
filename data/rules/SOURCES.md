@@ -29,7 +29,7 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 
 ## Soil health tables (second O4-B0 pull request)
 
-Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
+Files: `nitrogen.json` (14 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
 
 ### Sources opened
 
@@ -45,6 +45,7 @@ Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 row
 | Wischmeier and Smith (1978), USDA Agriculture Handbook 537 | https://www.ars.usda.gov/ARSUserFiles/60600505/RUSLE/AH_537%20Predicting%20Rainfall%20Soil%20Losses.pdf | Table 5 (pp. 22–24) soil loss ratios by crop stage for maize, soybean, small grain and potato; Table 5-B and 5-C (p. 26) meadow, sugar beet and residue cover; Table 3 (p. 12) LS factor by slope | `usda-ah537-tables.txt` |
 | USDA NRCS Conservation Practice Standard 328, Conservation Crop Rotation (Sept 2014) | https://www.nrcs.usda.gov/sites/default/files/2022-09/Conservation_Crop_Rotation_328_CPS.pdf | p. 328-3: three years or longer between plantings of the same family, at least three families | `nrcs-cps-328.txt` |
 | Mohler and Johnson, eds. (2009), SARE "Crop Rotation on Organic Farms: A Planning Manual" (NRAES-177) | https://www.sare.org/wp-content/uploads/Crop-Rotation-on-Organic-Farms.pdf | Sidebar 5.4, p. 70: four to five years for most soilborne diseases; Appendix 3, pp. 125–136: return times per crop and disease | `sare-crop-rotation-organic.txt` |
+| Lundvall, Martins, Sawyer (2021), ISU final report to the Leopold Center "Integrating Rye Seed Production and Red Clover into Corn Systems and Nitrogen Management" | https://www.agronext.iastate.edu/soilfertility/info/Final%20Report%20Corn%20N%20with%20Rye-Red%20Clover-ForSFWebSite.pdf | p. 7 and p. 9: red clover supplied about 50 lb N/acre fertilizer equivalent to the following maize (`nitrogen.credit.red-clover.us-ia`) | `isu-rye-red-clover-2021.txt` |
 
 ### Choices the team made on top of the sources
 
