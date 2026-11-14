@@ -1,11 +1,20 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { providers } from '../../app/providers';
 import { useAppStore } from '../../app/store';
-import { demoFields } from '../../fixtures';
+import { demoFields, fixtureCrops } from '../../fixtures';
 import { PrioritiesStep } from './PrioritiesStep';
 
 beforeEach(() => {
   useAppStore.getState().reset();
+  // The step is tested against the fixture crop lists, not the sourced tables in data/crops/, which change as O4 adds sources.
+  vi.spyOn(providers.context, 'getCrops').mockImplementation(async (country) =>
+    country === 'OTHER' ? [] : fixtureCrops[country],
+  );
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 const SWITCHES = ['Use less water', 'Grow forage', 'Fix and keep nitrogen', 'Stop erosion', 'Build organic matter'];
