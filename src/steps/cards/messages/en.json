@@ -75,13 +75,12 @@
   "steps.rotations.twinsSimilarity": "Similarity",
   "steps.rotations.twinsYield": "Yield",
   "steps.rotations.loadingNote": "Soil data comes live from SoilGrids and can take up to two minutes to arrive. Keep this page open.",
-  "steps.rotations.whyMore": "More reasons ({count})",
-  "steps.rotations.rangeNoteTitle": "How to read the ranges",
+  "steps.rotations.scoresHow": "How these scores are made",
+  "steps.rotations.listMore": "Show {count} more",
+  "steps.rotations.listLess": "Show fewer",
   "steps.rotations.summary.stripes.title": "Growing seasons at this field, NASA POWER, a model estimate",
   "steps.rotations.summary.stripes.caption": "Darker blue: a wetter season. Amber: a drought year.",
   "steps.rotations.summary.stripes.drought": "drought year",
   "steps.rotations.summary.stripes.label": "{n} growing seasons from {from} to {to}, {drought} of them drought years.",
-  "steps.rotations.summary.droughtWhat": "What counts as a drought year",
-  "steps.rotations.listMore": "Show {count} more",
-  "steps.rotations.listLess": "Show fewer"
+  "steps.rotations.summary.droughtWhat": "What counts as a drought year"
 }
