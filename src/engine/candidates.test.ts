@@ -34,6 +34,12 @@ const poznanCurrent: Years = [
 ];
 
 describe('currentRotation', () => {
+  it('finds a 4-year cycle in a 7-year history', () => {
+    const crops = ['winter-wheat', 'winter-rapeseed', 'winter-wheat', 'spring-barley', 'winter-wheat', 'winter-rapeseed', 'winter-wheat'];
+    const history = crops.map((crop, i) => ({ year: 2019 + i, crop, source: 'farmer' as const }));
+    expect(currentRotation(history).map((y) => y.crop)).toEqual(['spring-barley', 'winter-wheat', 'winter-rapeseed', 'winter-wheat']);
+  });
+
   it('maize, soybean, maize, soybean returns the two-year cycle', () => {
     expect(currentRotation(history(['maize', 'soybean', 'maize', 'soybean']))).toEqual([
       { crop: 'maize' },
