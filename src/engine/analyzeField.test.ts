@@ -247,17 +247,41 @@ describe('analyzeField with fixture providers', () => {
       const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
       expect(a.rotations.length).toBeGreaterThan(0);
       for (const r of a.rotations) {
-        expect(r.priorityScores.water?.basis.code).toMatch(/^priority\.basis\.water/);
+        expect(r.priorityScores.water?.basis.code).toBe('priority.basis.water');
         expect(r.priorityScores.water!.low).toBeLessThanOrEqual(r.priorityScores.water!.value);
+        expect(r.gaps.map((g) => g.code)).not.toContain('gap.priority-not-scored');
       }
-      expect(current(a).gaps.map((g) => g.code)).not.toContain('gap.priority-not-scored');
+    });
+
+    // Every number on screen is Sourced: the water evidence carries the POWER rain and evapotranspiration as model
+    // values and names the need rows it used.
+    it('puts the growing-season rain and evapotranspiration on the card as model values with the need rule ids', async () => {
+      const analyze = createAnalyzeField({ rules: loadRules({ ...files, '../../data/rules/zz-test.json': needRows }) });
+      const a = await analyze({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      const { source } = await fixtureProviders.profile.getClimate(demoFields.iowa);
+      const e = current(a).evidence.find((x) => x.message.code === 'evidence.water');
+      expect(e).toBeDefined();
+      expect(e!.ruleIds).toEqual(needRows.map((r) => r.id));
+      const units = e!.values.map((v) => v.unit);
+      expect(units).toEqual(['mm growing-season rain, mean of checked crop-years', 'mm growing-season evapotranspiration, mean of checked crop-years']);
+      for (const v of e!.values) {
+        expect(v.kind).toBe(source.kind);
+        expect(v.datasetIds).toEqual(source.datasetIds);
+        expect(typeof v.value).toBe('number');
+      }
     });
 
     it('without the rows, water has no score and the card names it as not scored', async () => {
-      if (['low', 'medium', 'high'].every((c) => shippedRules.byId.has(`water.needMm.${c}`))) return;
-      const a = await createAnalyzeField({ rules: shippedRules })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
-      expect(current(a).priorityScores.water).toBeUndefined();
-      expect(current(a).gaps.map((g) => g.code)).toContain('gap.priority-not-scored');
+      const withoutWater = Object.fromEntries(
+        Object.entries(files).map(([name, rows]) => [name, (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.'))]),
+      );
+      const a = await createAnalyzeField({ rules: loadRules(withoutWater) })({ field: demoFields.iowa, cropHistory: iowaHistory, priorities: waterOn }, fixtureProviders);
+      expect(a.rotations.length).toBeGreaterThan(0);
+      for (const r of a.rotations) {
+        expect(r.priorityScores.water).toBeUndefined();
+        expect(r.gaps.map((g) => g.code)).toContain('gap.priority-not-scored');
+        expect(r.evidence.map((x) => x.message.code)).not.toContain('evidence.water');
+      }
     });
   });
 

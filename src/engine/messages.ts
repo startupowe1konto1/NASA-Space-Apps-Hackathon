@@ -41,6 +41,7 @@ export const CARD_MESSAGE_CODES = [
   'evidence.resilience',
   'evidence.cover-months',
   'evidence.hazard-month',
+  'evidence.water',
   'gap.weak.soil-cover-only',
   'gap.weak.soil',
   'gap.weak.climate-record',
@@ -118,6 +119,13 @@ export interface SoilOutcome {
   notAdjusted?: { leaching: boolean; humus: string[] };
 }
 
+/** Growing-season means behind the water score (mm), and the need rows it used. */
+export interface WaterEvidenceInput {
+  meanRainMm: number;
+  meanEtMm: number;
+  ruleIds: string[];
+}
+
 export interface CardInput {
   years: Years;
   isCurrent: boolean;
@@ -141,6 +149,8 @@ export interface CardInput {
   soilInputsMissing: string[];
   slopeMissing: boolean;
   prioritiesNotScored: PriorityId[];
+  /** Set when the water priority was scored for this rotation. */
+  water?: WaterEvidenceInput;
   ruleIds: { drought: string; markShare: string; heatMinDays: string };
   /** Dataset id for our crop calendars (bare months). */
   calendarDatasetId: string;
@@ -267,6 +277,23 @@ export function cardMessages(c: CardInput): CardMessages {
     ruleIds: [],
   });
   evidence.push(...c.soil.evidence);
+  if (c.water) {
+    const power = (value: number, unit: string): Sourced => ({
+      value,
+      unit,
+      datasetIds: [...c.climate.source.datasetIds],
+      kind: c.climate.source.kind,
+      retrievedAt: c.climate.source.retrievedAt,
+    });
+    evidence.push({
+      message: m('evidence.water', { rain: c.water.meanRainMm, et: c.water.meanEtMm }),
+      values: [
+        power(c.water.meanRainMm, 'mm growing-season rain, mean of checked crop-years'),
+        power(c.water.meanEtMm, 'mm growing-season evapotranspiration, mean of checked crop-years'),
+      ],
+      ruleIds: c.water.ruleIds,
+    });
+  }
   if (c.history?.cropscape) {
     evidence.push({
       message: m('evidence.history-cropscape', { count: c.history.years.length }),

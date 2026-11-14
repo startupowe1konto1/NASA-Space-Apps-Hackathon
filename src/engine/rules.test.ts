@@ -44,9 +44,16 @@ describe('loadRules', () => {
     const withRows = (rows: ReturnType<typeof row>[]) => loadRules({ ...files, '../../data/rules/zz-test.json': rows });
     const ids = ['water.needMm.low', 'water.needMm.medium', 'water.needMm.high'];
 
-    it('is absent when data/rules has no water need rows, and present when it has them', () => {
-      const shipped = engineRules(shippedRules);
-      expect(shipped.waterNeedMm === undefined).toBe(!ids.every((id) => shippedRules.byId.has(id)));
+    it('is absent when data/rules has no water need rows', () => {
+      const without = Object.fromEntries(
+        Object.entries(files).map(([name, rows]) => [name, (rows as { id: string }[]).filter((r) => !r.id.startsWith('water.needMm.'))]),
+      );
+      const r = engineRules(loadRules(without));
+      expect(r.waterNeedMm).toBeUndefined();
+      expect(r.ids.waterNeed).toBeUndefined();
+    });
+
+    it('is present, with its rule ids, when data/rules has all three rows', () => {
       const r = engineRules(withRows([row(ids[0]!, 400), row(ids[1]!, 550), row(ids[2]!, 700)]));
       expect(r.waterNeedMm).toEqual({ low: 400, medium: 550, high: 700 });
       expect(r.ids.waterNeed).toEqual({ low: ids[0], medium: ids[1], high: ids[2] });

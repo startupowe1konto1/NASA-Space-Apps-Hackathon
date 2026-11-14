@@ -16,9 +16,7 @@
   "soil.evidence.pest-break": "{violations} of {years} crops come back before their family's minimum break.",
 
   "priority.basis.forage": "{forageYears} of {years} rotation years give forage: a forage crop or a cover crop that can be grazed. Counted from crop traits.",
-  "priority.basis.water": "Growing-season rain alone (evapotranspiration not counted) covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (a model estimate). Range: 10th to 90th percentile year.",
-  "priority.basis.water-no-data": "No growing season in the rain record is complete, so the water need could not be checked.",
-  "priority.basis.water-no-need-class": "No crop in this rotation has a water need class, so the water need could not be checked.",
+  "priority.basis.water": "Growing-season rain covered both the crop's seasonal need and the field's evapotranspiration in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (model estimates). Range: 10th to 90th percentile year.",
 
   "total.basis": "Soil health counts for {soil}%, climate resilience for {climate}%, your priorities for {priorities}% and income for {income}%.",
   "income.not-wired": "Income is not calculated yet. Prices and costs are not loaded.",
@@ -45,6 +43,7 @@
 
   "evidence.resilience": "{value}% of crop-years came through without drought, heat or frost damage at this field, {years} years ({from}–{to}) of NASA POWER data, a model estimate.",
   "evidence.hazard-month": "In {hit} of {years} years at this field, {hazard} hit the {crop} in {month}.",
+  "evidence.water": "In the growing seasons checked, this field got {rain} mm of rain on average and lost {et} mm to evapotranspiration (NASA POWER, model estimates).",
   "evidence.cover-months": "In each {total}-month cycle the crop calendar shows {bare} bare months and {living} months with a living crop or cover crop. Our calculation from crop calendars.",
 
   "gap.weak.soil-cover-only": "Low confidence: soil health counts only soil cover so far. Nitrogen, organic matter, erosion and pest break are not scored yet.",
