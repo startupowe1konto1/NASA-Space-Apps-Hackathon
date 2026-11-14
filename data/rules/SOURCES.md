@@ -25,4 +25,47 @@ These are labelled `team decision` or `team rule of thumb` and the screen says s
 ## Missing
 
 - Heat and frost thresholds per crop group: not in this table. Each crop row in `data/crops` carries its own sourced thresholds (task O4-A2), and the engine uses those.
-- `nitrogen`, `humus`, `erosion`, `pest-break`: follow in the next O4-B0 pull request.
+- Soil health gaps (the second O4-B0 pull request): listed under "Missing: soil health tables" below.
+
+## Soil health tables (second O4-B0 pull request)
+
+Files: `nitrogen.json` (13 rows), `humus.json` (29 rows), `erosion.json` (12 rows), `pest-break.json` (10 rows). Each source PDF was downloaded on Sat 14 Nov 2026 and the pages used are saved as text in `data/samples/rules/`.
+
+### Sources opened
+
+| Source | URL | Used for | Excerpt |
+|---|---|---|---|
+| Sawyer (2014), ISU Soil Fertility Current Topic "Nitrogen Fertilization Rates for Corn Production" | https://www.agronext.iastate.edu/soilfertility/currenttopics/NitrogenFertilizationRates_10-14-2014.pdf | Table 1, p. 2: Iowa N rate for maize after soybean (137, range 126–149 lb N/acre) and after maize (190, range 178–201) at price ratio 0.10 | `isu-nitrogen-rates-2014.txt` |
+| Sawyer (2008), ISU Current Topic "Nitrogen Fertilization for Corn Following Corn" | https://www.agronext.iastate.edu/soilfertility/currenttopics/CC_Nitrogen_3-19-08.pdf | p. 1: maize after maize needs 45–60 lb N/acre more than maize after soybean (`nitrogen.credit.soybean.us-ia`) | `isu-cc-nitrogen-2008.txt` |
+| Sawyer (2004), ISU Integrated Crop Management Conference paper on high fertilizer prices | https://www.agronext.iastate.edu/soilfertility/info/highfertilizerprices04icm.pdf | Table 2, p. 172: first-year maize after a forage legume needs 0–25 lb N/acre in Iowa studies; p. 165: continuous maize highest return at 170 lb N/acre | `isu-high-fertilizer-prices-2004.txt` |
+| Sawyer (2006), ISU ICM Conference "Managing Nitrogen for High Corn Yields" | https://www.agronext.iastate.edu/soilfertility/info/ManNitrHighCornYields_2006ICMConf.pdf | p. 3: the soybean effect lasts one maize year; second-year maize after alfalfa responds like maize after soybean | `isu-managing-n-high-yields-2006.txt` |
+| Rozporządzenie Rady Ministrów z 31 stycznia 2023 (Dz.U. 2023 poz. 244), Polish nitrates action programme | https://api.sejm.gov.pl/eli/acts/DU/2023/244/text.pdf | Annex 8, Table 13, Dz.U. p. 121: N left for the next crop by legumes (25 kg N/ha after a field pea main crop, 15–50 kg in other cases) and by ploughed sugar beet leaves (25 kg) | `pl-nitrates-programme-2023-table13.txt` |
+| Jadczyszyn, Lipiński, Kowalczyk (2025), IUNG-PIB / KSChR "Nawożenie na gruntach ornych i trwałych użytkach zielonych" (IU251) | https://www.iung.pl/wp-content/uploads/2025/04/IU251.pdf | p. 6: N dose formula with the legume term Nb and the 0.7 use factor for mineral N | `iung-iu251-2025.txt` |
+| Siebielec (2014), IUNG-PIB slides on soil organic matter | https://iung.pl/wp-content/uploads/2013/01/1.5-PIB-2014.pdf | slide 4: humus reproduction and degradation coefficients from Kodeks Dobrej Praktyki Rolniczej 2004 by soil class; slide 5: VDLUFA ranges in kg humus C/ha/year | `iung-siebielec-2014-humus.txt` |
+| Wischmeier and Smith (1978), USDA Agriculture Handbook 537 | https://www.ars.usda.gov/ARSUserFiles/60600505/RUSLE/AH_537%20Predicting%20Rainfall%20Soil%20Losses.pdf | Table 5 (pp. 22–24) soil loss ratios by crop stage for maize, soybean, small grain and potato; Table 5-B and 5-C (p. 26) meadow, sugar beet and residue cover; Table 3 (p. 12) LS factor by slope | `usda-ah537-tables.txt` |
+| USDA NRCS Conservation Practice Standard 328, Conservation Crop Rotation (Sept 2014) | https://www.nrcs.usda.gov/sites/default/files/2022-09/Conservation_Crop_Rotation_328_CPS.pdf | p. 328-3: three years or longer between plantings of the same family, at least three families | `nrcs-cps-328.txt` |
+| Mohler and Johnson, eds. (2009), SARE "Crop Rotation on Organic Farms: A Planning Manual" (NRAES-177) | https://www.sare.org/wp-content/uploads/Crop-Rotation-on-Organic-Farms.pdf | Sidebar 5.4, p. 70: four to five years for most soilborne diseases; Appendix 3, pp. 125–136: return times per crop and disease | `sare-crop-rotation-organic.txt` |
+
+### Choices the team made on top of the sources
+
+| Row | What we did |
+|---|---|
+| `nitrogen.credit.alfalfa.us-ia` | 145–170 lb N/acre is our subtraction: continuous maize 170 minus first-year maize after alfalfa 0–25, both from Sawyer (2004). |
+| `nitrogen.credit.alfalfaSecondYear.us-ia` | reuses the soybean credit values because Sawyer (2006) says the N response is the same. |
+| Iowa N units | kept in lb N/acre as printed; 1 lb/acre = 1.121 kg/ha. Polish rows are in kg N/ha. |
+| `humus.coef.*.pl` | the slide prints the unit column as "1ha". We read the values as tonnes of soil organic matter per hectare per crop-year, which is how the Code states them. A mentor should confirm. Rows for US crops (soybean, oats, alfalfa, red clover) borrow the Polish coefficients. |
+| `erosion.ls.slopeLength75ft` | the app does not know slope length, so we use the 75 ft column of Table 3, the one closest to the 72.6 ft unit plot. |
+| `erosion.slr.sugar-beet` | Handbook 537 has no sugar beet data and points to potatoes without the ridging credit, so the row repeats Table 5 line 159. |
+| `erosion.slr.smallGrain.conventional` | winter grain row; oats, spring barley and winter rapeseed use it as the nearest row. |
+| `pestBreak.*` | no source says "never". Every interval is a recommendation, so the engine should score a violation and not drop the rotation (SPEC section 8, step 4). |
+
+### Missing: soil health tables
+
+- Red clover cover crop N credit for Iowa: no ISU document with a number was opened. The Polish legume catch crop row (`nitrogen.credit.legumeCatchCrop.pl`, 15–20 kg N/ha) is the only cover crop credit.
+- Leaching adjustment of the N credit by soil texture: none of the opened sources gives numbers. The engine can only use rain in the bare months.
+- NRCS Soil Conditioning Index (USA organic matter): not opened. Iowa organic matter has only the borrowed Polish and VDLUFA coefficients.
+- Climate adjustment of the humus balance (warm and wet soils): no source with numbers opened.
+- Humus coefficients for white mustard and phacelia catch crops: the Code has no catch crop row and the VDLUFA table has no matching row. Cereal rye cover can use `humus.vdlufa.winterCatchCrops`.
+- RUSLE Handbook 703: the PDF on the ARS site opened, but it is a scan with no text layer, so the C values come from Handbook 537 (the earlier USLE handbook by the same agency).
+- Erosion rows for winter rapeseed, field pea, white mustard and phacelia: Handbook 537 has none. Table 5-C rows for 80–95 % residue cover are left out because the extracted text of those rows is not clear.
+- Pest-cycle break from a Polish source (rapeseed and sugar beet intervals): not opened. The Brassicaceae row comes from vegetable crucifer diseases in the northeastern United States.
