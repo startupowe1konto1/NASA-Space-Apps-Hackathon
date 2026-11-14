@@ -104,6 +104,9 @@ Written Sat 14 Nov 2026, 15:05 CET (T+3:56). T0 = Sat 11:09 CET.
 | O4-B1 | O4 | B | Twins case base: regions and features | O4-B0 | no |
 | O4-B2 | O4 | B | Twins outcomes: crop shares and yields | O4-B1 | no |
 | O4-B3 | O4 | B | `TwinsProvider` | O4-B1, O4-B2 | no |
+| R8 | O1 | R | Research: Polish crop prices, costs, 2026 payments (D33) | – | no |
+| R9 | O1 | R | Research: Iowa prices, ISU budgets, NRCS 340/328 rates (D33) | – | no |
+| R10 | O1 | R | Research: Ky, heat and frost thresholds, cover-crop windows (D33) | – | no |
 
 Stream A of O2 runs in the order A1, A4, A3, A2. If the minimum is at risk, cut in this order: O2-A2 address search, O2-A3 parcels, O2-A4 drawing, the glossary page of O2-B5 (tooltips stay); the demo buttons and a click on the map are enough for the demo. The plan assumes none of this is needed (D18). O3-B3 and O3-B4 can run as two subagents at once. Pitch, slides and the demo recording get tasks and an owner after O1-S1 is on `main`.
 
@@ -489,6 +492,10 @@ The functions take the rule rows as an argument. Tests use in-test rows with mad
 **Done when:** the Iowa demo cards show twin evidence with case count and similarity.
 
 ---
+
+## Research tasks (D33)
+
+R8, R9 and R10 run as separate Claude Code sessions, each on its own branch (`o1/r8-pl-economics`, `o1/r9-ia-economics`, `o1/r10-agronomy`). **Files:** `context/research/<topic>.md` and `data/samples/research/<topic>/` only. Every value has a source title, URL and locator copied from an opened document; unconfirmed 2026 rates are marked so. O4 maps the results into `data/money/` (O4-A4) and `data/crops/` (O4-A2, O4-B0 1b). **Due:** Sat 18:00. **Done when:** a ready PR per topic lists what is confirmed, not confirmed and missing; O1 merges it.
 
 ## Plan pre-flight
 
