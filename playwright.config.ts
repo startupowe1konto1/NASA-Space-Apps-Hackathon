@@ -26,7 +26,9 @@ export default defineConfig({
     : {
         command: `npm run dev -- --port ${port} --strictPort`,
         url: baseURL,
-        reuseExistingServer: true,
+        // Never test whatever else is running on 5171 (another worktree's dev server would hide our code).
+        // Set E2E_REUSE=1 only when you started `npm run dev -- --port 5171` from this same checkout.
+        reuseExistingServer: process.env.E2E_REUSE === '1',
         timeout: 60_000,
       },
 });

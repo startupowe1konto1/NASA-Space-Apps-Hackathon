@@ -12,14 +12,36 @@ export async function walkToPriorities(page: Page, demoButton: 'Iowa demo field'
   await page.getByRole('button', { name: demoButton }).click();
   await next(page);
 
-  // Step 3: confirm the proposed history (Iowa) or the picked crops (Poznań).
-  // When O2-B2 merges: Iowa answers "Is this right?" with "Yes"; Poznań picks two or three crops in the icon picker.
+  // Step 3. Iowa: CropScape history is proposed and the farmer confirms it.
+  // Poznań: no crop maps, so the farmer taps one crop tile per season, as a real farmer would.
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 3 of 7');
-  await page.getByRole('button', { name: /Yes, use these crops/ }).click();
+  if (demoButton === 'Iowa demo field') {
+    await expect(page.getByText(/Is this right\?/)).toBeVisible();
+    await page.getByRole('button', { name: /Yes, use these crops/ }).click();
+  } else {
+    await pickPoznanSeasons(page);
+  }
   await expect(page.getByText(/Saved \d+ years of crops/)).toBeVisible();
   await next(page);
 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 4 of 7');
+}
+
+/**
+ * The Poznań farmer's last three seasons, newest first: winter wheat after maize after winter wheat, a common
+ * rotation in Wielkopolska. These are the scenario's answers, not data; if a crop leaves data/crops/pl.json the
+ * tile is missing and this step fails with the crop's name, which is the signal we want.
+ */
+export const POZNAN_SEASONS = ['Winter wheat', 'Maize', 'Winter wheat'] as const;
+
+async function pickPoznanSeasons(page: Page) {
+  const seasons = page.getByRole('radiogroup', { name: /Main crop in \d{4}/ });
+  await expect(seasons).toHaveCount(POZNAN_SEASONS.length);
+  for (const [i, crop] of POZNAN_SEASONS.entries()) {
+    const tile = seasons.nth(i).getByRole('radio', { name: crop });
+    await tile.click();
+    await expect(tile).toHaveAttribute('aria-checked', 'true');
+  }
 }
 
 export async function next(page: Page) {
