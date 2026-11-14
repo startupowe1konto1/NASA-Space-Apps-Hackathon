@@ -70,6 +70,20 @@ Rule for the build: every number that decides a recommendation (drought, heat, f
 | 38 | MERRA-2 | source behind most POWER meteorology; only if we need hourly data | global | ○, not needed for the MVP |
 | 39 | Open-Meteo (not NASA) | weather forecast for the coming season | global | ○, optional; keep out of the core so NASA stays the data base |
 
+## Field selection: addresses and parcels (checked 14:05–14:10 CET)
+
+| # | Service | What it does | Where | Status |
+|---|---|---|---|---|
+| 40 | [GUGiK UUG geocoder](https://services.gugik.gov.pl/uug/) | address → point, TERYT, postcode (`?request=GetAddress&address=...`, address must be URL-encoded) | Poland | ✅, no login, CORS `*`; "Swarzędz, Rynek 1" returned TERYT 302116 and postcode 62-020 |
+| 35 | ULDK (GUGiK), see above | click → parcel; also `GetParcelById` with the full parcel ID (e.g. `302116_5.0008.428/1`) → boundary | Poland | ✅, no login, CORS `*` |
+| 41 | [KIEG WMS (GUGiK)](https://integracja.gugik.gov.pl/cgi-bin/KrajowaIntegracjaEwidencjiGruntow) | map layer with all cadastral parcel boundaries and numbers (`dzialki`, `numery_dzialek`; also `uzytki`, `kontury`, `budynki`) | Poland | ✅, no login, CORS `*`; renders only in EPSG:2180 (EPSG:4326 and EPSG:3857 return a proj error), so the web map needs proj4 reprojection or a small proxy. Sample: `data/samples/kieg-parcels-swarzedz-epsg2180.png` |
+| 42 | [US Census geocoder](https://geocoding.geo.census.gov/) | address → point | USA | ✅, no key |
+| 43 | [Nominatim (OpenStreetMap)](https://nominatim.org/) | address or place name → point | global | ✅, CORS `*`; usage policy: at most 1 request per second and an identifying User-Agent |
+
+There is no free national parcel layer in the USA (parcels are held by counties; national compilations are commercial). In the USA the farmer draws the field; proposing an outline from contiguous CropScape pixels of one crop is an idea, not tested.
+
+A cadastral parcel is not a field: one parcel can hold two crops and one field can span several parcels. The app must let the farmer split a parcel, merge parcels and redraw the outline (for example with Leaflet-Geoman, which has a cut tool; to check during the build).
+
 ## Comparison with the candidate list (PR #17)
 
 - **On both lists:** NASA POWER, GPM IMERG, ERA5, SMAP (GIBS and files), NISAR SME2, GRACE, GLDAS, ECOSTRESS, MODIS NDVI, VIIRS, Landsat/HLS, Sentinel-2, SoilGrids, SRTM, SSURGO, FAO GAEZ, FAO EcoCrop, CropScape/NASS, GIBS, AppEEARS, Earthdata Search/CMR.
