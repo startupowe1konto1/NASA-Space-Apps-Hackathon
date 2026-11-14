@@ -30,6 +30,7 @@ describe('loadRules', () => {
     const fileValue = (id: string) => [...(goalsFile as RuleRow[]), ...(hazardsFile as RuleRow[])].find((x) => x.id === id)?.value;
     expect(r.markShare).toBe(fileValue(r.ids.markShare));
     expect(r.droughtPercentile).toBe(fileValue(r.ids.drought));
+    expect(r.heatMinDays).toBe(fileValue(r.ids.heatMinDays));
     expect(r.notSuitableBelowSI).toBe(fileValue(r.ids.gaez));
     expect(r.floorPoints).toBe(fileValue(r.ids.floor));
     expect(r.shownOthers).toBe(fileValue('goals.shownOthers.count'));

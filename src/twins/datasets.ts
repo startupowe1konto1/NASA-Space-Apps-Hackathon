@@ -7,7 +7,7 @@ export const datasets: Dataset[] = [
     url: 'https://power.larc.nasa.gov/', nasa: true, resolution: 'about 50 km', period: '2001–2025', kind: 'model',
   },
   {
-    id: 'usda-nass-quickstats', name: 'USDA NASS Quick Stats, county crop area and yield', provider: 'USDA NASS',
+    id: 'usda-nass-county-crops', name: 'USDA NASS Quick Stats, county harvested area and yield (case base)', provider: 'USDA NASS',
     url: 'https://quickstats.nass.usda.gov/', nasa: false, resolution: 'county', period: '2019–2023', kind: 'observation',
   },
   {

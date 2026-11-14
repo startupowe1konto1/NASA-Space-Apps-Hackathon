@@ -60,7 +60,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Maize 1.25"
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Maize 1.25"
       },
       {
         "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
@@ -101,6 +101,11 @@
         "title": "Licht and Archontoulis (2020), What impact will the heat and dry weather have on pollination 2020?, Iowa State University Extension, Integrated Crop Management",
         "url": "https://crops.extension.iastate.edu/post/what-impact-will-heat-and-dry-weather-have-pollination-2020",
         "locator": "paragraphs 7-8: heat stress \"typically requires temperature of greater than 95 oF\" (35 °C) in the 2 weeks before or after pollination; a second source for the 35 °C heat threshold. Excerpt: data/samples/research/agronomy/hf-isu-corn-pollination-heat.txt"
+      },
+      {
+        "title": "team conversion of the frost limit to NASA POWER frost days",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/data/crops/SOURCES.md",
+        "locator": "The sources give frost damage at about -1 to -2 °C for a couple of hours (FAO-66 potato: 1 °C and less). NASA POWER FROST_DAYS counts any day with frost at or below 0 °C, so one frost day does not show damaging cold. Threshold 1 means more than one, i.e. two or more frost days in the month (the engine counts FROST_DAYS > threshold). This conversion is ours, not the sources'."
       }
     ]
   },
@@ -159,7 +164,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Soybean 0.85"
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Soybean 0.85"
       },
       {
         "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
@@ -205,6 +210,11 @@
         "title": "Hurburgh, Vittetoe and Anderson (2019), Frost Damage to Soybeans, Iowa State University Extension, Integrated Crop Management",
         "url": "https://crops.extension.iastate.edu/post/frost-damage-soybeans",
         "locator": "paragraphs 1-3: \"Temperatures below 32°F can damage soybean leaves ... A killing freeze is considered to be 28°F\"; plants with green pods (before R7) are hurt most; confirms the pod-filling months (August, September) of the frost row. Excerpt: data/samples/research/agronomy/hf-isu-soybean-fall-frost.txt"
+      },
+      {
+        "title": "team conversion of the frost limit to NASA POWER frost days",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/data/crops/SOURCES.md",
+        "locator": "The sources give frost damage at about -1 to -2 °C for a couple of hours (FAO-66 potato: 1 °C and less). NASA POWER FROST_DAYS counts any day with frost at or below 0 °C, so one frost day does not show damaging cold. Threshold 1 means more than one, i.e. two or more frost days in the month (the engine counts FROST_DAYS > threshold). This conversion is ours, not the sources'."
       }
     ]
   },
@@ -262,7 +272,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Winter wheat 1.05"
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Winter wheat 1.05"
       },
       {
         "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",
@@ -303,6 +313,11 @@
         "title": "Shroyer, Mikesell and Paulsen (1995), Spring Freeze Injury to Kansas Wheat, C646, Kansas State University",
         "url": "https://bookstore.ksre.ksu.edu/pubs/C646.PDF",
         "locator": "p. 2, Table 1 (two hours of exposure): heading and flowering 30 F (-1 C), yield effect \"Severe\"; milk and dough 28 F (-2 C); confirms the frost row in the heading and grain-filling months (May, June). Excerpt: data/samples/research/agronomy/hf-ksu-c646-wheat-freeze.txt"
+      },
+      {
+        "title": "team conversion of the frost limit to NASA POWER frost days",
+        "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/data/crops/SOURCES.md",
+        "locator": "The sources give frost damage at about -1 to -2 °C for a couple of hours (FAO-66 potato: 1 °C and less). NASA POWER FROST_DAYS counts any day with frost at or below 0 °C, so one frost day does not show damaging cold. Threshold 1 means more than one, i.e. two or more frost days in the month (the engine counts FROST_DAYS > threshold). This conversion is ours, not the sources'."
       }
     ]
   },
@@ -408,7 +423,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 6: Alfalfa 1.1"
+        "locator": "Table 1 \"Seasonal Ky values from FAO Irrigation and Drainage Paper No. 33\", printed page 7: Alfalfa 1.1"
       },
       {
         "title": "FAO Irrigation Water Management Training Manual 3, Irrigation water needs, chapter 3",

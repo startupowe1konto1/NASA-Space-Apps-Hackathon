@@ -13,6 +13,16 @@ export const datasets: Dataset[] = [
     kind: 'model',
   },
   {
+    id: 'nasa-power-daily',
+    name: 'NASA POWER daily agroclimatology (daily maximum temperature)',
+    provider: 'NASA Langley Research Center (LaRC)',
+    url: 'https://power.larc.nasa.gov/',
+    nasa: true,
+    resolution: 'about 50 km',
+    period: '1981–2025',
+    kind: 'model',
+  },
+  {
     id: 'smap-l4-rootzone',
     name: 'SMAP L4 root-zone soil moisture (NASA GIBS)',
     provider: 'NASA',

@@ -98,4 +98,18 @@ describe('createLeafletMap with Geoman', () => {
     polygonsOnMap()[0]!.fire('click');
     expect(handlers.onSelectField).toHaveBeenCalledTimes(1);
   });
+
+  it('turns a tap on a field into a corner of the outline being drawn, without selecting the field', () => {
+    controller.setFields([demoFields.poznan], null);
+    map.pm.enableDraw('Polygon');
+    const field = polygonsOnMap()[0]!;
+    const corner = field.getBounds().getCenter();
+
+    field.fire('click', { latlng: corner });
+
+    expect(handlers.onSelectField).not.toHaveBeenCalled();
+    const drawing = (map.pm.Draw as unknown as { Polygon: { _layer: L.Polyline } }).Polygon._layer;
+    expect(drawing.getLatLngs()).toEqual([corner]);
+    map.pm.disableDraw();
+  });
 });

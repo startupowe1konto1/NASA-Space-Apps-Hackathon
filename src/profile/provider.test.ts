@@ -1,8 +1,9 @@
 import hazards from '../../data/rules/hazards.json';
 import sample from '../../data/samples/power/point-monthly-1981-2025-ag.json';
+import dailySample from '../../data/samples/power/point-daily-tmax-2023-2024-ag.json';
 import { SourceError, type Field } from '../contracts';
 import { climateProfile, fieldProfile } from '../contracts/schemas';
-import { parsePowerMonthly } from './power';
+import { parsePowerDailyTMax, parsePowerMonthly } from './power';
 import { DEFAULT_THRESHOLDS, buildClimateProfile, createPowerProfileProvider } from './provider';
 
 const RETRIEVED = '2026-11-14';
@@ -18,11 +19,14 @@ const field: Field = {
 };
 
 const okResponse = (body: unknown) => new Response(JSON.stringify(body), { status: 200 });
+/** A fetch that answers the monthly URL with `monthly` and the daily URL (D43) with the saved daily sample. */
+const routed = (monthly: unknown) => async (url: string | URL | Request) =>
+  okResponse(String(url).includes('/temporal/daily/') ? dailySample : monthly);
 
 describe('createPowerProfileProvider thresholds', () => {
   it('passes thresholds through, so heat and frost come from hazards.json with one line', async () => {
-    const fetchImpl = vi.fn(async () => okResponse(sample));
-    const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch, { droughtPercentile: 20, heatC: 30, frostDays: 10 });
+    const fetchImpl = vi.fn(routed(sample));
+    const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch, { droughtPercentile: 20, heatC: 30, frostDays: 10, heatMinDays: 3 });
     const profile = await provider.getClimate(field);
     const julyHeat = profile.monthlyRisk.find((r) => r.month === 7 && r.hazard === 'heat')!;
     expect(julyHeat.probability.value).not.toBeNull();
@@ -71,12 +75,14 @@ describe('powerProfileProvider', () => {
   it('fetches POWER for the field centroid and keeps a null month as null', async () => {
     const body = clone();
     body.properties.parameter.GWETROOT['202507'] = -999;
-    const fetchImpl = vi.fn(async (_url: string | URL | Request) => okResponse(body));
+    const fetchImpl = vi.fn(routed(body));
     const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch);
     const profile = await provider.getClimate(field);
 
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
-    expect(String(fetchImpl.mock.calls[0]![0])).toContain('latitude=42');
+    // one monthly and one daily request (D43), both for the centroid
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl.mock.calls.map((c) => String(c[0])).every((u) => u.includes('latitude=42'))).toBe(true);
+    expect(profile.source.datasetIds).toEqual(['nasa-power-monthly', 'nasa-power-daily']);
     const july = profile.monthly.find((m) => m.year === 2025 && m.month === 7)!;
     expect(july.rootWetness).toBeNull();
     expect(july.tMaxC).not.toBeNull();
@@ -99,24 +105,30 @@ describe('powerProfileProvider', () => {
   });
 
   it('caches by location and asks POWER once', async () => {
-    const fetchImpl = vi.fn(async () => okResponse(clone()));
+    const fetchImpl = vi.fn(routed(clone()));
     const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch);
     const [a, b] = await Promise.all([provider.getClimate(field), provider.getClimate({ ...field, id: 'f2' })]);
     expect(a).toBe(b);
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
   it('passes a SourceError through and does not cache the failure', async () => {
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValueOnce(new Response('busy', { status: 503 }))
-      .mockResolvedValueOnce(okResponse(clone()));
+    const ok = routed(clone());
+    let first = true;
+    const fetchImpl = vi.fn(async (url: string | URL | Request) => {
+      // the first daily request fails; the monthly one succeeds, so a daily failure alone fails the profile
+      if (first && String(url).includes('/temporal/daily/')) {
+        first = false;
+        return new Response('busy', { status: 503 });
+      }
+      return ok(url);
+    });
     const provider = createPowerProfileProvider(fetchImpl as unknown as typeof fetch);
     const error = await provider.getClimate(field).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(SourceError);
     expect((error as SourceError).source).toBe('NASA POWER');
     await expect(provider.getClimate(field)).resolves.toMatchObject({ yearly: expect.any(Array) });
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl).toHaveBeenCalledTimes(4);
   });
 
   it('turns a network failure into a SourceError', async () => {
@@ -133,7 +145,27 @@ describe('DEFAULT_THRESHOLDS', () => {
     expect(DEFAULT_THRESHOLDS.droughtPercentile).toBe(value('hazards.drought.percentile'));
     expect(DEFAULT_THRESHOLDS.heatC).toBe(value('hazards.heat.generalThresholdC'));
     expect(DEFAULT_THRESHOLDS.frostDays).toBe(value('hazards.frost.generalThresholdDays'));
+    expect(DEFAULT_THRESHOLDS.heatMinDays).toBe(value('hazards.heat.minDays'));
     expect(DEFAULT_THRESHOLDS.heatC).not.toBeNull();
     expect(DEFAULT_THRESHOLDS.frostDays).not.toBeNull();
+  });
+});
+
+describe('buildClimateProfile with the daily record (D43)', () => {
+  const daily = parsePowerDailyTMax(dailySample);
+  const profile = buildClimateProfile(parsePowerMonthly(sample, RETRIEVED), DEFAULT_THRESHOLDS, daily);
+
+  it('carries the daily maxima on each month and names both POWER datasets', () => {
+    expect(profile.source.datasetIds).toEqual(['nasa-power-monthly', 'nasa-power-daily']);
+    expect(profile.monthly.find((m) => m.year === 2023 && m.month === 7)!.tMaxDailyC).toEqual(daily.get(202307));
+    expect(profile.monthly.find((m) => m.year === 1990 && m.month === 7)!.tMaxDailyC).toEqual([]); // not in the 2-year sample
+    expect(() => climateProfile.parse(profile)).not.toThrow();
+  });
+
+  it('counts heat months from hot days, so August 2023 (6 days above 35 °C) is a heat month and August 2024 (2) is not', () => {
+    const augHeat = profile.monthlyRisk.find((r) => r.month === 8 && r.hazard === 'heat')!.probability;
+    expect(augHeat.datasetIds).toEqual(['nasa-power-daily']);
+    // only 2023 and 2024 have daily values in the sample; 1 of the 2 Augusts has 3 or more days above 35 °C
+    expect(augHeat.value).toBe(0.5);
   });
 });

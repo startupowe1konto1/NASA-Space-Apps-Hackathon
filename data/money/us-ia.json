@@ -7,7 +7,9 @@
       "referenceYieldTPerHa": 13.046,
       "pricePerT": 161.41,
       "directCostsPerHa": 1195.0,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: CORN, GRAIN - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
@@ -31,7 +33,9 @@
       "referenceYieldTPerHa": 4.23,
       "pricePerT": 385.81,
       "directCostsPerHa": 717.12,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: SOYBEANS - YIELD, MEASURED IN BU / ACRE, Story County, Iowa (survey)",
@@ -55,12 +59,14 @@
       "referenceYieldTPerHa": 2.963,
       "pricePerT": 244.58,
       "directCostsPerHa": 582.25,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: OATS - YIELD, MEASURED IN BU / ACRE, Iowa, state (survey)",
           "url": "https://quickstats.nass.usda.gov/results/E36EBCF7-51E6-3EBD-9FFA-64E1D30FC097",
-          "locator": "yield: Iowa state yield (Story County has a published oat yield only for 2023), bu/acre, 32 lb/bu: mean of 2021-2025 yields 77, 82, 80, 82, 92 = 82.6; converted with 1 acre = 0.40468564 ha, 1 lb = 0.45359237 kg; conversion checked against USDA NASS, Crop Production 2025 Summary (January 2026), https://esmis.nal.usda.gov/sites/default/release-files/795725/cropan26.pdf, pp. 95 and 97: US 2025 oats 73.8 bu/acre = 2.65 t/ha"
+          "locator": "yield: Iowa state yield (within 2021-2025 Story County has a published oat yield only for 2023), bu/acre, 32 lb/bu: mean of 2021-2025 yields 77, 82, 80, 82, 92 = 82.6; converted with 1 acre = 0.40468564 ha, 1 lb = 0.45359237 kg; conversion checked against USDA NASS, Crop Production 2025 Summary (January 2026), https://esmis.nal.usda.gov/sites/default/release-files/795725/cropan26.pdf, pp. 95 and 97: US 2025 oats 73.8 bu/acre = 2.65 t/ha"
         },
         {
           "title": "USDA NASS Quick Stats: OATS - PRICE RECEIVED, MEASURED IN $ / BU, Iowa, marketing year (survey)",
@@ -79,7 +85,9 @@
       "referenceYieldTPerHa": 8.249,
       "pricePerT": 119.05,
       "directCostsPerHa": 599.38,
-      "year": 2025,
+      "yieldPeriod": "2021–2025 mean",
+      "pricePeriod": "2025 marketing year",
+      "costsPeriod": "2026 budget",
       "sources": [
         {
           "title": "USDA NASS Quick Stats: HAY, ALFALFA - YIELD, MEASURED IN TONS / ACRE, Iowa, state (survey)",

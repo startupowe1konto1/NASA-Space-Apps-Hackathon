@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { CropTraits, Field } from '../contracts';
 import { sourced } from '../contracts/schemas';
 import { demoFields } from '../fixtures/fields';
+import moneyPl from '../../data/money/pl.json';
+import { datasets } from './datasets';
 import { createTableMoneyProvider, tableMoneyProvider, type MoneyTables } from './provider';
 import usIa from '../../data/money/us-ia.json';
 
@@ -13,7 +15,8 @@ const tables: MoneyTables = {
     currency: 'USD',
     economics: [
       {
-        crop: 'maize', referenceYieldTPerHa: 13, pricePerT: 160, directCostsPerHa: 1200, year: 2026,
+        crop: 'maize', referenceYieldTPerHa: 13, pricePerT: 160, directCostsPerHa: 1200,
+        yieldPeriod: '2021–2025 mean', pricePeriod: '2025 marketing year', costsPeriod: '2026 budget',
         sources: [
           ref('yield: county mean', 'https://quickstats.nass.usda.gov/results/A'),
           ref('price: marketing year', 'https://quickstats.nass.usda.gov/results/B'),
@@ -41,8 +44,8 @@ describe('getEconomics', () => {
     if (result.status !== 'ready') return;
     const [maize] = result.data;
     expect(maize!.crop).toBe('maize');
-    expect(maize!.referenceYieldTPerHa).toMatchObject({ value: 13, unit: 't/ha', datasetIds: ['usda-nass-quickstats'] });
-    expect(maize!.pricePerT).toMatchObject({ value: 160, unit: 'USD/t', datasetIds: ['usda-nass-quickstats'], kind: 'observation' });
+    expect(maize!.referenceYieldTPerHa).toMatchObject({ value: 13, unit: 't/ha', datasetIds: ['usda-nass-quickstats-yields'] });
+    expect(maize!.pricePerT).toMatchObject({ value: 160, unit: 'USD/t', datasetIds: ['usda-nass-quickstats-prices'], kind: 'observation' });
     expect(maize!.directCostsPerHa).toMatchObject({ value: 1200, unit: 'USD/ha', datasetIds: ['isu-agdm-a1-20'] });
     for (const value of [maize!.referenceYieldTPerHa, maize!.pricePerT, maize!.directCostsPerHa]) {
       expect(sourced.safeParse(value).success).toBe(true);
@@ -80,7 +83,7 @@ describe('tableMoneyProvider on the shipped tables', () => {
       const oats = result.data.find((e) => e.crop === 'oats')!;
       const oatsRow = usIa.economics.find((e) => e.crop === 'oats')!;
       expect(oats.referenceYieldTPerHa.value).toBeCloseTo(oatsRow.referenceYieldTPerHa, 3);
-      expect(oats.pricePerT).toMatchObject({ unit: 'USD/t', datasetIds: ['usda-nass-quickstats'] });
+      expect(oats.pricePerT).toMatchObject({ unit: 'USD/t', datasetIds: ['usda-nass-quickstats-prices'] });
     }
   });
 
@@ -105,5 +108,33 @@ describe('tableMoneyProvider on the shipped tables', () => {
   it('names oats as missing in Poland', async () => {
     const result = await tableMoneyProvider.getEconomics(demoFields.poznan, ['winter-wheat', 'oats']);
     expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'oats' } } });
+  });
+});
+
+describe('the period of each money value', () => {
+  // The source chip shows a value's period through its dataset (SourcedNumber prints dataset.period), so each value
+  // must point at a dataset whose period names the period of that value in data/money (issue #79 item 4).
+  const cases = [
+    { field: demoFields.iowa, file: usIa },
+    { field: demoFields.poznan, file: moneyPl },
+  ];
+  it.each(cases)('reaches the source chip for every crop of $field.name', async ({ field, file }) => {
+    const result = await tableMoneyProvider.getEconomics(field, file.economics.map((r) => r.crop));
+    expect(result.status).toBe('ready');
+    if (result.status !== 'ready') return;
+    for (const e of result.data) {
+      const row = file.economics.find((r) => r.crop === e.crop) as Record<string, unknown>;
+      const pairs = [
+        [e.referenceYieldTPerHa, row.yieldPeriod],
+        [e.pricePerT, row.pricePeriod],
+        [e.directCostsPerHa, row.costsPeriod],
+      ] as const;
+      for (const [value, period] of pairs) {
+        expect(typeof period, `${e.crop}: period missing`).toBe('string');
+        expect(value.datasetIds, e.crop).toHaveLength(1);
+        const dataset = datasets.find((d) => d.id === value.datasetIds[0]);
+        expect(dataset?.period, `${e.crop} ${value.datasetIds[0]}`).toContain(period as string);
+      }
+    }
   });
 });

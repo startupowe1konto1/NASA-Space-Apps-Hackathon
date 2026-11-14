@@ -140,6 +140,20 @@ describe('RotationsStep', () => {
     expect(within(summary).getAllByRole('button', { name: /observed|model estimate|our calculation/ }).length).toBeGreaterThan(0);
   });
 
+  it('the summary counts drought years in the last 15 seasons and names no "highest drought month" (#105 item 3, D42)', async () => {
+    readyWith(iowaAnalysis);
+    render(<RotationsStep />);
+    const summary = await screen.findByRole('region', { name: /This field/ });
+    const years = iowaAnalysis.profile.yearly.map((y) => y.year);
+    const last = Math.max(...years);
+    const recent = iowaAnalysis.profile.droughtYears.filter((y) => y > last - 15).length;
+    const label = within(summary).getByText(`Drought years, ${last - 14}–${last}`);
+    const row = label.parentElement!;
+    expect(row.querySelector('dd')!.textContent).toMatch(new RegExp(`^${recent}(?!\\d).*of 15 years`));
+    expect(within(summary).queryByText(/Highest drought risk/)).toBeNull();
+    expect(within(summary).getByText(/Highest heat risk/)).toBeInTheDocument();
+  });
+
   it('a field outside the USA and Poland shows the summary and no cards', async () => {
     readyWith({ ...iowaAnalysis, rotations: [], shownByGoal: {} });
     render(<RotationsStep />);

@@ -4,15 +4,31 @@ import type { Analysis, Dataset, Hazard, Sourced } from '../../contracts';
 import { SourcedNumber } from '../../ui-kit';
 import { TermText } from './TermText';
 
-const hazards: Hazard[] = ['drought', 'heat', 'frost'];
+// Drought is measured against the field's own record (D42), so every month is a drought in about the same share of
+// years and over the whole record the count of drought years is fixed by the percentile. Neither says anything
+// about this field, so the summary shows no "highest drought month" and counts drought years in the recent seasons.
+const hazards: Hazard[] = ['heat', 'frost'];
+/** Recent seasons in which drought years are counted. */
+const RECENT_SEASONS = 15;
+
+function recentYears(analysis: Analysis): { from: number; to: number; years: number[] } | null {
+  const years = analysis.profile.yearly.map((y) => y.year);
+  if (years.length === 0) return null;
+  const to = Math.max(...years);
+  const from = Math.max(Math.min(...years), to - RECENT_SEASONS + 1);
+  return { from, to, years: years.filter((y) => y >= from) };
+}
 
 /** Counting drought years from the record is our calculation on top of the provider's data. */
 function droughtYears(analysis: Analysis): Sourced {
   const { profile } = analysis;
-  const n = profile.yearly.length;
-  const base = { datasetIds: profile.source.datasetIds, kind: 'derived' as const, retrievedAt: profile.source.retrievedAt };
-  if (n === 0) return { ...base, value: null, missingReason: t('steps.rotations.summary.droughtYears.none') };
-  return { ...base, value: profile.droughtYears.length, unit: t('steps.rotations.summary.droughtYears.unit', { n }) };
+  const recent = recentYears(analysis);
+  // drought years come from monthly root-zone wetness only, not from the daily temperature record (D43)
+  const datasetIds = profile.source.datasetIds.filter((id) => id !== 'nasa-power-daily');
+  const base = { datasetIds, kind: 'derived' as const, retrievedAt: profile.source.retrievedAt };
+  if (!recent) return { ...base, value: null, missingReason: t('steps.rotations.summary.droughtYears.none') };
+  const value = profile.droughtYears.filter((y) => y >= recent.from).length;
+  return { ...base, value, unit: t('steps.rotations.summary.droughtYears.unit', { n: recent.years.length }) };
 }
 
 /** The month with the highest share of years hit by a hazard, shown as a percentage of years. */
@@ -31,6 +47,13 @@ function peak(analysis: Analysis, hazard: Hazard): { month: number; share: Sourc
       range: p.range ? { ...p.range, low: pct(p.range.low), high: pct(p.range.high) } : undefined,
     },
   };
+}
+
+function droughtLabel(analysis: Analysis): string {
+  const recent = recentYears(analysis);
+  return recent
+    ? t('steps.rotations.summary.droughtYears.recent', { from: recent.from, to: recent.to })
+    : t('steps.rotations.summary.droughtYears');
 }
 
 function Row({ label, value, datasets, decimals }: { label: string; value: Sourced; datasets: Dataset[]; decimals?: number }) {
@@ -58,7 +81,7 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
         />
       </p>
       <dl>
-        <Row label={t('steps.rotations.summary.droughtYears')} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
+        <Row label={droughtLabel(analysis)} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);
           const name = t(`steps.rotations.summary.hazard.${hazard}`);
