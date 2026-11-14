@@ -6,15 +6,31 @@ import { fieldFeatures, similarity, zStats, type Features } from './similarity';
 
 export const MAX_CASES = 10;
 
-interface OutcomeCrop { sharePct: number; yieldTPerHa?: number | null; years: string; source: string }
+interface OutcomeCrop { sharePct: number; yieldTPerHa: number | null; nYears?: number; nAreaYears?: number; note?: string }
+interface Outcome {
+  years: string;
+  source: string;                    // dataset id: 'usda-nass-quickstats' | 'eurostat-apro-cpnhr'
+  kind: 'observation' | 'derived';   // derived = our calculation (Eurostat production / area)
+  areaHa?: number;
+  crops: Record<string, OutcomeCrop>;
+  outcomeRegion?: { code: string; name: string; level: string; note: string }; // German regions: shares are for the Land
+}
 export interface CaseRegion {
   id: string;
   name: string;
   country: Country;
   centroid: { lat: number; lon: number };
   features: Record<string, number | null | { value: null; missingReason: string }>;
-  outcome: { crops: Record<CropId, OutcomeCrop>; missingReason?: string } | null;
+  outcome: Outcome | null;
+  outcomeMissingReason?: string;
 }
+
+/** Our crop ids (data/crops) → the crop names used in the case base, where they differ (Eurostat codes have no season). */
+const CASE_NAMES: Record<CropId, string[]> = {
+  'winter-rapeseed': ['rapeseed'],
+  'spring-barley': ['barley'],
+};
+const caseNamesOf = (crop: CropId): string[] => [crop, ...(CASE_NAMES[crop] ?? [])];
 export interface CasesFile {
   meta: { retrievedAt: string; script: string; sourceUrl: string };
   regions: CaseRegion[];
@@ -28,34 +44,37 @@ export function createTwinsProvider(file: CasesFile): TwinsProvider {
   return {
     async getTwins(_field: Field, profile: FieldProfile, rotation: RotationOption['years']): Promise<AsyncResult<TwinEvidence>> {
       const own = fieldFeatures(profile.monthly);
-      const wanted = new Set(rotation.flatMap((y) => (y.coverCrop ? [y.crop, y.coverCrop] : [y.crop])));
+      const wanted = [...new Set(rotation.flatMap((y) => (y.coverCrop ? [y.crop, y.coverCrop] : [y.crop])))];
       const ranked = file.regions
         .flatMap((region) => {
-          const grown = Object.entries(region.outcome?.crops ?? {})
-            .filter(([crop, o]) => wanted.has(crop) && o.sharePct > 0)
-            .map(([crop]) => crop);
-          if (grown.length === 0 || !region.outcome) return [];
-          return [{ region, grown, score: similarity(own, numericFeatures(region), stats) }];
+          const outcome = region.outcome;
+          if (!outcome) return [];
+          // each crop of the rotation with the case-base entry it matches
+          const grown = wanted.flatMap((crop) => {
+            const name = caseNamesOf(crop).find((n) => (outcome.crops[n]?.sharePct ?? 0) > 0);
+            return name ? [{ crop, entry: outcome.crops[name]! }] : [];
+          });
+          if (grown.length === 0) return [];
+          return [{ region, outcome, grown, score: similarity(own, numericFeatures(region), stats) }];
         })
         .sort((a, b) => b.score - a.score)
         .slice(0, MAX_CASES);
       if (ranked.length === 0) return { status: 'no-data', reason: { code: 'twins.no-cases' } };
 
-      const cases: TwinEvidence['cases'] = ranked.map(({ region, grown, score }) => {
-        const entries = grown.map((crop) => region.outcome!.crops[crop]!);
-        const share = entries.reduce((sum, o) => sum + o.sharePct, 0);
-        const sources = [...new Set(entries.map((o) => o.source))];
+      const cases: TwinEvidence['cases'] = ranked.map(({ region, outcome, grown, score }) => {
+        const share = grown.reduce((sum, g) => sum + g.entry.sharePct, 0);
+        const land = outcome.outcomeRegion;
         return {
-          regionName: region.name,
+          regionName: land ? `${region.name} (shares for ${land.name})` : region.name,
           country: region.country,
           similarity: Math.round(score),
-          crops: grown,
-          years: entries[0]!.years,
+          crops: grown.map((g) => g.crop),
+          years: outcome.years,
           outcome: {
             value: Math.round(share * 10) / 10,
-            unit: '% of harvested area in these crops',
-            datasetIds: [...sources, 'nasa-power-climatology'],
-            kind: 'observation',
+            unit: '% of the harvested area of the case-base crops (not all farmland)',
+            datasetIds: [outcome.source, 'nasa-power-climatology'],
+            kind: outcome.kind,
             retrievedAt: file.meta.retrievedAt,
           },
         };

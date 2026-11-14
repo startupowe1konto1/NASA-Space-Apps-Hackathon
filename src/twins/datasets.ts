@@ -11,7 +11,7 @@ export const datasets: Dataset[] = [
     url: 'https://quickstats.nass.usda.gov/', nasa: false, resolution: 'county', period: '2019–2023', kind: 'observation',
   },
   {
-    id: 'eurostat-apro_cpnhr', name: 'Eurostat crop production in national humidity by NUTS 2 regions (apro_cpnhr)', provider: 'Eurostat',
+    id: 'eurostat-apro-cpnhr', name: 'Eurostat crop production in national humidity by NUTS 2 regions (apro_cpnhr)', provider: 'Eurostat',
     url: 'https://ec.europa.eu/eurostat/databrowser/view/apro_cpnhr/default/table', nasa: false, resolution: 'NUTS 2 region', period: '2019–2023', kind: 'observation',
   },
 ];
