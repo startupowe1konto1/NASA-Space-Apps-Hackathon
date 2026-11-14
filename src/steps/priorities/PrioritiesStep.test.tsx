@@ -1,7 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useAppStore } from '../../app/store';
+import { providers } from '../../app/providers';
 import { demoFields } from '../../fixtures';
+import { cropName } from '../shared/cropName';
 import { PrioritiesStep } from './PrioritiesStep';
 
 beforeEach(() => {
@@ -47,7 +49,13 @@ describe('PrioritiesStep', () => {
     useAppStore.getState().addField(demoFields.poznan);
     render(<PrioritiesStep />);
     const list = await screen.findByRole('group', { name: /crops you will not grow/i });
-    expect(await within(list).findByRole('checkbox', { name: 'Winter rapeseed' })).toBeInTheDocument();
+    // Read the expected crops from the provider, so the test follows data/crops/pl.json instead of a fixed list.
+    const crops = await providers.context.getCrops('PL');
+    expect(crops.length).toBeGreaterThan(0);
+    for (const crop of crops) {
+      expect(await within(list).findByRole('checkbox', { name: cropName(crop.id) })).toBeInTheDocument();
+    }
+    expect(within(list).queryByRole('checkbox', { name: 'Soybean' })).not.toBeInTheDocument();
   });
 
   it('explains that crop lists exist for the USA and Poland only when the field is elsewhere', async () => {
