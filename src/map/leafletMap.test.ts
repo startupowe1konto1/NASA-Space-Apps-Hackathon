@@ -112,4 +112,25 @@ describe('createLeafletMap with Geoman', () => {
     expect(drawing.getLatLngs()).toEqual([corner]);
     map.pm.disableDraw();
   });
+
+  it('moves the map to a found place and keeps one marker there, which a tap passes through', () => {
+    const markers = () => {
+      const found: L.CircleMarker[] = [];
+      map.eachLayer((layer) => {
+        if (layer instanceof L.CircleMarker) found.push(layer);
+      });
+      return found;
+    };
+    const { lat, lon } = demoFields.poznan.centroid;
+
+    controller.showPlace(demoFields.iowa.centroid.lat, demoFields.iowa.centroid.lon, demoFields.iowa.name);
+    controller.showPlace(lat, lon, demoFields.poznan.name);
+
+    expect(markers()).toHaveLength(1);
+    expect(markers()[0]!.getLatLng()).toEqual(L.latLng(lat, lon));
+    expect(markers()[0]!.options.interactive).toBe(false);
+    expect(map.getCenter().lat).toBeCloseTo(lat, 6);
+    expect(map.getCenter().lng).toBeCloseTo(lon, 6);
+    expect(handlers.onClick).not.toHaveBeenCalled();
+  });
 });

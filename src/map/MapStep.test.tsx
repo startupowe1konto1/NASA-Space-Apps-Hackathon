@@ -1,11 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { t } from '../app/i18n';
 import { canContinue, useAppStore } from '../app/store';
 import { demoFields } from '../fixtures';
 import { MapStep } from './MapStep';
 import { areaHa } from './area';
 import type { MapHandlers } from './leafletMap';
 import { getParcelByPoint } from './parcels/uldk';
+import { parseNominatim } from './search/nominatim';
 
 // Leaflet does not render in jsdom; the wrapper is replaced and its handlers are captured.
 const leaflet = vi.hoisted(() => ({
@@ -16,6 +19,7 @@ const leaflet = vi.hoisted(() => ({
     retryTiles: vi.fn(),
     destroy: vi.fn(),
     isEditing: vi.fn(() => false),
+    showPlace: vi.fn(),
   },
 }));
 
@@ -170,6 +174,22 @@ describe('MapStep', () => {
 
     await screen.findByText('No fields yet.');
     expect(useAppStore.getState().fields).toHaveLength(0);
+  });
+
+  it('moves the map to a typed address without adding a field', async () => {
+    const body = readFileSync('data/samples/geocoders/nominatim-ames-iowa.json', 'utf8');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(body, { status: 200 })));
+    const user = userEvent.setup();
+    render(<MapStep />);
+
+    await user.type(screen.getByLabelText(t('search.label')), 'Ames');
+    await user.click(screen.getByRole('button', { name: t('search.button') }));
+
+    const [place] = parseNominatim(body);
+    await screen.findByText(t('search.moved', { label: place!.label }));
+    expect(leaflet.controller.showPlace).toHaveBeenCalledWith(place!.lat, place!.lon, place!.label);
+    expect(useAppStore.getState().fields).toHaveLength(0);
+    vi.unstubAllGlobals();
   });
 
   it('selects a field from the list with a radio, not a button', async () => {
