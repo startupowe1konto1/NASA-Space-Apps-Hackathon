@@ -106,4 +106,15 @@ describe('toSoilRules on O4 rows (PR #27)', () => {
     expect(Object.keys(r.indicators).sort()).toEqual(['erosion', 'nitrogen', 'pestBreak']);
     expect(r.missing).toEqual(['organicMatter']);
   });
+
+  it('credits a perennial legume once per stand, not once per year', () => {
+    const profile = { ...iowaClimate, soil: { sandPct: iowaSlope, clayPct: iowaSlope, organicCarbon: iowaSlope, ph: iowaSlope }, slopePct: iowaSlope };
+    const nitrogenOf = (years: { crop: string }[]) => {
+      const { rules } = toSoilRules(loaded, 'US', fixtureCrops.US, years, iowa);
+      return soilHealth(years, fixtureCrops.US, profile, rules, { goal: 'keepSoil', on: [], excludedCrops: [] }).indicators.nitrogen!.value;
+    };
+    const two = nitrogenOf([{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }]);
+    const three = nitrogenOf([{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }]);
+    expect(three).toBeLessThanOrEqual(two);
+  });
 });

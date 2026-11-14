@@ -193,7 +193,9 @@ export const shippedRules: LoadedRules = loadRules(ruleFiles);
 // - nitrogen.credit.<crop>: O4 'nitrogen.credit.<crop>.<us-ia|pl>' for the field's country. {low,high} becomes
 //   {low, mid = (low+high)/2, high}. A unit in lb N/acre is converted to kg N/ha (× 1.121, the factor printed in the
 //   O4 unit text). Legumes without a row (red clover, PL legume catch crops) have none: soilHealth leaves nitrogen
-//   out for rotations with them.
+//   out for rotations with them. A perennial legume (alfalfa) gets one credit per stand, not per year: soilHealth.ts
+//   skips the credit for a year that continues a stand (the adapter cannot express it, because soilHealth scales
+//   nitrogen by the largest credit row, so scaling the row would change the scale per rotation).
 // - humus.coef.<crop>: O4 'humus.coef.<crop>.pl' (Poland only), the 'medium' soil class. The classes are not mapped
 //   from the sand share because no sourced split is in the tables. The VDLUFA rows use another unit and are skipped.
 // - erosion (per rotation, because soilHealth takes one C factor per cover state):
