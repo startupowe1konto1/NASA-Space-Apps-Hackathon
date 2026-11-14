@@ -2,7 +2,7 @@
 
 Research question 2 from HANDOFF.md. Checked Sat 14 Nov 2026, 11:46–11:52 CET, with live requests from a cloud container (no Earthdata login).
 
-Test field: 52.45 N, 17.10 E (farmland east of Poznań; SoilGrids returns values here, so it is not masked as built-up). SoilGrids says the topsoil is about 72–76% sand, 7–11% clay, pH 5.7–6.7: loamy sand that holds little water.
+Test field: 52.45 N, 17.10 E, picked only because a sample was at hand (handoff v1: the project is global, no region assumed). SoilGrids returns values here, so it is not masked as built-up. SoilGrids says the topsoil is about 72–76% sand, 7–11% clay, pH 5.7–6.7: loamy sand that holds little water.
 
 ## Answer in short
 
@@ -53,6 +53,35 @@ Suitability class: 1 = very high … 3 = good, 4 = medium, 5 = moderate … (GAE
 | Sorghum | 3 / 3,884 | not returned | | |
 
 Two story lines come out of this. Soybean, a legume, moves from moderate to medium suitability and its attainable yield rises by 60–70%, so a legume rotation gets stronger with time. For wheat, attainable yield rises (CO2 fertilization) while the suitability class for all land in the cell drops one class at mid-century. The tool should show both numbers and explain why they differ, not pick one.
+
+## Clicked point in under 10 s? Yes, about 1–2 s (handoff v1 question)
+
+Tested at 12:00 on two points outside Poland, all requests in parallel from Python (same calls a browser would make):
+
+| Point | 12 SMAP dates (GIBS) + 18 GAEZ values (identify) | Sample values |
+|---|---|---|
+| Iowa, 42.0 N 93.6 W | **2.1 s** | SMAP root zone 0.29–0.36 m³/m³; GAEZ maize 10,950 kg/ha (1981–2010) |
+| Kenya, 0.5 S 36.0 E | **1.2 s** | SMAP 0.29–0.37 m³/m³; GAEZ maize 6,698 kg/ha, rye 0 (not suitable) |
+
+Conditions: look up the GAEZ raster IDs once (one `query`, 1.4 s, cacheable as a static JSON), then call `identify` with `mosaicRule` = lock raster. Without the lock, one `identify` over the whole mosaic took 6.7 s.
+
+## Access to every Field Shift resource from the handoff (12:00)
+
+CORS = the `Access-Control-Allow-Origin` header for an `Origin: http://localhost:5171` request, so whether a browser can call it directly.
+
+| Resource | HTTP, time | CORS | Login | Notes |
+|---|---|---|---|---|
+| SMAP via GIBS WMS + colormap | 200, 0.2–0.6 s | `*` | no | the route we use |
+| SMAP files (NSIDC) | 302 to Earthdata login | – | yes | 143–620 MB per file |
+| FAO GAEZ ImageServer (`identify`, `query`) | 200, 0.5–1.4 s | echoes origin | no | browser can call it |
+| FAO GAEZ GeoTIFFs on S3 | 200, 1 s | none | no | needs a server-side step, not callable from the browser |
+| NASA POWER daily point | 200, 0.7 s | `*` | no | global |
+| GPM/IMERG (CMR search) | 200, 0.2 s | `*` | search no, data yes | |
+| MODIS/VIIRS/Landsat via CMR-STAC LPCLOUD | 200, 1.5 s | `*` | search no, data yes | |
+| Sentinel-2, Copernicus STAC | 200, 0.9 s | `*` | no for STAC | |
+| SoilGrids | 200, 3–15 s | `*` | no | too slow for a click; precompute or show "loading" |
+| SRTM, ECOSTRESS, GEDI, EarthExplorer, ERA5 pages | 200/301 | – | data needs Earthdata or CDS login | info pages only checked |
+| Earthdata login (urs.earthdata.nasa.gov) | timeout from the cloud container | – | – | check from the venue network |
 
 ## What this means for the build
 
