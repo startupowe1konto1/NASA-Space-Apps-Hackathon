@@ -65,8 +65,8 @@ export interface CropTraits {
   kind: 'cash' | 'cover' | 'perennial';
   sowMonth: number; harvestMonth: number;          // harvestMonth < sowMonth means harvest in the next calendar year
   sensitive: { hazard: Hazard; months: number[]; threshold: number; lossShare: number }[]; // lossShare 0-1 when the hazard hits
-  waterNeed: 'low' | 'medium' | 'high';
-  yieldResponseFactor: number;                     // FAO Ky
+  waterNeed?: 'low' | 'medium' | 'high';           // required unless kind is 'cover' (schema enforces it)
+  yieldResponseFactor?: number;                    // FAO Ky; required unless kind is 'cover': cover crops are not harvested for yield
   forage: boolean;
   residueCover: 'low' | 'medium' | 'high';
   sources: SourceRef[];                            // min 1

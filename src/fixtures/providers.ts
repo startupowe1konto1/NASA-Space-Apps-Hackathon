@@ -27,9 +27,10 @@ function suitability(field: Field, crop: CropId): Sourced {
 function cropHistory(field: Field): AsyncResult<CropYear[]> {
   if (!isUS(field)) return { status: 'no-data', reason: { code: 'fx.history.none' } };
   const years = [2019, 2020, 2021, 2022, 2023, 2024, 2025];
+  // Same pattern as CropScape at the demo field of PR #40: corn in even years, soybeans in odd years.
   return {
     status: 'ready',
-    data: years.map((year, index) => ({ year, crop: index % 2 === 0 ? 'maize' : 'soybean', source: 'cropscape' })),
+    data: years.map((year) => ({ year, crop: year % 2 === 0 ? 'maize' : 'soybean', source: 'cropscape' })),
   };
 }
 

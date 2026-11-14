@@ -1,0 +1,80 @@
+[
+  {
+    "id": "hazards.drought.percentile",
+    "value": 20,
+    "unit": "percentile of the field's own monthly root-zone wetness (NASA POWER GWETROOT), all years of the record",
+    "appliesTo": "drought check for every crop in its sensitive months; a month below this percentile counts as drought",
+    "sourceTitle": "U.S. Drought Monitor, Drought Classification",
+    "sourceUrl": "https://droughtmonitor.unl.edu/About/AbouttheData/DroughtClassification.aspx",
+    "sourceLocator": "table 'Percentile Range for Most Indicators': D1 Moderate Drought = 10.01 to 20.00",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.drought.indicator",
+    "value": "GWETROOT",
+    "unit": "NASA POWER parameter id",
+    "appliesTo": "drought check",
+    "sourceTitle": "NASA POWER parameter dictionary (community AG, monthly)",
+    "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=FROST_DAYS,T2M_MAX,GWETROOT&temporal=monthly",
+    "sourceLocator": "GWETROOT 'Root Zone Soil Wetness': proportion of water in the upper 1 m of soil, 0 dry to 1 saturated",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.heat.indicator",
+    "value": "T2M_MAX",
+    "unit": "NASA POWER parameter id, °C",
+    "appliesTo": "heat check against each crop's own threshold in data/crops",
+    "sourceTitle": "NASA POWER parameter dictionary (community AG, monthly)",
+    "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=FROST_DAYS,T2M_MAX,GWETROOT&temporal=monthly",
+    "sourceLocator": "T2M_MAX 'Temperature at 2 Meters Maximum': maximum hourly air temperature in the period",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.frost.indicator",
+    "value": "FROST_DAYS",
+    "unit": "NASA POWER parameter id, days per month",
+    "appliesTo": "frost check against each crop's own threshold in data/crops",
+    "sourceTitle": "NASA POWER parameter dictionary (community AG, monthly)",
+    "sourceUrl": "https://power.larc.nasa.gov/api/system/manager/parameters?community=AG&parameters=FROST_DAYS,T2M_MAX,GWETROOT&temporal=monthly",
+    "sourceLocator": "FROST_DAYS 'Frost Days': 2 m temperature cools to the dew point and both are below 0 °C",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.calendar.markShare",
+    "value": 0.2,
+    "unit": "share of years (0-1)",
+    "appliesTo": "calendar strip: a month cell gets a hazard mark when the crop in the ground is sensitive and the hazard occurred in more than this share of years",
+    "sourceTitle": "team rule of thumb",
+    "sourceUrl": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
+    "sourceLocator": "SPEC section 8, calendar strip; value set by the team, shown on screen as a rule of thumb",
+    "checkedBy": "O4, team rule"
+  },
+  {
+    "id": "hazards.gaez.notSuitableBelowSI",
+    "value": 10,
+    "unit": "GAEZ v4 crop suitability index (SI, 0-100)",
+    "appliesTo": "crops with SI at or below this value at the field (class 'Very marginal', 'Not suitable' or 'No cultivation') are excluded before scoring",
+    "sourceTitle": "FAO GAEZ v4 res05 ImageServer legend, renderer 'Crop Suitability Index in Classes - All Land in Grid Cell'",
+    "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
+    "sourceLocator": "legend classes: 'SI > 10 : Marginal', 'SI > 0 : Very marginal', 'Not suitable'; SPEC section 7 excludes below 'Marginal'",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  },
+  {
+    "id": "hazards.gaez.classes",
+    "value": {
+      "Very high": 75,
+      "High": 63,
+      "Good": 50,
+      "Medium": 35,
+      "Moderate": 20,
+      "Marginal": 10,
+      "Very marginal": 0
+    },
+    "unit": "lower SI bound (exclusive) per GAEZ class",
+    "appliesTo": "labels for GAEZ suitability on cards and in gaps",
+    "sourceTitle": "FAO GAEZ v4 res05 ImageServer legend, renderer 'Crop Suitability Index in Classes - All Land in Grid Cell'",
+    "sourceUrl": "https://gaez-services.fao.org/server/rest/services/res05/ImageServer/legend?f=json",
+    "sourceLocator": "legend labels 'SI > 75 : Very high' ... 'SI > 0 : Very marginal'",
+    "checkedBy": "O4, source opened Sat 14 Nov 2026"
+  }
+]

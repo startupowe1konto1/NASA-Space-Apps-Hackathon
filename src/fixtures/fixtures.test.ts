@@ -342,7 +342,7 @@ describe('fixture providers', () => {
     expect(history.status).toBe('ready');
     if (history.status === 'ready') {
       expect(history.data.map((y) => y.year)).toEqual([2019, 2020, 2021, 2022, 2023, 2024, 2025]);
-      expect(history.data.map((y) => y.crop)).toEqual(['maize', 'soybean', 'maize', 'soybean', 'maize', 'soybean', 'maize']);
+      expect(history.data.map((y) => y.crop)).toEqual(['soybean', 'maize', 'soybean', 'maize', 'soybean', 'maize', 'soybean']);
       expect(history.data.every((y) => y.source === 'cropscape')).toBe(true);
     }
     expect(await context.getCropHistory(demoFields.poznan)).toEqual({ status: 'no-data', reason: { code: 'fx.history.none' } });
