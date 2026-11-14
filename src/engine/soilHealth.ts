@@ -39,7 +39,7 @@
 //   Score = 100 × (years − violations) / years. A family without a row is not checked (confidence drops one level);
 //   no family checked → left out.
 //
-// Numbers in {low,mid,high} form give the range of the score (low and high rule values). A plain number has no range:
+// Numbers in {low,mid,high} form (mid optional: (low + high) / 2 when absent) give the range of the score (low and high rule values). A plain number has no range:
 // the score gets ±15% and the basis "rule of thumb". Factor rows (leaching, climate, texture, slope, limits) are read
 // at their plain value or mid. A row's appliesTo is not filtered here: the caller passes the rows for the country.
 //
@@ -47,18 +47,12 @@
 // that is missing (sand share, slope, rain record, a factor row). The total takes the weakest indicator and drops one
 // more level when an indicator is missing.
 import type { CoverState, CropTraits, Evidence, FieldProfile, IndicatorId, Message, Priorities, RotationOption, Score, Sourced } from '../contracts';
+import type { z } from 'zod';
+import type { ruleRow } from '../contracts/schemas';
 import { buildCalendar, cropById } from './calendar';
 
-export interface RuleRow {
-  id: string;
-  value: number | string | Record<string, number>;
-  unit: string;
-  appliesTo: string;
-  sourceTitle: string;
-  sourceUrl: string;
-  sourceLocator: string;
-  checkedBy?: string;
-}
+/** One row of data/rules/*.json, as the contract schema parses it. */
+export type RuleRow = z.infer<typeof ruleRow>;
 export interface SoilRules { nitrogen: RuleRow[]; humus: RuleRow[]; erosion: RuleRow[]; pestBreak: RuleRow[] }
 
 /** Every message code this module emits, with the intended English text (task O3-B6 writes messages/en.json). */
@@ -120,13 +114,15 @@ class Reader {
   }
 }
 
+/** Plain number, or a {low, high} range with optional mid; a missing mid is (low + high) / 2. */
 function rangedValue(row: RuleRow, mode: Mode): number | undefined {
   if (typeof row.value === 'number') return row.value;
-  if (typeof row.value === 'object' && typeof row.value.mid === 'number') {
-    const v = row.value[mode];
-    return typeof v === 'number' ? v : row.value.mid;
-  }
-  return undefined;
+  if (typeof row.value !== 'object') return undefined;
+  const { low, high } = row.value;
+  const mid = typeof row.value.mid === 'number' ? row.value.mid : typeof low === 'number' && typeof high === 'number' ? (low + high) / 2 : undefined;
+  if (mid === undefined) return undefined;
+  const v = mode === 'mid' ? mid : row.value[mode];
+  return typeof v === 'number' ? v : mid;
 }
 
 /** Mid values of every row whose id starts with `prefix`. */
