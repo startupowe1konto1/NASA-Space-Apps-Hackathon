@@ -2,8 +2,10 @@
 // Every value here is our calculation (kind 'derived') on a NASA POWER model estimate.
 //
 // Percentile method, used everywhere in this file: nearest rank. The p-th percentile of n values
-// is the ceil(p/100 x n)-th smallest value, and a value counts as "dry" when it is at or below it.
-// With 45 distinct values and p = 20 that is the 9th smallest, so exactly 9 of 45 years are dry.
+// is the ceil(p/100 x n)-th smallest value k. A year counts as dry when its value is below that limit (D26,
+// hazards.json). POWER rounds GWETROOT to 2 decimals, so several years can share the limit value; they share
+// the remaining dry years as fractional credit, so the drought share is exactly k/n (9 of 45 at p = 20) and
+// rounding alone cannot raise a month's share.
 import type { ClimateProfile, Hazard, MonthlyRisk, Sourced } from '../contracts';
 import { evapotranspirationMm, rainMm, type PowerMonthly } from './power';
 
@@ -12,7 +14,7 @@ type Row = Monthly[number];
 type Yearly = ClimateProfile['yearly'][number];
 
 export interface Thresholds {
-  droughtPercentile: number;  // 0-100; root-zone wetness at or below this percentile of the month's own record
+  droughtPercentile: number;  // 0-100; root-zone wetness below this percentile of the month's own record (ties share credit)
   heatC: number | null;       // monthly T2M_MAX above this; null = no crop-independent threshold
   frostDays: number | null;   // FROST_DAYS above this; null = no crop-independent threshold
 }
@@ -32,6 +34,21 @@ export function percentileValue(values: number[], percentile: number): number {
   const sorted = [...values].sort((a, b) => a - b);
   const rank = Math.min(sorted.length, Math.max(1, Math.ceil((percentile / 100) * sorted.length)));
   return sorted[rank - 1]!;
+}
+
+/**
+ * Share of values below the nearest-rank percentile, with tied values at the limit given fractional credit
+ * so the share is exactly ceil(p/100 x n)/n. Null for an empty list.
+ */
+export function droughtShare(values: number[], percentile: number): number | null {
+  const n = values.length;
+  if (n === 0) return null;
+  const k = Math.min(n, Math.max(1, Math.ceil((percentile / 100) * n)));
+  const limit = percentileValue(values, percentile);
+  const below = values.filter((v) => v < limit).length;
+  const ties = values.filter((v) => v === limit).length;
+  const credit = ties === 0 ? 0 : (k - below) / ties; // share of each tied year that counts as dry
+  return (below + ties * credit) / n;
 }
 
 export function toMonthly(power: PowerMonthly): Monthly {
@@ -69,8 +86,7 @@ export function monthlyRisk(monthly: Monthly, thresholds: Thresholds, source: { 
       let probability: Sourced;
       if (hazard === 'drought') {
         const values = rows.map((r) => r.rootWetness).filter(isNumber);
-        const limit = values.length > 0 ? percentileValue(values, thresholds.droughtPercentile) : 0;
-        probability = derived(share(values, (v) => v <= limit), 'share of years', source.retrievedAt, noData);
+        probability = derived(droughtShare(values, thresholds.droughtPercentile), 'share of years', source.retrievedAt, noData);
       } else {
         const threshold = hazard === 'heat' ? thresholds.heatC : thresholds.frostDays;
         if (threshold === null) {

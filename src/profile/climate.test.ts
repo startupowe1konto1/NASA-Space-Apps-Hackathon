@@ -1,4 +1,5 @@
-import { droughtYears, monthlyRisk, percentileValue, toMonthly, yearly, type Thresholds } from './climate';
+import {
+  droughtShare, droughtYears, monthlyRisk, percentileValue, toMonthly, yearly, type Thresholds } from './climate';
 import type { PowerMonthly } from './power';
 import type { ClimateProfile } from '../contracts';
 
@@ -168,5 +169,17 @@ describe('droughtYears', () => {
     }, 10);
     // 9 complete years: nearest rank ceil(1.8) = 2 -> 1982, 1983
     expect(droughtYears(rows, 20)).toEqual([1982, 1983]);
+  });
+});
+
+describe('droughtShare', () => {
+  it('gives tied values at the limit fractional credit, so the share is exactly ceil(0.2 n)/n', () => {
+    // 45 values: 5 below 0.30, then 10 tied at 0.30, then 30 above. Limit = 9th smallest = 0.30.
+    const values = [...Array(5).fill(0.2), ...Array(10).fill(0.3), ...Array(30).fill(0.5)];
+    expect(droughtShare(values, 20)).toBeCloseTo(9 / 45, 10);
+  });
+  it('is 9 of 45 for distinct values and null for no values', () => {
+    expect(droughtShare(Array.from({ length: 45 }, (_, i) => i), 20)).toBeCloseTo(9 / 45, 10);
+    expect(droughtShare([], 20)).toBeNull();
   });
 });

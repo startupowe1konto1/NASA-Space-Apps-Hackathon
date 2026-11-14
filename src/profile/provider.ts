@@ -30,7 +30,7 @@ export function buildClimateProfile(power: PowerMonthly, thresholds: Thresholds)
 /** Same rounding as the POWER request URL, so two fields that ask for the same point share one request. */
 const cacheKey = (lat: number, lon: number) => `${lat.toFixed(4)},${lon.toFixed(4)}`;
 
-export function createPowerProfileProvider(fetchImpl?: typeof fetch): ProfileProvider {
+export function createPowerProfileProvider(fetchImpl?: typeof fetch, thresholds: Thresholds = DEFAULT_THRESHOLDS): ProfileProvider {
   const cache = new Map<string, Promise<ClimateProfile>>();
   return {
     getClimate(field: Field): Promise<ClimateProfile> {
@@ -39,7 +39,7 @@ export function createPowerProfileProvider(fetchImpl?: typeof fetch): ProfilePro
       const hit = cache.get(key);
       if (hit) return hit;
       const pending = fetchPowerMonthly(lat, lon, fetchImpl)
-        .then((p) => buildClimateProfile(p, DEFAULT_THRESHOLDS))
+        .then((p) => buildClimateProfile(p, thresholds))
         .catch((e: unknown) => {
           cache.delete(key);
           throw e instanceof SourceError
