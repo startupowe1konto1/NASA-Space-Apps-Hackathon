@@ -75,11 +75,13 @@ describe('start page (step 0)', () => {
 });
 
 describe('step order', () => {
-  it('has one progress mark per step and no report step', () => {
+  it('shows one progress mark per step, in the D52 order, and no report step', () => {
     useAppStore.getState().goToStep(1);
     render(<App />);
     const marks = within(screen.getByRole('list', { name: en['app.progress'] })).getAllByRole('listitem');
-    expect(marks).toHaveLength(STEP_COUNT);
+    // Written out here, not read from STEP_KEYS, so a change of order in the store makes this test fail.
+    const d52: Key[] = ['app.step.field', 'app.step.goal', 'app.step.crops', 'app.step.priorities', 'app.step.rotations', 'app.step.money'];
+    expect(marks.map((m) => m.textContent)).toEqual(d52.map((k) => en[k]));
     expect(screen.queryByText('Report for your advisor')).not.toBeInTheDocument();
   });
 
