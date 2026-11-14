@@ -55,25 +55,36 @@ export function App() {
 
           {/* The start page shows the name as its own heading. */}
           {Step ? <p className="text-sm font-medium text-slate-600">{PROJECT_NAME}</p> : null}
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             <button
               ref={glossaryButton}
               type="button"
               aria-expanded={glossaryOpen}
-              className="-my-2 min-h-11 rounded px-3 text-base font-medium text-emerald-800 underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+              className={`h-9 rounded-full border px-4 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 ${
+                glossaryOpen
+                  ? 'border-emerald-700 bg-emerald-700 text-white'
+                  : 'border-slate-300 bg-white text-emerald-800 hover:border-emerald-700 hover:bg-emerald-50'
+              }`}
               onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
             >
               {t('app.glossary')}
             </button>
-            <div role="group" aria-label={t('app.language')} className="-my-2 flex rounded border border-slate-300">
+            {/* A two-way switch: the green thumb slides under the chosen language. */}
+            <div role="group" aria-label={t('app.language')} className="relative grid h-9 grid-cols-2 rounded-full bg-slate-100 p-1">
+              <span
+                aria-hidden="true"
+                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-emerald-700 shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                  lang === LANGS[1] ? 'translate-x-full' : 'translate-x-0'
+                }`}
+              />
               {LANGS.map((code) => (
                 <button
                   key={code}
                   type="button"
                   lang={code}
                   aria-pressed={lang === code}
-                  className={`min-h-11 min-w-11 px-2 text-sm font-medium first:rounded-l last:rounded-r focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-                    lang === code ? 'bg-emerald-700 text-white' : 'bg-white text-slate-700'
+                  className={`relative z-10 rounded-full px-3 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
+                    lang === code ? 'text-white' : 'text-slate-700 hover:text-slate-900'
                   }`}
                   onClick={() => setLang(code)}
                 >
