@@ -123,6 +123,15 @@ describe('soilHealth: nitrogen', () => {
     expect(wet?.value).toBeLessThan(dry?.value ?? -Infinity);
   });
 
+  it('credits a perennial legume once per stand, not once per year', () => {
+    const two = run([{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }]).indicators.nitrogen;
+    const three = run([{ crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'alfalfa' }, { crop: 'maize' }]).indicators.nitrogen;
+    // per rotation year, a longer stand must not look better on nitrogen than a shorter one
+    expect(three?.value).toBeLessThanOrEqual(two?.value ?? -Infinity);
+    // a rotation that is the perennial in every year still gets its credit
+    expect(run([{ crop: 'alfalfa' }]).indicators.nitrogen?.value).toBeGreaterThan(0);
+  });
+
   it('a sandier soil leaches more and scores lower', () => {
     const loam = run(maizeSoy, makeProfile({ sand: 30 })).indicators.nitrogen;
     const sand = run(maizeSoy, makeProfile({ sand: 80 })).indicators.nitrogen;
