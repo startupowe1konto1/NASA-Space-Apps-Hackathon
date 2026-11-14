@@ -51,6 +51,7 @@ Under `?lang=pl` the glossary page ("Słowniczek") and every `<Term>` pop-up sti
 | #142: [contract] D49, allow `integracja02.gugik.gov.pl` for the KIEG parcel layer | O2 | ready, needs an O1 review; a new host, so check it against SPEC §15 (GUGiK is listed) |
 | #140: handoff v3 for O2 | O2 | ready, needs an O1 review |
 | #143: O2-A5 parcel layer (KIEG), split and merge | O2 | draft, after #142 |
+| #145: [contract] pitch farm stills from the Polyfork Cozy Farm kit | O1 (another session, `o1/contract-pitch-farm-stills`) | ready; it also edits `docs/ai-usage/O1.md`, which #147 changed, so rebase it first; check the kit's licence before merging |
 
 Merged since 20:20: #144 (handoff v6.1), #146, #147 and #148 (water priority, see above).
 
