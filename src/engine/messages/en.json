@@ -14,7 +14,7 @@
   "soil.evidence.pest-break": "{violations} of {years} crops come back before their family's minimum break.",
 
   "priority.basis.forage": "{forageYears} of {years} rotation years give forage: a forage crop or a cover crop that can be grazed. Counted from crop traits.",
-  "priority.basis.water": "Rain covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years in this field's NASA POWER record, a model estimate. The range runs from the 10th to the 90th percentile year.",
+  "priority.basis.water": "Growing-season rain alone (evapotranspiration not counted) covered the crop's seasonal need in {coveredYears} of {cropYears} crop-years on this field's NASA POWER record (a model estimate). Range: 10th to 90th percentile year.",
   "priority.basis.water-no-data": "No growing season in the rain record is complete, so the water need could not be checked.",
   "priority.basis.water-no-need-class": "No crop in this rotation has a water need class, so the water need could not be checked.",
 
