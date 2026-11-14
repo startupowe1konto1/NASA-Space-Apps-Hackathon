@@ -109,9 +109,13 @@ function centroidOf(polygon: Polygon): { lat: number; lon: number } {
   return { lat: cy / (3 * twiceArea), lon: cx / (3 * twiceArea) };
 }
 
+let fieldCount = 0;
+const runId = Date.now().toString(36);
+
+/** The id is unique per created field: tapping the same parcel again must not replace a field the farmer reshaped. */
 export function parcelToField({ teryt, polygon }: UldkParcel): Field {
   return {
-    id: `parcel-${teryt}`,
+    id: `parcel-${teryt}-${runId}${++fieldCount}`,
     name: t('parcels.field.name', { teryt }),
     country: 'PL',
     polygon,

@@ -1,6 +1,7 @@
 // Step 5: the field summary, a goal switcher, the current rotation plus the three best others, and the sources.
 import { useEffect } from 'react';
 import { t } from '../../app/i18n';
+import { liveSoilData } from '../../app/providers';
 import { useAppStore } from '../../app/store';
 import { StateBoundary } from '../../ui-kit';
 import { CalendarStrip } from '../calendar/CalendarStrip';
@@ -21,14 +22,19 @@ export function RotationsStep() {
 
   if (analysis.status !== 'ready') {
     return (
-      <StateBoundary
-        state={analysis.status === 'error' ? 'error' : 'loading'}
-        source={analysis.status === 'error' ? analysis.source : t('steps.rotations.analysis')}
-        reason={analysis.status === 'error' ? analysis.reason : undefined}
-        onRetry={() => void runAnalysis()}
-      >
-        {null}
-      </StateBoundary>
+      <>
+        <StateBoundary
+          state={analysis.status === 'error' ? 'error' : 'loading'}
+          source={analysis.status === 'error' ? analysis.source : t('steps.rotations.analysis')}
+          reason={analysis.status === 'error' ? analysis.reason : undefined}
+          onRetry={() => void runAnalysis()}
+        >
+          {null}
+        </StateBoundary>
+        {analysis.status === 'loading' && liveSoilData ? (
+          <p className="mt-2 text-base text-slate-700">{t('steps.rotations.loadingNote')}</p>
+        ) : null}
+      </>
     );
   }
 

@@ -12,9 +12,9 @@
   "steps.rotations.evidence": "Evidence",
   "steps.rotations.benefits": "Benefits",
   "steps.rotations.benefitsNone": "No extra benefits found beyond the scores above.",
-  "steps.rotations.twins": "Fields like yours",
-  "steps.rotations.twinsNotLoaded": "Similar fields are not part of this analysis yet.",
-  "steps.rotations.twinsReady": "{count} similar fields, {similarity}% alike on average.",
+  "steps.rotations.twins": "Regions like yours",
+  "steps.rotations.twinsNotLoaded": "Similar regions are not part of this analysis yet.",
+  "steps.rotations.twinsReady": "{count} similar regions, {similarity}% alike on average.",
   "steps.rotations.gaps": "What we do not know",
   "steps.rotations.risks": "Check locally",
   "steps.rotations.weakTitle": "Read this first",
@@ -69,5 +69,12 @@
   "steps.rotations.income.paymentsNone": "This rotation qualifies for none of the payments we checked.",
   "steps.rotations.income.unconfirmed": "Rate not confirmed for this campaign, so it is not counted in the income.",
   "steps.rotations.income.campaign": "Prices and rates: {campaign}",
-  "steps.rotations.income.notLoaded": "Income is not part of this analysis yet."
+  "steps.rotations.income.notLoaded": "Income is not part of this analysis yet.",
+  "steps.rotations.twinsTable": "Yields in similar regions",
+  "steps.rotations.twinsRegion": "Region",
+  "steps.rotations.twinsYears": "Years",
+  "steps.rotations.twinsCrops": "Crops",
+  "steps.rotations.twinsSimilarity": "Similarity",
+  "steps.rotations.twinsYield": "Yield",
+  "steps.rotations.loadingNote": "Soil data comes live from SoilGrids and can take up to two minutes to arrive. Keep this page open."
 }

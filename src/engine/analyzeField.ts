@@ -32,9 +32,9 @@ import { datasets as datasetRegistry } from '../app/datasets';
 import { buildCalendar } from './calendar';
 import { currentRotation, generateCandidates } from './candidates';
 import { CROP_CALENDARS_ID } from './datasets';
-import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome } from './messages';
+import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome, type WaterEvidenceInput } from './messages';
 import { INCOME_MESSAGE_CODES, incomeEstimate, incomeScores, incomeTotal, type IncomeResult, type IncomeTotal } from './income';
-import { forageScore } from './priorityScores';
+import { forageScore, waterScore } from './priorityScores';
 import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, rankSoil, type Scored } from './ranking';
 import { resilienceScore, withExposure } from './resilience';
 import { engineRules, shippedRules, toSoilRules, type EngineRules, type LoadedRules } from './rules';
@@ -190,6 +190,8 @@ interface Candidate extends Scored {
   months: ReturnType<typeof buildCalendar>['months'];
   bareMonths: number;
   soil: SoilOutcome & { indicators: RotationOption['indicators'] };
+  /** Means behind the water score, for the card's evidence; absent when water was not scored. */
+  water?: WaterEvidenceInput;
 }
 
 const SOIL_INPUT_LABEL: Record<keyof Soil, string> = { sandPct: 'sand', clayPct: 'clay', organicCarbon: 'organic carbon', ph: 'pH' };
@@ -319,6 +321,15 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
         soilOut.erosionNoRow = soilRules.erosionNoRow;
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
+        // water needs the sourced need rows; without them, or without data, it stays unscored and the card names it
+        let water: WaterEvidenceInput | undefined;
+        if (on.includes('water') && rules.waterNeedMm && rules.ids.waterNeed) {
+          const w = waterScore(years, crops, climate, rules.waterNeedMm, rules.waterNeedByCropMm);
+          if (w.status === 'scored') {
+            priorityScores.water = w.score;
+            water = { meanRainMm: w.meanRainMm, meanEtMm: w.meanEtMm, ruleIds: w.needKeys.map((k) => `water.needMm.${k}`) };
+          }
+        }
         candidates.push({
           id: rotationId(years),
           isCurrent,
@@ -329,6 +340,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           climateResilience,
           priorityScores,
           soil: soilOut,
+          ...(water ? { water } : {}),
         });
       } catch (e) {
         if (isCurrent) return; // reported below: no current card means no cards
@@ -415,7 +427,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
     const soilInputsMissing = (Object.keys(SOIL_INPUT_LABEL) as (keyof Soil)[])
       .filter((k) => soil[k].value === null)
       .map((k) => SOIL_INPUT_LABEL[k]);
-    const prioritiesNotScored = (['water', 'forage'] as const).filter((p) => on.includes(p) && !currentCandidate.priorityScores[p]);
+    // per card: a priority switched on but not scored for this rotation is named in its gaps
+    const prioritiesNotScored = (c: Candidate) => (['water', 'forage'] as const).filter((p) => on.includes(p) && !c.priorityScores[p]);
     const retrievedAt = today();
 
     const rotations: RotationOption[] = await Promise.all(
@@ -446,7 +459,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           suitabilityError,
           soilInputsMissing,
           slopeMissing: slopePct.value === null,
-          prioritiesNotScored,
+          prioritiesNotScored: prioritiesNotScored(c),
+          water: c.water,
           ruleIds: { drought: rules.ids.drought, markShare: rules.ids.markShare, heatMinDays: rules.ids.heatMinDays },
           calendarDatasetId: CROP_CALENDARS_ID,
           retrievedAt,
@@ -469,7 +483,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           rankByGoal: r.rankByGoal,
           belowSoilFloor: r.belowSoilFloor,
           // #124 review: the card shows the soil total the goals ranked on. Where this rotation's indicators differ from the
-          // current one's, that is the current total plus the mean difference on the shared ones (rankSoil), and the
+          // current one's, that is the current total plus the weighted difference on the shared ones (rankSoil), and the
           // gap 'gap.soil-compared-shared' says how to rebuild it.
           soilHealth: sharedOf.has(r.id) ? (r.rankSoil ?? r.soilHealth) : r.soilHealth,
           indicators: c.soil.indicators,

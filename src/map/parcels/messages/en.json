@@ -1,5 +1,4 @@
 {
-  "parcels.source": "GUGiK ULDK",
   "parcels.field.name": "Parcel {teryt}",
   "parcels.search.title": "Find a Polish parcel",
   "parcels.search.label": "Parcel number",
@@ -8,7 +7,8 @@
   "parcels.added": "Added parcel {teryt}.",
   "parcels.notFound": "No parcel has this number. Check it against your land register extract, including the region code before the dot.",
   "parcels.tap.none": "No parcel was found at that spot, so a 4 ha square was added instead.",
-  "parcels.tap.error": "GUGiK ULDK did not answer, so a 4 ha square was added instead.",
+  "parcels.tap.error": "{source} did not answer, so a 4 ha square was added instead.",
+  "parcels.tap.offline": "Your browser is offline, so a 4 ha square was added instead. Parcels need a connection.",
   "split.field.name": "{name} ({n})",
   "merge.field.name": "{a} + {b}",
   "edit.cut.start": "Cut the selected field",

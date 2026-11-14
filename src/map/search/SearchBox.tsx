@@ -28,6 +28,7 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
   const hintId = useId();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState<Search>({ kind: 'idle' });
+  const [fromNominatim, setFromNominatim] = useState(false);
   const latest = useRef(0); // only the newest search may change the state
 
   const pick = (place: Place) => {
@@ -40,10 +41,12 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
     if (!wanted) return;
     const request = ++latest.current;
     const firstSource = isPolishQuery(wanted) ? GUGIK_SOURCE : NOMINATIM_SOURCE;
+    setFromNominatim(false);
     setSearch({ kind: 'loading', source: firstSource });
     try {
-      const { places } = await searchPlaces(wanted, fetch, throttle);
+      const { places, source } = await searchPlaces(wanted, fetch, throttle);
       if (request !== latest.current) return;
+      setFromNominatim(source === NOMINATIM_SOURCE);
       if (places.length === 0) setSearch({ kind: 'none' });
       else if (places.length === 1) pick(places[0]!);
       else setSearch({ kind: 'list', places });
@@ -78,7 +81,7 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
             aria-describedby={hintId}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            autoComplete="street-address"
+            autoComplete="off"
             enterKeyHint="search"
             className="min-h-11 rounded-lg border border-slate-400 bg-white px-3 text-base text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
           />
@@ -117,6 +120,9 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
             </li>
           ))}
         </ul>
+      ) : null}
+      {fromNominatim && (search.kind === 'list' || search.kind === 'moved' || search.kind === 'none') ? (
+        <p className="text-sm text-slate-600">{t('search.attribution')}</p>
       ) : null}
       {search.kind === 'moved' ? (
         <p role="status" className="text-base text-emerald-900">

@@ -1,0 +1,185 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:transparent;overflow:hidden}canvas{display:block}</style>
+<body>
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+const q = new URLSearchParams(location.search);
+const W = +q.get('w') || 1920, H = +q.get('h') || 1080;
+const which = q.get('s') || 'hero';
+const bgNone = q.get('bg') === 'none';
+
+const ID = {
+  house: 'gabled-farmhouse-c7534f', barn: 'red-barn-d41683', silo: 'grain-silo-58ca67', tractor: 'compact-tractor-35b84b',
+  greenhouse: 'greenhouse-53ab6d', corn: 'corn-crop-b71f2f', wheat: 'wheat-crop-7e08e6', sunflower: 'sunflower-80ce15',
+  pumpkin: 'pumpkin-crop-7de137', turnip: 'turnip-crop-a5b3b7', soil: 'tilled-soil-tile-d9152e', grass: 'grass-tile-37e1a7',
+  dirt: 'dirt-tile-6f4470', cow: 'cow-c61a66', sheep: 'sheep-7b0187', farmer: 'farmer-304a43', dog: 'farm-dog-723730',
+  tree: 'apple-tree-ef0ba0', windpump: 'windpump-tower-1633a9', hay: 'hay-bale-079e8c', scarecrow: 'scarecrow-334079',
+  fence: 'wooden-fence-section-d72055', gate: 'farm-gate-8ab320', well: 'stone-well-b2dfcd', seedlings: 'seedling-tray-116925',
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.append(renderer.domElement);
+if (!bgNone) document.body.style.background = 'linear-gradient(180deg,#cfe8f7 0%,#eaf4ea 62%,#f6f1de 100%)';
+
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight('#ffffff', '#9aa88a', 2.1));
+const sun = new THREE.DirectionalLight('#fff4dc', 2.6);
+sun.position.set(-9, 16, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+const sc = sun.shadow.camera; sc.left = -16; sc.right = 16; sc.top = 16; sc.bottom = -16; sc.near = 1; sc.far = 60;
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+scene.add(sun);
+
+const loader = new GLTFLoader();
+const cache = {};
+async function get(key) { return (cache[key] ??= await loader.loadAsync(`./glb/${ID[key]}.glb`)); }
+async function put(key, x, z, o = {}) {
+  const g = await get(key);
+  const m = SkeletonUtils.clone(g.scene);
+  m.position.set(x, o.y ?? 0.1, z);
+  m.rotation.y = o.ry ?? 0;
+  if (o.s) m.scale.setScalar(o.s);
+  m.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+  scene.add(m);
+  if (o.anim) {
+    const clip = g.animations.find(a => a.name === o.anim);
+    const mx = new THREE.AnimationMixer(m);
+    mx.clipAction(clip).play();
+    mx.update(o.t ?? 0.4);
+  }
+  return m;
+}
+const taken = new Set();
+async function tiles(key, x0, z0, w, d, y) {
+  for (let i = 0; i < w; i++) for (let j = 0; j < d; j++) { taken.add((x0 + i) + ',' + (z0 + j)); await put(key, x0 + i + 0.5, z0 + j + 0.5, { y }); }
+}
+function grassFill(x0, z0, w, d) {
+  const g = new THREE.BoxGeometry(1, 0.1, 1);
+  const mats = [new THREE.MeshStandardMaterial({ color: '#a7c978', roughness: 1 }), new THREE.MeshStandardMaterial({ color: '#9fc372', roughness: 1 })];
+  for (let i = 0; i < w; i++) for (let j = 0; j < d; j++) {
+    if (taken.has((x0 + i) + ',' + (z0 + j))) continue;
+    const m = new THREE.Mesh(g, mats[(i + j) & 1]);
+    m.position.set(x0 + i + 0.5, 0.05, z0 + j + 0.5); m.receiveShadow = true; scene.add(m);
+  }
+}
+function slab(x0, z0, w, d) {
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.9, d), new THREE.MeshStandardMaterial({ color: '#7a5636', roughness: 1 }));
+  b.position.set(x0 + w / 2, -0.4, z0 + d / 2);
+  b.receiveShadow = true; b.castShadow = true;
+  scene.add(b);
+}
+function ortho(w, cx, cy, cz, dist = 40) {
+  const a = W / H;
+  const cam = new THREE.OrthographicCamera(-w / 2, w / 2, w / 2 / a, -w / 2 / a, 0.1, 200);
+  cam.position.set(cx + dist * 0.62, cy + dist * 0.62, cz + dist * 0.62);
+  cam.lookAt(cx, cy, cz);
+  return cam;
+}
+const GR = 0.05, SO = 0.0; // y offsets: grass tile spans 0..0.1, soil 0..0.05
+const GY = 0.1, SY = 0.05;  // standing height on grass / soil
+let camera;
+
+async function hero() {
+  const X0 = -10, Z0 = -7, Wd = 20, D = 14;
+  slab(X0, Z0, Wd, D);
+  await tiles('dirt', -5, 3, 15, 2, SO);          // road
+  await tiles('soil', 3, -5, 6, 6, SO);           // corn field
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) await put('corn', 3.5 + i, -4.5 + j, { y: SY });
+  await tiles('soil', -10, -2, 4, 3, SO);         // wheat field
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 6; j++) await put('wheat', -9.75 + i * 0.5, -1.75 + j * 0.5, { y: SY });
+  grassFill(X0, Z0, Wd, D);
+  await put('house', -6.5, -4.6, {});
+  await put('barn', -1.2, -4.2, {});
+  await put('silo', 1.3, -5.2, {});
+  await put('windpump', -9, -6, {});
+  await put('greenhouse', -7.5, 4.0, {});
+  await put('tree', -3.6, -1.2, {});
+  await put('well', -1.2, 1.4, { ry: 0.5 });
+  await put('hay', 0.8, 1.4, { ry: 0.3 });
+  await put('hay', 1.5, 1.8, { ry: -0.2 });
+  await put('tractor', 5.2, 4.0, { ry: Math.PI / 2 });
+  await put('scarecrow', 6.4, 1.4, { ry: 0.4 });
+  await put('cow', -4.3, 1.2, { ry: 1.0, anim: 'Idle', t: 1.2 });
+  await put('sheep', -3.0, 2.0, { ry: -0.4, anim: 'Idle', t: 2.2 });
+  await put('farmer', -0.5, 4.0, { ry: 1.2, anim: 'Walk', t: 0.35 });
+  await put('dog', 0.9, 4.4, { ry: 1.3, anim: 'Walk', t: 0.3 });
+  camera = ortho(37, 0, 3.4, 0);
+}
+
+async function rotation() {
+  const X0 = -11, Z0 = -5, Wd = 22, D = 10;
+  slab(X0, Z0, Wd, D);
+  const plots = [
+    { x: -10, crop: 'corn', step: 1.0 },
+    { x: -5, crop: 'wheat', step: 0.5 },
+    { x: 0, crop: 'sunflower', step: 1.0 },
+    { x: 5, crop: 'pumpkin', step: 1.0 },
+  ];
+  for (const p of plots) {
+    await tiles('soil', p.x, -3, 4, 6, SO);
+    const n = Math.round(4 / p.step), m = Math.round(6 / p.step);
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++)
+      await put(p.crop, p.x + p.step / 2 + i * p.step, -3 + p.step / 2 + j * p.step, { y: SY });
+  }
+  grassFill(X0, Z0, Wd, D);
+  await put('tractor', -2.5, 4.4, { ry: Math.PI / 2 });
+  await put('farmer', 2.6, 3.9, { ry: 2.4, anim: 'Walk', t: 0.35 });
+  await put('scarecrow', -2.5, -0.2, { ry: 0.3 });
+  await put('fence', 8, -4.4, {}); await put('fence', 10, -4.4, {});
+  camera = ortho(31, 0, 0.6, 0.3);
+}
+
+async function yard() {
+  const X0 = -6, Z0 = -4, Wd = 12, D = 8;
+  slab(X0, Z0, Wd, D);
+  await tiles('dirt', -6, 0, 12, 1, SO);
+  grassFill(X0, Z0, Wd, D);
+  await put('house', -2.8, -2.2, {});
+  await put('tree', 2.5, -1.8, {});
+  await put('well', 4.2, 0.2, { ry: 0.4 });
+  for (let i = 0; i < 6; i++) await put('fence', -5 + i * 2, 3.2, {});
+  await put('cow', -3, 2, { ry: 1.1, anim: 'Idle', t: 1.2 });
+  await put('sheep', -1.2, 2.3, { ry: 0.5, anim: 'Idle', t: 2.2 });
+  await put('dog', 0.8, 1.2, { ry: -0.6, anim: 'Idle', t: 1.0 });
+  await put('farmer', 2.2, 1.7, { ry: 0.3, anim: 'Idle', t: 0.9 });
+  await put('hay', 4.6, 2.2, { ry: 0.5 });
+  camera = ortho(20.5, 0, 2.6, 0);
+}
+
+async function single(key) {
+  const g = await get(key);
+  const m = SkeletonUtils.clone(g.scene);
+  const b = new THREE.Box3().setFromObject(m);
+  const c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+  m.position.sub(new THREE.Vector3(c.x, b.min.y, c.z));
+  m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(m);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.18 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  const r = Math.max(s.x, s.z, s.y) * 1.35;
+  camera = ortho(Math.max(r * 1.7, 2.8), 0.12 * r, s.y * 0.62 + r * 0.12, 0);
+}
+
+if (which === 'hero') await hero();
+else if (which === 'rotation') await rotation();
+else if (which === 'yard') await yard();
+else await single(which);
+
+renderer.render(scene, camera);
+document.title = 'rendered';
+</script>

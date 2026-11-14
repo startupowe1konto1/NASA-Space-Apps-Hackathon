@@ -2,7 +2,7 @@
 // The engine has no rows of its own: a row the engine needs and the files lack makes engineRules throw, and
 // analyzeField then returns an empty analysis with the reason 'empty.rules-missing'.
 import { z } from 'zod';
-import type { CropTraits, FieldProfile, GoalId, RotationOption } from '../contracts';
+import type { CropTraits, FieldProfile, GoalId, RotationOption, WaterNeed } from '../contracts';
 import type { SoilRules } from './soilHealth';
 import { ruleRow } from '../contracts/schemas';
 
@@ -43,8 +43,23 @@ export interface EngineRules {
   shownOthers: number;
   doublingFactor: number;
   weights: Record<GoalId, GoalWeights>;
+  /**
+   * Water priority (#105 item 6): seasonal need in mm per water need class, from rows 'water.needMm.<class>'.
+   * Undefined when data/rules has none of them: the water priority is then not scored and the card says so.
+   */
+  waterNeedMm?: Record<WaterNeed, number>;
+  /** A crop's own seasonal need in mm, from rows 'water.needMm.<crop id>'; it wins over the crop's class (#119 review). */
+  waterNeedByCropMm?: Record<string, number>;
   /** Rule ids behind each number above, for Evidence.ruleIds. */
-  ids: { markShare: string; gaez: string; floor: string; drought: string; heatMinDays: string; weights: Record<GoalId, string> };
+  ids: {
+    markShare: string;
+    gaez: string;
+    floor: string;
+    drought: string;
+    heatMinDays: string;
+    weights: Record<GoalId, string>;
+    waterNeed?: Record<WaterNeed, string>;
+  };
 }
 
 function numberOf(rules: LoadedRules, id: string): number {
@@ -63,7 +78,21 @@ function weightsOf(rules: LoadedRules, id: string): GoalWeights {
   return income === undefined ? { soilHealth, climateResilience, priorities } : { soilHealth, climateResilience, priorities, income };
 }
 
+const WATER_CLASSES: WaterNeed[] = ['low', 'medium', 'high'];
+
+/** All three water need rows, or none. Some but not all is a data error and throws, naming the missing row. */
+function waterNeedOf(rules: LoadedRules): Pick<EngineRules, 'waterNeedMm' | 'waterNeedByCropMm'> & { ids?: Record<WaterNeed, string> } {
+  const ids = Object.fromEntries(WATER_CLASSES.map((c) => [c, `water.needMm.${c}`])) as Record<WaterNeed, string>;
+  if (!WATER_CLASSES.some((c) => rules.byId.has(ids[c]))) return {};
+  const waterNeedMm = Object.fromEntries(WATER_CLASSES.map((c) => [c, numberOf(rules, ids[c])])) as Record<WaterNeed, number>;
+  const prefix = 'water.needMm.';
+  const cropIds = [...rules.byId.keys()].filter((id) => id.startsWith(prefix) && !WATER_CLASSES.includes(id.slice(prefix.length) as WaterNeed));
+  const waterNeedByCropMm = Object.fromEntries(cropIds.map((id) => [id.slice(prefix.length), numberOf(rules, id)]));
+  return { waterNeedMm, waterNeedByCropMm, ids };
+}
+
 export function engineRules(rules: LoadedRules): EngineRules {
+  const water = waterNeedOf(rules);
   const weightIds: Record<GoalId, string> = {
     keepSoil: 'goals.keepSoil.weights',
     improveSoil: 'goals.improveSoil.weights',
@@ -89,7 +118,10 @@ export function engineRules(rules: LoadedRules): EngineRules {
       drought: 'hazards.drought.percentile',
       heatMinDays: 'hazards.heat.minDays',
       weights: weightIds,
+      ...(water.ids ? { waterNeed: water.ids } : {}),
     },
+    ...(water.waterNeedMm ? { waterNeedMm: water.waterNeedMm } : {}),
+    ...(water.waterNeedByCropMm ? { waterNeedByCropMm: water.waterNeedByCropMm } : {}),
   };
 }
 
