@@ -86,6 +86,8 @@
   "income.no-price": "No sourced price, yield or direct costs for {crop}, so income is not estimated for this rotation.",
   "income.no-yield-response": "No yield response factor for {crop}, so its yield in dry years cannot be replayed.",
   "income.no-climate-years": "The climate record has no year in which every crop of this rotation could be checked, so income is not estimated.",
+  "income.total-loss-every-year": "Every past year is a total loss for {crop} under its hazard checks, so its income cannot be replayed for this rotation.",
+  "gap.income-calibration-large": "{crop}: the hazard checks find much more loss than the recent harvests show, so each replayed year is scaled up {factor} times to match the recent average harvest. Its good years may look better than this field has seen. Check them locally.",
   "income.cover-no-revenue": "{crop} earns nothing directly. It pays back through the soil health scores.",
   "income.error": "Prices and costs could not be loaded from {source}, so income is not estimated.",
   "income.current-missing": "Your current rotation has no income estimate, so there is nothing to compare this income with.",

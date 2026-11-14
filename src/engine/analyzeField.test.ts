@@ -12,6 +12,7 @@ import moneyPl from '../../data/money/pl.json';
 import moneyUs from '../../data/money/us-ia.json';
 
 const shippedDrought = engineRules(shippedRules).droughtPercentile;
+const shippedHeatMinDays = engineRules(shippedRules).heatMinDays;
 
 const priorities: Priorities = { goal: 'keepSoil', on: [], excludedCrops: [] };
 const iowaHistory: CropYear[] = [2019, 2020, 2021, 2022, 2023, 2024, 2025].map((year, i) => ({
@@ -348,7 +349,7 @@ describe('analyzeField with a money provider (income, O3-B7)', () => {
           continue;
         }
         const expected = incomeEstimate(
-          r.years, crops, climate, econ.data, pay.status === 'ready' ? pay.data : [], table.currency as 'USD' | 'PLN', table.campaign, shippedDrought,
+          r.years, crops, climate, econ.data, pay.status === 'ready' ? pay.data : [], table.currency as 'USD' | 'PLN', table.campaign, shippedDrought, shippedHeatMinDays,
         );
         if (expected.status !== 'ready') {
           expect(expected.status).toBe('no-data');
