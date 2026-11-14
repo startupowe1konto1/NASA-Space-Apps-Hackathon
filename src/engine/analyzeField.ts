@@ -88,11 +88,18 @@ function missing(datasetId: string, source: string, error: unknown, unit?: strin
   };
 }
 
+/** Dataset ids of the soil sources a SourceError can name (src/context-data: SOILGRIDS_SOURCE, SSURGO_SOURCE). */
+const SOIL_DATASETS: Record<string, string> = { SoilGrids: 'isric-soilgrids', 'USDA soil survey (SSURGO)': 'usda-ssurgo' };
+
 async function loadSoil(field: Field, providers: Providers): Promise<Soil> {
   try {
     return await providers.context.getSoil(field);
   } catch (e) {
-    const [id, source] = field.country === 'US' ? ['usda-ssurgo', 'USDA soil survey'] : ['isric-soilgrids', 'SoilGrids'];
+    // The live provider falls back from SSURGO to SoilGrids for a US point without a map unit, so a SourceError names
+    // the source that failed; the country only decides when the error does not say (#98 item 13).
+    const fallback: [string, string] = field.country === 'US' ? ['usda-ssurgo', 'USDA soil survey'] : ['isric-soilgrids', 'SoilGrids'];
+    const named = e instanceof SourceError ? SOIL_DATASETS[e.source] : undefined;
+    const [id, source] = named && e instanceof SourceError ? [named, e.source] : fallback;
     return {
       sandPct: missing(id, source, e, '%'),
       clayPct: missing(id, source, e, '%'),

@@ -94,6 +94,19 @@ describe('analyzeField with fixture providers', () => {
     expect(a.rotations[0]!.gaps.some((g) => g.code === 'gap.soil-missing')).toBe(true);
   });
 
+  // #98 item 13: the live provider falls back to SoilGrids for a US point without an SSURGO map unit, so the reason
+  // names the source that failed (from the SourceError), not the one the country would suggest.
+  it('names the soil source from the SourceError when the soil provider fails', async () => {
+    const providers: Providers = {
+      ...fixtureProviders,
+      context: { ...fixtureProviders.context, getSoil: () => Promise.reject(new SourceError('SoilGrids', 'SoilGrids gave no answer within 60 s')) },
+    };
+    const a = await run('iowa', providers);
+    expect(a.profile.soil.sandPct.missingReason).toMatch(/^SoilGrids did not answer/);
+    expect(a.profile.soil.sandPct.datasetIds).toEqual(['isric-soilgrids']);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+  });
+
   it('removes a crop that GAEZ marks not suitable and names it in the gaps', async () => {
     const providers: Providers = {
       ...fixtureProviders,
