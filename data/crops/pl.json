@@ -228,14 +228,6 @@
         ],
         "threshold": 20,
         "lossShare": 0.2
-      },
-      {
-        "hazard": "heat",
-        "months": [
-          6
-        ],
-        "threshold": 29,
-        "lossShare": 0.2
       }
     ],
     "waterNeed": "low",
@@ -272,11 +264,6 @@
         "title": "team rule of thumb",
         "url": "https://github.com/startupowe1konto1/nasa-space-apps-hackathon/blob/main/docs/SPEC.md",
         "locator": "SPEC section 7: drought threshold 20 = 20th percentile of the field's own root-zone wetness; lossShare 0.2 (drought, and heat or frost where no loss share is cited) has no source and is a team rule of thumb"
-      },
-      {
-        "title": "Bueckert, Pea yield formation in warming temperatures: phenological mechanisms, University of Saskatchewan research project (project page by Saskatchewan Pulse Growers)",
-        "url": "https://saskpulse.com/research/listing/pea-yield-formation-in-warming-temperatures-phenological-mechanisms/",
-        "locator": "\"Project Description\": \"A few days of heat above 29°C in the field causes flower and young pod abortion and lowers yield\"; heat threshold 29 °C compared with the monthly maximum of NASA POWER T2M_MAX in the flowering month (June, from the COBORU start of flowering 31.05 and 10.06); lossShare 0.2 is the team rule of thumb (no loss share given). Excerpt: data/samples/research/agronomy/hf-saskpulse-pea-heat.txt"
       },
       {
         "title": "FAO Land and Water, Crop information: Pea (based on FAO Irrigation and Drainage Paper 33)",

@@ -124,3 +124,7 @@ FAO EcoCrop (https://ecocrop.apps.fao.org/ecocrop/srv/en/home) opened, but its n
 - FAO Crop Calendar API (https://api-cropcalendar.apps.fao.org/api/v1/countries): Poland is not among its 58 countries.
 - FAO, The State of Food and Agriculture 2008, https://www.fao.org/4/i0100e/i0100e.pdf, Table 10, page 64: potential crop evapotranspiration of rapeseed 500 mm. It is one value, not a range, and gives maize 550 mm, below the Table 14 maize range used here, so it was not used for the class.
 - COBORU 2025 reports (Zboża jare No. 228, Oleiste No. 234), listed at https://coboru.gov.pl/pl/publikacje: not opened for values. The 2024 reports were used, as for the other Polish crops.
+
+## Field pea heat row removed (#98 item 11)
+
+The 29 °C heat row for field pea rested on a project summary published by a producer group (Saskatchewan Pulse Growers), not on the paper itself, so under D37 it is not a value source. It is also the wrong kind of number for our indicator: at the Poznań field the hottest hour of June (NASA POWER monthly T2M_MAX, 1981–2025, sample `data/samples/power/point-monthly-1981-2025-ag-poznan.json`) is above 29 °C in 30 of 45 years, so the row would mark heat damage in two years out of three. The row is left out; field pea keeps its drought row. A sourced heat limit for pea, counted as hot days from NASA POWER daily data (issue #105), is listed as missing.
