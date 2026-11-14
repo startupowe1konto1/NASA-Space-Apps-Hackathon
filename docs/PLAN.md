@@ -34,10 +34,10 @@ Written Sat 14 Nov 2026, 15:05 CET (T+3:56). T0 = Sat 11:09 CET.
 
 | Time | Gate |
 |---|---|
-| Sat 16:00 (T+4:50) | O1-S1 skeleton on `main`; lanes start |
+| Sat 16:15 (T+5) | O1-S1 skeleton on `main`; lanes start |
 | Sat 17:15 (T+6) | first integration: every lane has merged at least one PR that renders or computes something on `main` |
-| Sat 18:10 (T+7) | app review on demo data; decide whether "minimum done" stays at T+8 |
-| Sat 19:10 (T+8) | minimum done (SPEC section 3) |
+| Sat 18:10 (T+7) | app review on demo data; a thin real engine (calendar, candidates, climate resilience) is on `main` (D19) |
+| Sat 20:10 (T+9) | minimum done (SPEC section 3); moved from 19:10 by D17 |
 | Sun 00:10 (T+13) | all features done; after this only fixes and visuals |
 | Sun 06:10 (T+19) | "senior developer" review |
 | Sun 08:10 (T+21) | feature freeze |
@@ -56,7 +56,7 @@ Written Sat 14 Nov 2026, 15:05 CET (T+3:56). T0 = Sat 11:09 CET.
 | `src/steps/` | O2 | `goal/`, `crops/`, `priorities/`, `cards/`, `calendar/`, `money/`, `report/`, `glossary/` |
 | `src/profile/` | O3 | POWER client, climate profile, later SMAP |
 | `src/engine/` | O3 | `calendar.ts`, `candidates.ts`, `resilience.ts`, `soilHealth.ts`, `income.ts`, `ranking.ts`, `messages.ts`, `analyzeField.ts` |
-| `data/rules/` | O3 | rule tables with sources |
+| `data/rules/` | O4 | rule tables with sources |
 | `scripts/`, `data/precomputed/` | O4 | precompute scripts and their output |
 | `data/crops/`, `src/context-data/` | O4 | crop traits; `ContextProvider` |
 | `data/money/`, `src/money/` | O4 | economics and payments tables; `MoneyProvider` |
@@ -89,7 +89,6 @@ Written Sat 14 Nov 2026, 15:05 CET (T+3:56). T0 = Sat 11:09 CET.
 | O3-A1 | O3 | A | NASA POWER client and parser | O1-S1 | yes |
 | O3-A2 | O3 | A | Climate profile and `ProfileProvider` | O3-A1 | yes |
 | O3-A3 | O3 | A | Recent soil moisture from SMAP (GIBS) | O3-A2 | no |
-| O3-B1 | O3 | B | Rule tables with sources | O1-S1 | yes |
 | O3-B2 | O3 | B | Rotation calendar and bare months | O1-S1 | yes |
 | O3-B3 | O3 | B | Candidate generator | O3-B2 | yes |
 | O3-B4 | O3 | B | Climate resilience score and calendar exposure | O3-B2 | yes |
@@ -101,11 +100,12 @@ Written Sat 14 Nov 2026, 15:05 CET (T+3:56). T0 = Sat 11:09 CET.
 | O4-A3 | O4 | A | `ContextProvider` on precomputed data | O4-A1, O4-A2 | yes |
 | O4-A4 | O4 | A | Money tables and `MoneyProvider` | O4-A2 | no |
 | O4-A5 | O4 | A | Live soil, suitability and crop history | O4-A3 | no |
-| O4-B1 | O4 | B | Twins case base: regions and features | O1-S1 | no |
+| O4-B0 | O4 | B | Rule tables with sources, before twins (D16) | O1-S1 | yes |
+| O4-B1 | O4 | B | Twins case base: regions and features | O4-B0 | no |
 | O4-B2 | O4 | B | Twins outcomes: crop shares and yields | O4-B1 | no |
 | O4-B3 | O4 | B | `TwinsProvider` | O4-B1, O4-B2 | no |
 
-Stream A of O2 runs in the order A1, A4, A3, A2. O3-B3 and O3-B4 can run as two subagents at once. Pitch, slides and the demo recording get tasks and an owner after O1-S1 is on `main`.
+Stream A of O2 runs in the order A1, A4, A3, A2. If the minimum is at risk, cut in this order: O2-A2 address search, O2-A3 parcels, O2-A4 drawing, the glossary page of O2-B5 (tooltips stay); the demo buttons and a click on the map are enough for the demo. The plan assumes none of this is needed (D18). O3-B3 and O3-B4 can run as two subagents at once. Pitch, slides and the demo recording get tasks and an owner after O1-S1 is on `main`.
 
 ---
 
@@ -298,7 +298,7 @@ Review each PR with prompt P5 from `HACKATHON.md`; merge after green `ci`. Check
 
 **Branch:** `o3/a2-profile` · **After:** O3-A1 · **Files:** `src/profile/climate.ts`, `src/profile/trend.ts`, `src/profile/provider.ts`, tests
 
-Thresholds come from `data/rules/hazards.json`, which O3-B1 ships as its first step. Until it is on `main`, pass the thresholds into the functions as arguments and use in-test values.
+Thresholds come from `data/rules/hazards.json`, which O4-B0 ships as its first step. Until it is on `main`, pass the thresholds into the functions as arguments and use in-test values.
 
 **Produces:** `powerProfileProvider: ProfileProvider` (`getClimate(field)` → `ClimateProfile`).
 
@@ -313,18 +313,6 @@ Thresholds come from `data/rules/hazards.json`, which O3-B1 ships as its first s
 ### O3-A3: recent soil moisture from SMAP (after the minimum)
 
 **Branch:** `o3/a3-smap` · **After:** O3-A2 · **Files:** `src/profile/smap.ts`, test. Port `context/scripts/gibs_point.py`: request the GIBS WMS pixel, map its colour through `data/samples/field-shift/cmap_rz.xml`, return monthly means since 2015 as `Sourced` (`kind: 'model'`, resolution "9 km"). Test the colour lookup against `smap_rz_summer_series.tsv`. Adding the series to `ClimateProfile` is a `[contract]` PR.
-
-### O3-B1: rule tables
-
-**Branch:** `o3/b1-rules` · **After:** O1-S1 · **Files:** `data/rules/{nitrogen,humus,erosion,pest-break,hazards,goals}.json`, `data/rules/SOURCES.md`
-
-- [ ] First 20 minutes: ship `hazards.json` and `goals.json` in their own PR, because O3-A2 and O3-B4 read them. `hazards.json` holds the drought percentile (20), the heat and frost thresholds per crop group, the share of years above which a calendar cell gets a hazard mark, and the GAEZ index below which a crop counts as not suitable. Rows we set ourselves say `sourceTitle: 'team rule of thumb'` and the screen labels them so.
-- [ ] For each table open the candidate source named in SPEC section 7, copy the values with page or table number into rows `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `goals.json` holds the weights of SPEC section 7 and the 5-point soil floor with `sourceTitle: 'team decision D9'`.
-- [ ] Where a source cannot be opened or gives no number, leave the row out and list it in `data/rules/SOURCES.md` under "missing"; the engine then leaves that indicator out of `indicators` and names it in the gaps.
-- [ ] `npm run validate:data` passes.
-- [ ] Hand `data/rules/SOURCES.md` to a mentor as soon as one is free; the next fixed slot (Sun 10:30) is after the freeze.
-
-**Done when:** every row has a source and the list of missing rules is written down.
 
 ### O3-B2: rotation calendar
 
@@ -366,7 +354,7 @@ Thresholds come from `data/rules/hazards.json`, which O3-B1 ships as its first s
 
 **Branch:** `o3/b5-soil-health` · **After:** O3-B2 · **Files:** `src/engine/soilHealth.ts`, `src/engine/priorityScores.ts`, tests
 
-The functions take the rule rows as an argument. Tests use in-test rows with made-up values, so this task does not wait for O3-B1; the real tables are loaded in O3-B6.
+The functions take the rule rows as an argument. Tests use in-test rows with made-up values, so this task does not wait for O4-B0; the real tables are loaded in O3-B6.
 
 **Produces:** `soilHealth(years, crops, profile: FieldProfile, rules, priorities): { total: Score; indicators: Partial<Record<IndicatorId, Score>>; evidence: Evidence[]; missing: IndicatorId[] }`, `forageScore(years, crops): Score`, `waterScore(years, crops, climate): Score`.
 
@@ -464,9 +452,21 @@ The functions take the rule rows as an argument. Tests use in-test rows with mad
 
 **Branch:** `o4/a5-live-context` · **After:** O4-A3 · **Files:** `src/context-data/{ssurgo,soilgrids,gaez}.ts`, `api/cropscape.ts`, tests against saved samples. SSURGO and GAEZ are called from the browser; SoilGrids with a visible loading state; CropScape through the Vercel function. Each falls back to `value: null` with the source named.
 
+### O4-B0: rule tables (before twins)
+
+**Branch:** `o4/b0-rules` · **After:** O1-S1 · **Files:** `data/rules/{nitrogen,humus,erosion,pest-break,hazards,goals}.json`, `data/rules/SOURCES.md`
+
+- [ ] First 20 minutes: ship `hazards.json` and `goals.json` in their own PR, because O3-A2 and O3-B4 read them. `hazards.json` holds the drought percentile (20), the heat and frost thresholds per crop group, the share of years above which a calendar cell gets a hazard mark, and the GAEZ index below which a crop counts as not suitable. Rows we set ourselves say `sourceTitle: 'team rule of thumb'` and the screen labels them so.
+- [ ] For each table open the candidate source named in SPEC section 7, copy the values with page or table number into rows `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `goals.json` holds the weights of SPEC section 7 and the 5-point soil floor with `sourceTitle: 'team decision D9'`.
+- [ ] Where a source cannot be opened or gives no number, leave the row out and list it in `data/rules/SOURCES.md` under "missing"; the engine then leaves that indicator out of `indicators` and names it in the gaps.
+- [ ] `npm run validate:data` passes.
+- [ ] Hand `data/rules/SOURCES.md` to a mentor as soon as one is free; the next fixed slot (Sun 10:30) is after the freeze.
+
+**Done when:** every row has a source and the list of missing rules is written down.
+
 ### O4-B1: twins case base, regions and features (parallel track)
 
-**Branch:** `o4/b1-twins-base` · **After:** O1-S1 · **Files:** `scripts/twins_regions.py`, `scripts/twins_features.py`, `data/twins/cases.json`
+**Branch:** `o4/b1-twins-base` · **After:** O4-B0 · **Files:** `scripts/twins_regions.py`, `scripts/twins_features.py`, `data/twins/cases.json`
 
 - [ ] Decide the region list in the first 20 minutes and name it in the PR text: start with the counties of Iowa, Illinois, Nebraska, Minnesota and Indiana and the NUTS 2 regions of Poland, Germany, Czechia and France; grow only if time allows.
 - [ ] `twins_features.py`: for each region centroid, NASA POWER climatology (growing-season mean temperature, rain, root-zone wetness, frost days, hot days) with one request per second; cache responses on disk so a rerun does not refetch.

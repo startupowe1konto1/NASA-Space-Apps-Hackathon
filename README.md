@@ -51,8 +51,8 @@ npm run validate:data
 | `src/ui-kit/` | O1 | `SourcedNumber`, `StateBoundary`, `Term`, `ScoreBar`, `ConfidenceBadge` |
 | `src/fixtures/` | O1 | fixture fields, crops and analyses that every lane builds against |
 | `src/map/`, `src/steps/` | O2 | map and the farmer's steps |
-| `src/profile/`, `src/engine/`, `data/rules/` | O3 | NASA climate profile, scoring engine, rule tables |
-| `scripts/`, `data/precomputed/`, `data/crops/`, `data/money/`, `data/twins/`, `src/context-data/`, `src/money/`, `src/twins/` | O4 | data preparation and the data providers |
+| `src/profile/`, `src/engine/` | O3 | NASA climate profile, scoring engine |
+| `scripts/`, `data/precomputed/`, `data/crops/`, `data/rules/`, `data/money/`, `data/twins/`, `src/context-data/`, `src/money/`, `src/twins/` | O4 | data preparation and the data providers |
 | `context/` | all | event rules and research results |
 | `data/samples/` | all | saved API response samples that parsers are tested against |
 | `docs/` | O1 | spec, plan, decisions, AI usage log |

@@ -10,7 +10,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ## 2. What the brief asks and where it shows on screen
 
-| Brief requirement | Screen element | Module | In the minimum (T+8) |
+| Brief requirement | Screen element | Module | In the minimum (T+9) |
 |---|---|---|---|
 | Compare at least three rotations including the existing one | four rotation cards, the current one marked "your rotation" | `src/steps/cards` | yes |
 | Why suggested, evidence, benefits, information gaps, risks for local review | five fixed sections on every card; gaps and risks are required fields in the contract and sit in the card body | `src/engine`, `src/steps/cards` | yes |
@@ -23,7 +23,7 @@ The tool supports the farmer's decision and does not replace it. Every card and 
 
 ## 3. Scope
 
-### Minimum, due T+8 (Sat 19:10)
+### Minimum, due T+9 (Sat 20:10)
 
 1. Main goal: one tap on one of three icons. "Keep my soil" and "Improve my soil" work in the minimum; "Income" is visible and says "price data not loaded yet" until the money tables land.
 2. Find the field: address search, click on the map, two demo-field shortcuts (Iowa, Poznań). In Poland a click returns the cadastral parcel from ULDK; in the USA the farmer draws the outline.
@@ -275,7 +275,7 @@ Rules that follow from the contract:
 
 ## 7. Scores, ranking and uncertainty
 
-All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `npm run validate:data` fails when a row has no source. The numbers below the framework level are filled by O3 from the source documents, not from memory, and the mentor reviews the table (Sat 15:00 and Sun 10:30).
+All weights and thresholds live in `data/rules/` as JSON, one row per rule: `{ id, value, unit, appliesTo, sourceTitle, sourceUrl, sourceLocator, checkedBy }`. `npm run validate:data` fails when a row has no source. The numbers below the framework level are filled by O4 from the source documents, not from memory (D16), and a mentor reviews the table as soon as one is free.
 
 ### Soil health (scored for every rotation under every goal)
 
@@ -362,7 +362,7 @@ Places with similar climate and soil, what is grown there and how it did. Twins 
 - Outcomes: crop shares and yields per region (USDA NASS QuickStats; Eurostat). NDVI from NASA satellites is a later option.
 - Similarity: Euclidean distance on z-scored features, shown as 0–100. The ten nearest regions that grow at least one crop of the rotation are the cases.
 - States: `not-loaded` (track not merged yet), `no-data` ("no similar places with this crop in our case base"), `error`, `ready`.
-- O4 decides the exact region list in the first task and writes the count into the file's metadata. If the case base is not ready at T+8, the cards ship with the `no-data` text and the pitch does not mention twins.
+- O4 decides the exact region list in the first task and writes the count into the file's metadata. If the case base is not ready at T+9, the cards ship with the `no-data` text and the pitch does not mention twins.
 
 ## 10. Data transparency
 
@@ -405,8 +405,8 @@ Each person runs two streams at once. Streams never share a file, so two subagen
 |---|---|---|
 | **O1** merger, reviewer, monitoring | `src/contracts/`, `src/app/`, `src/ui-kit/`, `src/fixtures/`, root config, `.github/`, `api/` routing, deploy | `e2e/`, `docs/`, review and merge of all PRs, hourly e2e on `main` |
 | **O2** frontend | `src/map/` (search, parcels, boundary editing) | `src/steps/` (goal, crops, priorities, cards, calendar, money, report, glossary) |
-| **O3** engine | `src/profile/` (POWER and SMAP clients, field profile) | `src/engine/` (candidates, scoring, goals, calendar, `analyzeField`), `data/rules/` |
-| **O4** data and evidence | `scripts/`, `data/precomputed/`, `data/crops/`, `src/context-data/`, `api/cropscape.ts`, then `src/money/`, `data/money/` | `src/twins/`, `data/twins/` |
+| **O3** engine | `src/profile/` (POWER and SMAP clients, field profile) | `src/engine/` (candidates, scoring, goals, calendar, `analyzeField`) |
+| **O4** data and evidence | `scripts/`, `data/precomputed/`, `data/crops/`, `src/context-data/`, `api/cropscape.ts`, then `src/money/`, `data/money/` | `data/rules/` first (D16), then `src/twins/`, `data/twins/` |
 
 Anything outside your folders is a separate `[contract]` PR reviewed by O1. Pitch and presentation get an owner after the skeleton is on `main`.
 
@@ -429,14 +429,14 @@ Demo of at most seven slides or a 30-second video, English, a References list ge
 
 | Risk | Answer |
 |---|---|
-| The minimum grew with PR #19 and #20 (calendar, ranges, source labels, glossary) and we are about 100 minutes behind the schedule | provenance and state components come with the skeleton so lanes get them for free; the team decides at T+7 whether "minimum done" moves from T+8 to T+9 |
+| The minimum grew with PR #19 and #20 (calendar, ranges, source labels, glossary) and we are about 100 minutes behind the schedule | provenance and state components come with the skeleton so lanes get them for free; "minimum done" moved from T+8 to T+9, Sat 20:10 (D17) |
 | Rule values are ours to defend | one source per row, enforced by CI; mentor review; `weak` and "rule of thumb" shown on screen |
 | POWER is about 50 km, so two fields in one cell get the same climate | the source chip says so; soil, slope and crop history are what make fields differ |
 | Leaflet-Geoman cut tool and EPSG:2180 are unverified together | split and merge is a parallel track; click and draw are enough for the minimum |
 | The income goal turns the tool into a price or subsidy comparison | income is replayed over the field's 45 NASA years, not read from a price list; there is no ranking by payments alone; soil floor; soil health and climate shown first on every card; default goal is "Keep my soil" |
 | Prices and payment rates for 2026 are partly unconfirmed (ARiMR eco-schemes, NRCS Iowa rates) | each rate is `Sourced` and dated; an unconfirmed rate is left out of the sum and named in the gaps; income then rests on margin only |
 | The yield-loss replay looks like a forecast | confidence capped at `moderate`; the card says "past years at today's prices, not a forecast"; factors sourced from FAO |
-| Twins case base may not finish | `no-data` state is designed in; twins are left out of the pitch if missing at T+8 |
+| Twins case base may not finish | `no-data` state is designed in; twins are left out of the pitch if missing at T+9 |
 | Hosting was never tested (the T+1 gate was skipped) | O1 deploys the empty skeleton to Vercel before lanes start |
 
 ## 18. Open decisions for `docs/DECISIONS.md`
@@ -446,5 +446,5 @@ Demo of at most seven slides or a 30-second video, English, a References list ge
 3. D9: the ranking depends on the farmer's main goal (keep soil, improve soil, income). This replaces the HANDOFF rule "money must not reorder the ranking by default" with: the default goal is soil, money ranks only when the farmer chooses income, income is margin replayed over the field's 45 NASA years plus confirmed payments, there is no ranking by payments alone, and the soil floor applies. Weights in section 7 need the team's yes.
 4. Exact coordinates of the two demo fields (O4 picks arable fields and records them).
 5. Who owns the Vercel account and whether the repo owner connects it.
-6. Whether "minimum done" stays at T+8 (19:10) or moves to T+9.
+6. Decided (D17): "minimum done" is at T+9 (Sat 20:10).
 7. Project name, at the end.
