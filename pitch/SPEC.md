@@ -100,7 +100,7 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 - **Panel, below:** one row per rotation id in `shownByGoal.keepSoil` (the current rotation and the best three others, the same four the app shows for the soil goal), looked up in `rotations`: the crops as plain text (`Field pea → Winter wheat → Potato + phacelia`), and two bars with values, `Soil health` and `Climate resilience`, each with a thin whisker from `low` to `high`. The row with `isCurrent` carries the tag `Mariusz today`.
 - **Steps:** (1) the ribbon draws left to right; (2) the rows appear in the order Mariusz would think of them (current first) with empty bars; (3) a playhead sweeps the ribbon once while the bars fill to their values; (4) the rows reorder by `rank`, best first; the three that are not the current one turn green; the current one keeps its tag and its place at the bottom.
 - **Final state:** ribbon, four sorted rows, the three proposals highlighted, caption `Soil health and climate resilience come first. Income is a replay of past years at today's prices, not a forecast.`
-- **Notes (PL):** „Silnik bierze każdy sensowny płodozmian i sprawdza go na czterdziestu pięciu latach: suszach, upałach, przymrozkach. Ocenia zdrowie gleby i odporność na klimat. Dzisiejszy płodozmian Mariusza ma 33 punkty za glebę. Najlepszy ma 75.”
+- **Notes (PL):** „Silnik bierze każdy sensowny płodozmian i sprawdza go na czterdziestu pięciu latach: suszach, upałach, przymrozkach. Ocenia zdrowie gleby i odporność na klimat. Dzisiejszy płodozmian Mariusza ma 27 punktów za glebę. Najlepszy ma 58.”
 - **Rules:** the bars show only exported values. Do not draw per-year results for a rotation; the export does not contain them. Do not print confidence words; the whisker carries the uncertainty.
 
 ### Slide 5 · Similar regions (20 s)
@@ -149,7 +149,8 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
 
 - Rerun it after any merge that changes the engine or the data, and once more just before the freeze. The file records the commit it was made from.
 - The deck reads the file at load. No number is typed into a slide. Text that depends on a number (for example "Ten regions") is checked against the file by the PDF check in the plan.
-- At the time of writing: 13 datasets used for this field, 4 from NASA; 45 years (1981–2025); 9 drought years; 7 rotations; current rotation soil health 33, best 75; ten regions with similarity 83–95.
+- Export of Sun 00:50 (main at 73e7d71, after the soil rule rows of #175): 13 datasets used for this field, 4 from NASA; 45 years (1981–2025); 9 drought years; 7 rotations; current rotation soil health 27, best 58; ten regions with similarity 83–95. The notes for slide 4 quote 27 and 58; check them against the file after every rerun.
+- `rank` is not the order of the soil score: for the soil goal the second row (rank 7) scores 53 and the third (rank 9) scores 55. The engine ranks on more than the soil score; be ready to say so in the questions.
 
 ## 8. Look
 
