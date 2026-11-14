@@ -45,7 +45,7 @@ Source: `startupowe1konto1/hackathon-framework`, written after the Warsaw Open D
 | AI | Allowed. The submission must describe how AI tools (Space Apps calls them "Super Intelligence", SI) were used. |
 | Team size | max 6 people; local events min 1 (Universal Event min 2) |
 | License and rights | _check the 2026 Participant Terms & Conditions_ |
-| Repo | private during work, **public before submission** so judges can open the link |
+| Repo | **public from T0** (free plan: main protection and auto-merge only work on public repos); judges need the link to open |
 | Organizer materials | _to fill_ |
 | Changes after deadline | not allowed; judges ignore them |
 | Organizer contact | Local Lead (local event page); conduct@spaceappschallenge.org for conduct issues |
