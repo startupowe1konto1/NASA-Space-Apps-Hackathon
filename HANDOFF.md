@@ -23,6 +23,18 @@ The user asked O1 to fix these itself in a new session. The lanes do not touch t
    - Gate after each step: integration worktree, typecheck, vitest, build, validate:data, e2e. Then check the Iowa and Poznań cards with water on (values, order) and report them to the user.
 4. Merge order: #135 → #119 → #137 (red clover after the user's OK).
 
+## Second task: the glossary in Polish (user request, Sat 21:31)
+
+Under `?lang=pl` the glossary page ("Słowniczek") and every `<Term>` pop-up still show English. The Polish text exists: `src/steps/glossary/terms.pl.json` has all 13 terms (#115, #138), and `i18n-parity.test.ts` checks that its ids match `terms.en.json`. Nothing reads it, because `useTerm.ts` imports only `terms.en.json`.
+
+1. `useTerm.ts`: pick the table by `currentLang()` from `src/app/i18n.ts`, fall back to English per term the way `textFor` does, and keep the strict throw on an unknown id in tests.
+2. `GlossaryPage.tsx`: `entries` is built once at module load (line 6), so it never sees a language switch. Build it on render, re-render on `useLang`, and sort with the current language (`localeCompare(…, lang)`), so Polish labels sort Polish-style.
+3. `TermText.tsx` drops the label as-is into a sentence. A Polish label is in the nominative ("strefa korzeniowa"), so read every Polish sentence with a term placeholder on screen. Where the case is wrong, rephrase the sentence in `pl.json` instead of adding case forms.
+4. Tests first: `term()` returns the Polish label under `pl`; `GlossaryPage` waits for a Polish label after `setLang('pl')`, and for the English one after switching back.
+5. Gate as above, then open the glossary and one rotation card at `localhost:5171/?lang=pl` and show the user.
+
+`src/steps/` is O2's folder. This is a small change with the data in hand, so O1 does it on an `o1/` branch. It also closes the "glossary terms still English" item of #76.
+
 ## How O1 works now (approved by the user)
 
 - Only O1 merges (D31). Before a merge: integration gate on current `main` in a detached worktree (`../ws-o1-int`): merge the PRs, `npm ci`, typecheck, `npx vitest run`, build, `validate:data`, `npx playwright test`; then `gh pr merge <n> --squash --match-head-commit <sha>`.
@@ -56,7 +68,7 @@ Merged since 19:46: #124 (erosion, comparable soil totals), #114 (EN/PL switch),
 
 ## Follow-ups that do not block the demo
 
-- Polish UI (#76): glossary terms still English inside Polish sentences (`useTerm.ts`), numbers keep English separators under `?lang=pl` (`SourcedNumber`), some labels untranslated ("our calculation", "Weak evidence"), calendar names capitalised mid-phrase.
+- Polish UI (#76): glossary terms still English inside Polish sentences (`useTerm.ts`; now the second task above), numbers keep English separators under `?lang=pl` (`SourcedNumber`), some labels untranslated ("our calculation", "Weak evidence"), calendar names capitalised mid-phrase.
 - O2 (#76): twin yields and "similar regions" on the card; the SoilGrids loading text; Nominatim attribution near the search results; report minors (centroid and area from the link, step 1 flash, offline on the report); income card rows wrap at 400 px; GAEC 7 shows 0 PLN/ha under payments.
 - O3: a gap for the cover-crop seed and herbicide cost left out (D34; needs a contract signal); the 1.25 calibration guard should be a DECISIONS line or a rule row; PLAN line 396 and SPEC §7 describe the old income formula.
 - O4 (#79): twins labels as message codes; a GAEZ Table 7-4 excerpt for the alfalfa ×10 unit; white mustard has no erosion row, so Poznań cards show no erosion.
