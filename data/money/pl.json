@@ -309,6 +309,11 @@
           "title": "Rozporządzenie MRiRW z dnia 10 lutego 2026 r. zmieniające rozporządzenie w sprawie norm oraz szczegółowych warunków ich stosowania (Dz.U. 2026 poz. 161)",
           "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/161/text.pdf",
           "locator": "§ 1: only § 5 ust. 12 (organic farms) is repealed from 15 March 2026; the rest of § 5 applies in 2026"
+        },
+        {
+          "title": "ARiMR, GAEC 7 conditionality from 2026 (exemption of farms up to 30 ha, EU Regulation 2025/2649)",
+          "url": "https://www.gov.pl/web/arimr/warunkowosc-2026",
+          "locator": "sentence 'Od 2026 r. rolnicy, których maksymalna wielkość gospodarstwa nie przekracza 30 hektarów ... są zwolnieni z kontroli i kar w zakresie normy GAEC 7'; excerpt data/samples/research/pl/payments/arimr_2026_gaec7_conditionality.txt"
         }
       ]
     }
