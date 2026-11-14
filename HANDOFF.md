@@ -1,6 +1,6 @@
-# Handoff v7: O1 (integrator) at Sat 22:30, for a fresh session
+# Handoff v7: O1 (integrator) at Sat 22:10, for a fresh session
 
-Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:30 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
+Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:10 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
 
 ## Start here
 
@@ -8,7 +8,7 @@ Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:30 by the
 2. Get the time with `TZ=Europe/Warsaw date` (in Git Bash on Windows that prints GMT; `TZ=CET-1 date` gives Warsaw time). The user writes Polish; repo files, UI and submission are English.
 3. Recreate the hourly e2e on `main` (it lives only in the session that made it): a cron at :13 that makes a detached worktree `../ws-o1-e2e` at `origin/main`, runs `npm ci --silent`, `npx vitest run` and the Playwright tests, removes the worktree, reports one line, and posts on issue #1 after two red runs in a row. Run Playwright on its own port (5179) with a config next to `playwright.config.ts` that spreads it and overrides `use.baseURL` and `webServer` (`npm run dev -- --port 5179 --strictPort`), so the O1 dev server on 5171 keeps running. Skip e2e if 5179 is busy.
 
-## Done: the water priority (Sat 21:40–22:30)
+## Done: the water priority (Sat 21:40–22:10)
 
 #135, #119 and #137 were taken over by O1, merged as #146, #147 and #148, and closed as replaced. Their lane branches are deleted.
 - #146: `data/rules/water.json` plus `data/samples/rules/fao-paper24-table20.txt`. The FAO PDF is a scan; the excerpt is its OCR text from `pdftotext -raw`, where each line is one table row. The low-class row keeps one `sourceUrl` and names Paper 24 in its locator, like other rows with two sources.
@@ -43,7 +43,7 @@ Under `?lang=pl` the glossary page ("Słowniczek") and every `<Term>` pop-up sti
 - **Drought and heat** (#113): drought against the same calendar month (D42), heat as at least 3 hot days from NASA POWER daily `T2M_MAX` (D43). Issue #105 items 1–3 are closed; items 5–8 are in #124 and #119.
 - **Done in this session:** #92 ULDK parcels, #116 address search, #106/#97/#125 twins, #130 (O1 took over #96/#102: the advisor report and share link, now validated against the contract). The hourly e2e is green.
 
-## Open PRs at 22:30
+## Open PRs at 22:10
 
 | PR | Owner | State |
 |---|---|---|
