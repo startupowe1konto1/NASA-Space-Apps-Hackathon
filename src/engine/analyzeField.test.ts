@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SourceError, type Analysis, type CropYear, type Message, type Priorities, type Providers } from '../contracts';
 import { analysis as analysisSchema } from '../contracts/schemas';
 import { demoFields, fixtureProviders } from '../fixtures';
-import { analyzeField, createAnalyzeField } from './analyzeField';
+import { analyzeField, createAnalyzeField, emptyReason } from './analyzeField';
 import { loadRules } from './rules';
 import { O4_ROWS } from './testdata/o4Rules';
 import en from './messages/en.json';
@@ -160,4 +160,62 @@ describe('analyzeField with fixture providers', () => {
     expect(ruleIds).toContain('nitrogen.credit.soybean.us-ia');
     expect(ruleIds.some((id) => id.startsWith('nitrogen.credit.soybean') && !id.endsWith('us-ia'))).toBe(false);
   });
+
+  it('a crop list provider that throws gives the profile, no cards and a reason', async () => {
+    const providers: Providers = { ...fixtureProviders, context: { ...fixtureProviders.context, getCrops: () => Promise.reject(new Error('down')) } };
+    const input = { field: demoFields.iowa, cropHistory: iowaHistory, priorities };
+    const a = await analyzeField(input, providers);
+    expect(a.rotations).toEqual([]);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    expect(emptyReason(a, input)?.code).toBe('empty.crops-error');
+  });
+
+  it('drops a history crop outside the crop list and names it in the gaps', async () => {
+    const history: CropYear[] = [...iowaHistory.slice(0, 6), { year: 2025, crop: 'sorghum', source: 'cropscape' }];
+    const a = await run('iowa', fixtureProviders, history);
+    expect(analysisSchema.safeParse(a).success).toBe(true);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    expect(current.years.some((y) => y.crop === 'sorghum')).toBe(false);
+    expect(current.gaps.some((g) => g.code === 'gap.unknown-crop' && g.params?.crop === 'sorghum')).toBe(true);
+  });
+
+  it('returns no cards with a reason when fewer than two known history years remain', async () => {
+    const input = {
+      field: demoFields.iowa,
+      cropHistory: [
+        { year: 2024, crop: 'sorghum', source: 'farmer' as const },
+        { year: 2025, crop: 'maize', source: 'farmer' as const },
+      ],
+      priorities,
+    };
+    const a = await analyzeField(input, fixtureProviders);
+    expect(a.rotations).toEqual([]);
+    expect(emptyReason(a, input)).toEqual({ code: 'empty.unknown-crops', params: { crops: 'sorghum' } });
+  });
+
+  it('gives an empty-analysis reason for a field outside the USA and Poland, and none for a full analysis', async () => {
+    const input = { field: { ...demoFields.iowa, country: 'OTHER' as const }, cropHistory: iowaHistory, priorities };
+    expect(emptyReason(await analyzeField(input, fixtureProviders), input)?.code).toBe('empty.outside-coverage');
+    const full = { field: demoFields.iowa, cropHistory: iowaHistory, priorities };
+    expect(emptyReason(await analyzeField(full, fixtureProviders), full)).toBeNull();
+    const none = { field: demoFields.poznan, cropHistory: [], priorities };
+    expect(emptyReason(await analyzeField(none, fixtureProviders), none)?.code).toBe('empty.no-history');
+  });
+
+  it('ranks soil over the indicators a rotation shares with the current one, and says so', async () => {
+    const withRules = createAnalyzeField({ rules: loadRules({ '../../data/rules/o4.json': O4_ROWS }) });
+    const a = await withRules({ field: demoFields.iowa, cropHistory: iowaHistory, priorities }, fixtureProviders);
+    const current = a.rotations.find((r) => r.isCurrent)!;
+    const currentSet = Object.keys(current.indicators);
+    for (const r of a.rotations.filter((x) => !x.isCurrent)) {
+      const own = Object.keys(r.indicators);
+      const partial = currentSet.some((id) => !own.includes(id)) || own.some((id) => !currentSet.includes(id));
+      expect(r.gaps.some((g) => g.code === 'gap.soil-compared-shared')).toBe(partial);
+    }
+    const missing = [...codes(a)].filter((c) => !(c in en) && !c.startsWith('fx.'));
+    expect(missing).toEqual([]);
+    expect(current.soilHealth.basis.code === 'soil.basis.total' || current.soilHealth.basis.code === 'soil.basis.total-complete').toBe(true);
+    if (current.soilHealth.basis.code === 'soil.basis.total') expect(String(current.soilHealth.basis.params?.missing)).not.toMatch(/organicMatter|pestBreak/);
+  });
 });
+

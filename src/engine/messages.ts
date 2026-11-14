@@ -49,6 +49,16 @@ export const CARD_MESSAGE_CODES = [
   'gap.suitability-unknown',
   'gap.suitability-error',
   'gap.rule-missing',
+  'gap.soil-compared-shared',
+  'gap.humus-medium-class',
+  'gap.erosion-rye-row',
+  'gap.unknown-crop',
+  'soil.basis.total-complete',
+  'empty.outside-coverage',
+  'empty.no-history',
+  'empty.crops-error',
+  'empty.unknown-crops',
+  'empty.current-not-scored',
   'gap.soil-missing',
   'gap.slope-missing',
   'gap.priority-not-scored',
@@ -67,7 +77,7 @@ export const CARD_MESSAGE_CODES = [
 ] as const;
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const INDICATOR_LABEL: Record<IndicatorId, string> = {
+export const INDICATOR_LABEL: Record<IndicatorId, string> = {
   nitrogen: 'nitrogen',
   organicMatter: 'organic matter',
   erosion: 'erosion',
@@ -87,6 +97,7 @@ const m = (code: string, params?: Message['params']): Message => (params ? { cod
 
 export interface SoilOutcome {
   score: Score;
+  indicators?: Partial<Record<IndicatorId, Score>>;
   /** true while soil health is the cover-only stand-in (no indicator could be scored). */
   coverOnly: boolean;
   evidence: Evidence[];
@@ -120,6 +131,10 @@ export interface CardInput {
   /** Dataset id for our crop calendars (bare months). */
   calendarDatasetId: string;
   retrievedAt: string;
+  /** History crops outside the crop list, dropped from the current rotation. */
+  unknownCrops?: CropId[];
+  /** Set when soil was ranked over fewer indicators than this rotation or the current one has: the shared ones. */
+  soilComparedOn?: IndicatorId[];
   /** For the current rotation: where its crop history came from. */
   history?: { source: 'farmer' | 'provider'; years: number[]; cropscape: boolean };
 }
@@ -255,6 +270,14 @@ export function cardMessages(c: CardInput): CardMessages {
   for (const crop of c.unknownSuitability) gaps.push(m('gap.suitability-unknown', { crop: cropLabel(crop) }));
   if (c.suitabilityError) gaps.push(m('gap.suitability-error'));
   for (const id of c.soil.missing) gaps.push(m('gap.rule-missing', { indicator: INDICATOR_LABEL[id] }));
+  if (c.soilComparedOn) {
+    gaps.push(m('gap.soil-compared-shared', { shared: c.soilComparedOn.length > 0 ? c.soilComparedOn.map((id) => INDICATOR_LABEL[id]).join(', ') : 'none' }));
+  }
+  if (c.soil.indicators?.organicMatter && c.years.length > 0 && c.soil.evidence.some((e) => e.ruleIds.some((id) => id.startsWith('humus.coef.') && id.endsWith('.pl')))) {
+    gaps.push(m('gap.humus-medium-class'));
+  }
+  if (c.soil.indicators?.erosion && c.years.some((y) => y.coverCrop === 'cereal-rye')) gaps.push(m('gap.erosion-rye-row'));
+  for (const crop of c.unknownCrops ?? []) gaps.push(m('gap.unknown-crop', { crop: cropLabel(crop) }));
   if (c.soilInputsMissing.length > 0) gaps.push(m('gap.soil-missing', { inputs: c.soilInputsMissing.join(', ') }));
   if (c.slopeMissing) gaps.push(m('gap.slope-missing'));
   for (const p of c.prioritiesNotScored) gaps.push(m('gap.priority-not-scored', { priority: PRIORITY_LABEL[p] }));

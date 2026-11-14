@@ -3,6 +3,9 @@
 // Every other provider failure turns into a missing value or an error result for that part.
 import type {
   AnalyzeField,
+  AnalyzeInput,
+  IndicatorId,
+  Message,
   Analysis,
   AsyncResult,
   CalendarMonth,
@@ -24,9 +27,9 @@ import { datasets as datasetRegistry } from '../app/datasets';
 import { buildCalendar } from './calendar';
 import { currentRotation, generateCandidates } from './candidates';
 import { CROP_CALENDARS_ID } from './datasets';
-import { cardMessages, type SoilOutcome } from './messages';
+import { INDICATOR_LABEL, cardMessages, cropLabel, type SoilOutcome } from './messages';
 import { forageScore } from './priorityScores';
-import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, type Scored } from './ranking';
+import { GOALS, INCOME_NOT_WIRED, changedYears, rankByGoal, rankSoil, type Scored } from './ranking';
 import { resilienceScore, withExposure } from './resilience';
 import { engineRules, shippedRules, toSoilRules, type EngineRules, type LoadedRules } from './rules';
 import { soilHealth, type SoilRules } from './soilHealth';
@@ -110,7 +113,13 @@ export function soilStep(
       indicators: {},
     };
   }
-  return { score: result.total, coverOnly: false, evidence: result.evidence, missing: result.missing, indicators: result.indicators };
+  // plain labels in the basis, and a separate code when every indicator was scored
+  const basis: Message =
+    result.missing.length === 0
+      ? { code: 'soil.basis.total-complete', params: { indicators: Object.keys(result.indicators).length } }
+      : { code: 'soil.basis.total', params: { indicators: Object.keys(result.indicators).length, missing: result.missing.map((id) => INDICATOR_LABEL[id]).join(', ') } };
+  const score = result.total.basis.code === 'soil.basis.total' ? { ...result.total, basis } : result.total;
+  return { score, coverOnly: false, evidence: result.evidence, missing: result.missing, indicators: result.indicators };
 }
 
 interface Candidate extends Scored {
@@ -154,14 +163,23 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
     const [soil, slopePct] = await Promise.all([loadSoil(field, providers), loadSlope(field, providers)]);
     const profile: FieldProfile = { ...climate, soil, slopePct };
     const generatedAt = new Date().toISOString();
-    const empty = (): Analysis => ({ field, profile, rotations: [], shownByGoal: {}, datasets: datasetsUsed(profile, registry), generatedAt });
+    const empty = (reason: Message): Analysis => {
+      const a: Analysis = { field, profile, rotations: [], shownByGoal: {}, datasets: datasetsUsed(profile, registry), generatedAt };
+      emptyReasons.set(a, reason);
+      return a;
+    };
 
     // 3. outside the USA and Poland: profile only
-    if (field.country === 'OTHER') return empty();
+    if (field.country === 'OTHER') return empty({ code: 'empty.outside-coverage' });
     const country = field.country;
 
     // 4. crops and the GAEZ gate
-    const crops = await providers.context.getCrops(field.country);
+    let crops: CropTraits[];
+    try {
+      crops = await providers.context.getCrops(field.country);
+    } catch {
+      return empty({ code: 'empty.crops-error' });
+    }
     let suitability: Record<CropId, Sourced> = {};
     let suitabilityError = false;
     try {
@@ -194,8 +212,19 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
         // no history: handled below
       }
     }
+    // A history crop outside the crop list (e.g. sorghum from CropScape) cannot be scored: its year is dropped and the
+    // crop is named in the gaps, as long as two known years remain. An unknown cover crop is dropped from its year.
+    const known = new Set(crops.map((c) => c.id));
+    const unknownCrops = [...new Set(history.flatMap((h) => [h.crop, ...(h.coverCrop ? [h.coverCrop] : [])]).filter((id) => !known.has(id)))];
+    if (unknownCrops.length > 0) {
+      const knownYears = history
+        .filter((h) => known.has(h.crop))
+        .map((h) => (h.coverCrop && !known.has(h.coverCrop) ? { year: h.year, crop: h.crop, source: h.source } : h));
+      if (knownYears.length < 2) return empty({ code: 'empty.unknown-crops', params: { crops: unknownCrops.map(cropLabel).join(', ') } });
+      history = knownYears;
+    }
     const current = currentRotation(history);
-    if (current.length === 0) return empty();
+    if (current.length === 0) return empty({ code: 'empty.no-history' });
     const usesRemoved = (years: Years) => years.some((y) => removed.has(y.crop) || (y.coverCrop !== undefined && removed.has(y.coverCrop)));
     const list = generateCandidates(current, crops, priorities).filter((years, i) => i === 0 || !usesRemoved(years));
 
@@ -233,7 +262,18 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       }
     });
     const currentCandidate = candidates.find((c) => c.isCurrent);
-    if (!currentCandidate) return empty();
+    if (!currentCandidate) return empty({ code: 'empty.current-not-scored' });
+
+    // soil for ranking: compared with the current rotation over the indicators both have (rankSoil)
+    const PRIORITY_INDICATOR: Partial<Record<IndicatorId, PriorityId>> = { nitrogen: 'nitrogen', erosion: 'erosion', organicMatter: 'organicMatter' };
+    const weightOf = (id: IndicatorId) => (PRIORITY_INDICATOR[id] && on.includes(PRIORITY_INDICATOR[id]!) ? rules.doublingFactor : 1);
+    const currentSoil = { isCurrent: true, coverOnly: currentCandidate.soil.coverOnly, soilHealth: currentCandidate.soilHealth, indicators: currentCandidate.soil.indicators };
+    const sharedOf = new Map<string, IndicatorId[]>();
+    for (const c of candidates) {
+      const r = rankSoil({ isCurrent: c.isCurrent, coverOnly: c.soil.coverOnly, soilHealth: c.soilHealth, indicators: c.soil.indicators }, currentSoil, weightOf);
+      c.rankSoil = r.score;
+      if (r.partial) sharedOf.set(c.id, r.shared);
+    }
 
     // 7. ranking
     const ranked = rankByGoal(candidates, rules, on);
@@ -280,6 +320,8 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
           ruleIds: { drought: rules.ids.drought, markShare: rules.ids.markShare },
           calendarDatasetId: CROP_CALENDARS_ID,
           retrievedAt,
+          unknownCrops,
+          soilComparedOn: sharedOf.get(r.id),
           history: r.isCurrent ? { source: historySource, years: history.map((h) => h.year), cropscape: history.some((h) => h.source === 'cropscape') } : undefined,
         });
         let twins: AsyncResult<TwinEvidence>;
@@ -316,3 +358,18 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
 }
 
 export const analyzeField: AnalyzeField = createAnalyzeField();
+
+/** Why an analysis has no rotation cards, as set by analyzeField; read with emptyReason. */
+const emptyReasons = new WeakMap<Analysis, Message>();
+
+/**
+ * Why the analysis has no rotation cards, for the UI's "no data" state; null when it has cards. The contract has no
+ * field for it yet, so analyzeField records it next to the returned object; for an analysis it did not produce
+ * (e.g. restored from a link), the reason is worked out from the input.
+ */
+export function emptyReason(analysis: Analysis, input: Pick<AnalyzeInput, 'field' | 'cropHistory'>): Message | null {
+  if (analysis.rotations.length > 0) return null;
+  const recorded = emptyReasons.get(analysis);
+  if (recorded) return recorded;
+  return input.field.country === 'OTHER' ? { code: 'empty.outside-coverage' } : { code: 'empty.no-history' };
+}
