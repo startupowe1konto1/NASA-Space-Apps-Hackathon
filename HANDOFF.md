@@ -1,6 +1,6 @@
-# Handoff v8: O1 (integrator) at Sat 22:30, for a fresh session
+# Handoff v9: O1 (integrator) at Sat 22:50, for a fresh session
 
-Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:30 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
+Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 22:50 by the next O1 session (Windows laptop, repo at `C:\Users\oskar\Desktop\NASA`). Earlier handoffs are in git history. The team now puts its effort on the frontend and the pitch.
 
 ## Start here
 
@@ -48,19 +48,16 @@ The user asked whether and when step 6 gets its screen. Nobody is building it.
 - **Drought and heat** (#113): drought against the same calendar month (D42), heat as at least 3 hot days from NASA POWER daily `T2M_MAX` (D43). Issue #105 items 1–3 are closed; items 5–8 are in #124 and #119.
 - **Done in this session:** #92 ULDK parcels, #116 address search, #106/#97/#125 twins, #130 (O1 took over #96/#102: the advisor report and share link, now validated against the contract). The hourly e2e is green.
 
-## Open PRs at 22:30
+## Open PRs at 22:50: none
 
-O1 reviewed every O2 PR (comments at 22:18–22:20); none had new commits by 22:30. At 22:30 the user told O1 to make small fixes itself, so O1 takes over #142, #141 and #143 in that order (comment on each PR first).
+O1 took over the O2 PRs after its reviews (the user's decision, Sat 22:30) and merged them with the review fixes:
+- #156 (from #142): `integracja02.gugik.gov.pl` in SPEC §15 and D49, corrected (integracja01 is the broken server) and placed between D48 and D50.
+- #157 (from #141): the #76 follow-ups. The step 5 "live from SoilGrids" note shows only when `liveSoilData` in `src/app/providers.ts` is true (false while soil is precomputed); the twins similarity is a `<SourcedNumber>`; "Regions like yours", column "Similarity". Left in #76: the Years column at 400 px, a second field when the same parcel is searched twice, #92 and #116 leftovers, the mean similarity inside the `twinsReady` sentence.
+- #159 (from #143): the KIEG parcel layer with split and merge, tiles from zoom 17 (KIEG draws nothing below), the join checkbox as one message. Left: splitMerge rounding comment, demo parcel id hard-coded in `splitMerge.test.ts`, the AI log line in `docs/ai-usage/O2.md`, a glossary term for KIEG.
+- #160 (from #150): the team call transcript in `context/meetings/`, without the Fathom link and the speakers' surnames (the user's decision). The old text stays in the closed #150's history; the Fathom share link should be turned off in Fathom.
+- #140 (O2 handoff v3) was closed as superseded; its branch `o2/h9-handoff` is still on GitHub and has a team member's full name in local paths, so delete it before the repo goes public.
 
-| PR | Owner | State |
-|---|---|---|
-| #142: [contract] D49, allow `integracja02.gugik.gov.pl` for the KIEG parcel layer | O2 | changes needed: D49 should say integracja alternates between 01 and 02 and 01 is the broken one; put D49 between D48 and D50. Merge first. |
-| #141: #76 review follow-ups (Nominatim attribution, twin yields, SoilGrids wait, ULDK offline, parcel id) | O2 | changes needed: the "live from SoilGrids" loading note is false on the demo (context is precomputed); the twins similarity % is not a `<SourcedNumber>`. Merge before #143. |
-| #143: O2-A5 parcel layer (KIEG), split and merge | O2 | changes needed: the layer is empty at zoom 14–16 (KIEG parcels draw from about 17); rebase after #141 and #142. |
-| #140: handoff v3 for O2 | O2 | stale; close it or write a v4 without the `useTerm` task (#151 did it). |
-| #150: [contract] Fathom transcript of the team call | O2 | the user decides: it has team members' full names and a public link to the recording, which would go public with the repo (D32). |
-
-Merged since 20:20: #144 (handoff v6.1), #146, #147, #148 (water priority), #149 (handoff v7), #145 (pitch farm stills, CC BY credit in its README), #151, #152, #153 (see above).
+Merged since 20:20: #144, #146–#149, #145, #151–#160 (#155 and #158 are `HANDOFF-frontend.md` from another O1 session).
 
 ## Deferred feature (start when the usage limit resets)
 
@@ -69,6 +66,14 @@ Merged since 20:20: #144 (handoff v6.1), #146, #147, #148 (water priority), #149
 - Default: as today (wheat and rye for food, barley for feed), so nothing changes unless the farmer switches.
 - Pieces: contract (a per-crop use in the priorities, also carried in the share link), data (O4: a second price row per cereal with source and period), engine (O3: pick the price by use), UI (a toggle next to the crop or in the priorities step).
 - Plan: one O1 session does all four in one PR, because three lanes would mean three review rounds. Ask the user before starting if the pitch work still has priority.
+
+## Later, not now (the user's call, Sat 22:48): SMAP recent soil moisture
+
+Not needed for the demo: no score, card or ranking uses it. Do it only after step 6 and the frontend changes, if time is left.
+- What exists: `src/profile/smap.ts` (O3-A3, #41, 27 tests) reads SMAP L4 root-zone soil moisture (9 km, from April 2015) from the NASA GIBS WMS: one pixel per date, its colour mapped through the GIBS colormap, sampled on day 1 and 15, returned as monthly means (`Sourced`, kind `model`). Nothing imports it.
+- What is missing: a `[contract]` PR for a SMAP series on `ClimateProfile`, the `ProfileProvider` call, fixtures, and one row or a small chart in the step 5 field summary (EN/PL, loading and error states).
+- Cost: live for any field is about 280 GIBS requests per analysis (139 months x 2 days), so loading gets tens of seconds slower; about 3–4 h of work. The cheaper version, about 1–1.5 h: compute the series once for the two demo fields into `data/precomputed/` and show it in the field summary.
+- Why it might still be worth it: a second NASA product, from a satellite mission, next to NASA POWER, for the "NASA data" slide and as a check on the POWER drought years.
 
 ## Follow-ups that do not block the demo
 
