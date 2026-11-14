@@ -1,6 +1,8 @@
 // The report link: goal, field, crops and priorities packed into the URL hash (#s=...). The hash never reaches a
 // server, so nothing about the farmer's field is sent anywhere when the link is opened.
+import { z } from 'zod';
 import type { CropYear, Field, GoalId, PriorityId } from '../../contracts';
+import { field, goalId } from '../../contracts/schemas';
 
 export interface ShareState {
   goal: GoalId;
@@ -10,10 +12,8 @@ export interface ShareState {
 }
 
 const VERSION = 1;
-const GOALS: GoalId[] = ['keepSoil', 'improveSoil', 'income'];
-const PRIORITIES: PriorityId[] = ['water', 'forage', 'nitrogen', 'erosion', 'organicMatter'];
-const COUNTRIES = ['US', 'PL', 'OTHER'];
-const SOURCES = ['farmer', 'cropscape'];
+/** Codes longer than this are refused before decoding: a real share code is a few kilobytes. */
+const MAX_CODE_LENGTH = 64 * 1024;
 
 function toBase64Url(text: string): string {
   const bytes = new TextEncoder().encode(text);
@@ -32,64 +32,44 @@ export function encodeShare(state: ShareState): string {
   return toBase64Url(JSON.stringify({ v: VERSION, ...state }));
 }
 
-const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
-const isStr = (x: unknown): x is string => typeof x === 'string';
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
+// A share code comes from outside the app, so it is checked against the contract schemas (src/contracts/schemas.ts)
+// and rejected whole on any mismatch: strict objects drop nothing silently, and a ring point must be a real lon/lat.
+const lonLat = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]);
+const shareField = z.strictObject({
+  ...field.shape,
+  polygon: z.strictObject({ type: z.literal('Polygon'), coordinates: z.array(z.array(lonLat).min(4)).min(1) }),
+  centroid: z.strictObject(field.shape.centroid.shape),
+});
+const shareCropYear = z.strictObject({
+  year: z.number().int(),
+  crop: z.string().min(1),
+  coverCrop: z.string().min(1).optional(),
+  source: z.enum(['farmer', 'cropscape']),
+});
+const shareState = z.strictObject({
+  v: z.literal(VERSION),
+  goal: goalId,
+  field: shareField,
+  cropHistory: z.array(shareCropYear),
+  priorities: z.strictObject({
+    on: z.array(z.enum(['water', 'forage', 'nitrogen', 'erosion', 'organicMatter'])),
+    excludedCrops: z.array(z.string().min(1)),
+  }),
+});
 
-function isField(f: unknown): f is Field {
-  if (!isObj(f)) return false;
-  const p = f.polygon;
-  const c = f.centroid;
-  const ringsOk =
-    isObj(p) &&
-    p.type === 'Polygon' &&
-    Array.isArray(p.coordinates) &&
-    p.coordinates.length > 0 &&
-    p.coordinates.every((ring: unknown) => Array.isArray(ring) && ring.every((pt: unknown) => Array.isArray(pt) && pt.length >= 2 && pt.every(isNum)));
-  return (
-    isStr(f.id) &&
-    isStr(f.name) &&
-    COUNTRIES.includes(f.country as string) &&
-    ringsOk &&
-    isObj(c) &&
-    isNum(c.lat) &&
-    isNum(c.lon) &&
-    isNum(f.areaHa) &&
-    (f.parcelIds === undefined || (Array.isArray(f.parcelIds) && f.parcelIds.every(isStr)))
-  );
-}
-
-const isCropYear = (y: unknown): y is CropYear =>
-  isObj(y) && isNum(y.year) && isStr(y.crop) && SOURCES.includes(y.source as string) && (y.coverCrop === undefined || isStr(y.coverCrop));
-
-/** The state in a share code, or null when the code is broken, from another version, or incomplete. */
+/** The state in a share code, or null when the code is broken, from another version, too long or not what the contract allows. */
 export function decodeShare(code: string): ShareState | null {
-  if (!code) return null;
+  if (!code || code.length > MAX_CODE_LENGTH) return null;
   let raw: unknown;
   try {
     raw = JSON.parse(fromBase64(code));
   } catch {
     return null;
   }
-  if (!isObj(raw) || raw.v !== VERSION) return null;
-  const { goal, field, cropHistory, priorities } = raw;
-  if (!GOALS.includes(goal as GoalId) || !isField(field)) return null;
-  if (!Array.isArray(cropHistory) || !cropHistory.every(isCropYear)) return null;
-  if (
-    !isObj(priorities) ||
-    !Array.isArray(priorities.on) ||
-    !priorities.on.every((p) => PRIORITIES.includes(p as PriorityId)) ||
-    !Array.isArray(priorities.excludedCrops) ||
-    !priorities.excludedCrops.every(isStr)
-  ) {
-    return null;
-  }
-  return {
-    goal: goal as GoalId,
-    field,
-    cropHistory,
-    priorities: { on: priorities.on as PriorityId[], excludedCrops: priorities.excludedCrops as string[] },
-  };
+  const parsed = shareState.safeParse(raw);
+  if (!parsed.success) return null;
+  const { goal, field: f, cropHistory, priorities } = parsed.data;
+  return { goal, field: f as Field, cropHistory: cropHistory as CropYear[], priorities: priorities as ShareState['priorities'] };
 }
 
 /** The current page address with the share code as its hash (any older hash is replaced). */

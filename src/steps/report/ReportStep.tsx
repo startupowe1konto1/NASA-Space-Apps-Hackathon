@@ -54,6 +54,10 @@ export function ReportStep() {
   };
 
   const ranking = analysis.status === 'ready' && analysis.data.shownByGoal[goal] ? goal : 'keepSoil';
+  const shown = analysis.status === 'ready' ? (analysis.data.shownByGoal[ranking] ?? []) : [];
+  // the rank counts only the other rotations, not the farmer's current one; computed once, not per card
+  const others =
+    analysis.status === 'ready' ? shown.filter((x) => !analysis.data.rotations.find((y) => y.id === x)?.isCurrent) : [];
 
   return (
     <section aria-labelledby="report-title" className="grid gap-5">
@@ -122,12 +126,9 @@ export function ReportStep() {
       {analysis.status === 'ready' ? (
         <>
           <FieldSummary analysis={analysis.data} />
-          {(analysis.data.shownByGoal[ranking] ?? []).flatMap((id) => {
+          {shown.flatMap((id) => {
             const r = analysis.data.rotations.find((x) => x.id === id);
             if (!r) return [];
-            const others = (analysis.data.shownByGoal[ranking] ?? []).filter(
-              (x) => !analysis.data.rotations.find((y) => y.id === x)?.isCurrent,
-            );
             return [
               <RotationCard
                 key={r.id}

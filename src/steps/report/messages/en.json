@@ -16,7 +16,7 @@
   "steps.report.print": "Print or save as PDF",
   "steps.report.copied": "Link copied. Paste it in a message to your advisor.",
   "steps.report.linkLabel": "Link to this report (copy it by hand)",
-  "steps.report.linkNote": "The link holds your goal, field outline, crops and priorities. It is not stored on any server; whoever opens it sees the same analysis.",
+  "steps.report.linkNote": "The link holds your goal, crops, priorities and the field's outline and location, with any parcel numbers, which identify the owner in the public land register. It is not stored on any server, but anyone you send it to sees all of this and the same analysis.",
   "steps.report.analysis": "the analysis",
   "steps.report.generated": "Analysis run on {date}.",
   "steps.report.support": "This is decision support. It does not replace your judgment or your advisor's. Check the gaps and risks below against what you know about this field."

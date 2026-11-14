@@ -36,6 +36,50 @@ describe('share link', () => {
     expect(decodeShare(badGoal)).toBeNull();
   });
 
+  describe('rejects a code the contract would reject (#96 review), so bad data never reaches the store', () => {
+    const withField = (patch: Record<string, unknown>) => encodeShare({ ...state(), field: { ...demoFields.poznan, ...patch } as never });
+    const ring = demoFields.poznan.polygon.coordinates[0]!;
+
+    it.each([
+      ['latitude out of range', { centroid: { lat: 999, lon: 17 } }],
+      ['longitude out of range', { centroid: { lat: 52, lon: -5000 } }],
+      ['negative area', { areaHa: -3 }],
+      ['empty id', { id: '' }],
+      ['empty name', { name: '' }],
+      ['an empty ring', { polygon: { type: 'Polygon', coordinates: [[]] } }],
+      ['a one-point ring', { polygon: { type: 'Polygon', coordinates: [[ring[0]]] } }],
+      ['a ring point out of range', { polygon: { type: 'Polygon', coordinates: [[[500, 52], ...ring.slice(1)]] } }],
+      ['an unknown key on the field', { evil: 'x' }],
+    ])('%s', (_label, patch) => {
+      expect(decodeShare(withField(patch))).toBeNull();
+    });
+
+    it('a crop year with an unknown key, an empty crop or a fractional year', () => {
+      for (const bad of [{ ...history[0], evil: 1 }, { ...history[0], crop: '' }, { ...history[0], year: 2024.5 }]) {
+        expect(decodeShare(encodeShare({ ...state(), cropHistory: [bad as CropYear] }))).toBeNull();
+      }
+    });
+
+    it('unknown keys at the top level or in the priorities', () => {
+      // UTF-8 first, as the app does: the Poznań field name is not Latin-1
+      const raw = (extra: Record<string, unknown>) =>
+        btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify({ v: 1, ...state(), ...extra }))));
+      expect(decodeShare(raw({}))).toEqual(state());
+      expect(decodeShare(raw({ evil: 1 }))).toBeNull();
+      expect(decodeShare(raw({ priorities: { ...state().priorities, evil: 1 } }))).toBeNull();
+    });
+
+    it('a code longer than 64 KB, before decoding it', () => {
+      expect(decodeShare('A'.repeat(64 * 1024 + 1))).toBeNull();
+    });
+
+    it('a __proto__ key does not pollute Object.prototype', () => {
+      const code = btoa('{"v":1,"__proto__":{"polluted":true}}');
+      expect(decodeShare(code)).toBeNull();
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    });
+  });
+
   it('puts the code in the URL hash, so it never reaches a server', () => {
     const url = shareUrl('https://example.org/app/?x=1#old', state());
     expect(url.startsWith('https://example.org/app/?x=1#s=')).toBe(true);

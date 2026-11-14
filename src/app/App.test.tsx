@@ -163,6 +163,21 @@ describe('shared report link', () => {
     expect(st.priorities).toEqual(priorities);
   });
 
+  it('clears the share code from the address after restoring it, and restores a link pasted later into the same tab', async () => {
+    const share = (goal: 'improveSoil' | 'keepSoil') =>
+      `#s=${encodeShare({ goal, field: demoFields.iowa, cropHistory: [], priorities: { on: [], excludedCrops: [] } })}`;
+    window.history.replaceState(null, '', `/${share('improveSoil')}`);
+    render(<App />);
+    await screen.findByRole('region', { name: /Report for your advisor/ });
+    expect(window.location.hash).toBe('');
+
+    useAppStore.getState().reset();
+    window.location.hash = share('keepSoil');
+    await waitFor(() => expect(useAppStore.getState().step).toBe(7));
+    expect(useAppStore.getState().goal).toBe('keepSoil');
+    await waitFor(() => expect(window.location.hash).toBe(''));
+  });
+
   it('starts at step 1 when the hash holds no share code', () => {
     window.history.replaceState(null, '', '/#something-else');
     render(<App />);

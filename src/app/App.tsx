@@ -39,9 +39,18 @@ export function App() {
     glossaryButton.current?.focus();
   }
 
-  // A shared report link (#s=...) restores the farmer's input and opens the report (O2-B7).
+  // A shared report link (#s=...) restores the farmer's input and opens the report (O2-B7), on load and when a link
+  // is pasted into an open tab. The code is then cleared from the address, so the field's location does not stay in
+  // the browser history and a reload does not overwrite later edits.
   useEffect(() => {
-    restoreFromHash(window.location.hash, useAppStore.getState());
+    const restore = () => {
+      if (restoreFromHash(window.location.hash, useAppStore.getState())) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    };
+    restore();
+    window.addEventListener('hashchange', restore);
+    return () => window.removeEventListener('hashchange', restore);
   }, []);
 
   useEffect(() => {
