@@ -1,6 +1,6 @@
 {
   "steps.rotations.analysis": "analiza",
-  "steps.rotations.goalNoData": "Ceny nie są jeszcze wczytane, więc płodozmiany są ułożone według ochrony gleby.",
+  "steps.rotations.goalNoData": "Ceny nie są jeszcze wczytane, więc płodozmiany są ułożone pod kątem ochrony gleby.",
   "steps.rotations.current": "Twój płodozmian",
   "steps.rotations.option": "Wariant {n}",
   "steps.rotations.soilHealth": "Zdrowie gleby",
@@ -58,16 +58,16 @@
   "steps.rotations.goalTotalNotLoaded": "Ta część analizy nie jest jeszcze podłączona.",
   "steps.rotations.sectionEmpty": "Dla tego płodozmianu nic tu nie ma.",
   "steps.rotations.summary.droughtNote": "Rok suszy to rok, w którym {rootZone} na tym polu była w sezonie wegetacyjnym bardziej sucha niż w czterech piątych sezonów z danych. Miarą jest {wetness} z NASA POWER. W całym okresie danych to z definicji blisko 1 rok na 5, więc o tym, czy susze zdarzają się coraz częściej, mówi liczba z ostatnich sezonów. Obie liczby to {model}, a nie pomiar na twoim polu.",
-  "steps.rotations.rangeNote": "W części „Odporność na pogodę i klimat” przedział to {range}: mieści się w nim większość minionych lat. W części „Zdrowie gleby” sięga od najniższej do najwyższej wartości podanej w źródłach, a gdy źródło podaje jedną wartość, o 15% w górę i w dół.",
+  "steps.rotations.rangeNote": "W części „Odporność na pogodę i klimat” zakres to {range}: mieści się w nim większość minionych lat. W części „Zdrowie gleby” sięga od najniższej do najwyższej wartości podanej w źródłach, a gdy źródło podaje jedną wartość, o 15% w górę i w dół.",
   "steps.rotations.income.title": "Dochód",
-  "steps.rotations.income.notForecast": "Minione lata przeliczone po dzisiejszych cenach, a nie przewidywanie przyszłości.",
+  "steps.rotations.income.notForecast": "Minione lata przeliczone po dzisiejszych cenach. To nie jest prognoza.",
   "steps.rotations.income.marginLead": "Twoja {margin} na hektar, bez dopłat:",
   "steps.rotations.income.average": "Przeciętny rok",
   "steps.rotations.income.bad": "Słaby rok (1 rok na 10 był gorszy)",
   "steps.rotations.income.good": "Dobry rok (1 rok na 10 był lepszy)",
   "steps.rotations.income.payments": "Dopłaty",
   "steps.rotations.income.paymentsNone": "Ten płodozmian nie spełnia warunków żadnej ze sprawdzonych dopłat.",
-  "steps.rotations.income.unconfirmed": "Stawka nie jest potwierdzona na tę kampanię, więc nie liczymy jej do dochodu.",
+  "steps.rotations.income.unconfirmed": "Stawka na tę kampanię nie jest jeszcze potwierdzona, więc nie wliczamy jej do dochodu.",
   "steps.rotations.income.campaign": "Ceny i stawki: {campaign}",
   "steps.rotations.income.notLoaded": "Dochód nie jest jeszcze częścią tej analizy."
 }

@@ -1,7 +1,7 @@
 {
   "app.progress": "Postęp",
   "app.stepOf": "Krok {n} z {total}",
-  "app.step.goal": "Co jest dla Ciebie najważniejsze?",
+  "app.step.goal": "Co jest dla ciebie najważniejsze?",
   "app.step.field": "Twoje pole",
   "app.step.crops": "Co rosło na tym polu",
   "app.step.priorities": "Twoje priorytety",
@@ -11,7 +11,7 @@
   "app.back": "Wstecz",
   "app.next": "Dalej",
   "app.glossary": "Słowniczek",
-  "app.support": "To narzędzie pomaga podjąć decyzję. Nie zastępuje Twojej oceny ani zdania Twojego doradcy. Porównaj braki i ryzyka opisane wyżej z tym, co wiesz o tym polu.",
+  "app.support": "To narzędzie pomaga podjąć decyzję. Nie zastępuje twojej oceny ani oceny twojego doradcy. Porównaj braki i ryzyka opisane wyżej z tym, co wiesz o tym polu.",
   "app.language": "Język",
   "app.lang.en": "English",
   "app.lang.pl": "Polski"

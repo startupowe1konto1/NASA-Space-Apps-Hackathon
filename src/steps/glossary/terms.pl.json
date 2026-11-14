@@ -1,7 +1,7 @@
 {
   "evapotranspiration": {
     "label": "ewapotranspiracja",
-    "explanation": "Woda, która uchodzi z pola jako para, z powierzchni gleby i przez liście roślin."
+    "explanation": "Woda, która paruje z pola: z powierzchni gleby i przez liście roślin."
   },
   "anomaly": {
     "label": "anomalia",
@@ -17,11 +17,11 @@
   },
   "root-zone": {
     "label": "strefa korzeniowa",
-    "explanation": "Warstwa gleby, do której sięgają korzenie roślin i z której pobierają wodę, w naszych danych to górny metr gleby."
+    "explanation": "Warstwa gleby, do której sięgają korzenie roślin i z której pobierają wodę. W naszych danych to górny metr gleby."
   },
   "soil-wetness-index": {
     "label": "wskaźnik wilgotności gleby",
-    "explanation": "Jak wilgotny jest górny metr gleby, od 0 przy zupełnie suchej do 1 przy pełnej wody, według szacunku NASA POWER."
+    "explanation": "Jak wilgotny jest górny metr gleby: od 0, gdy gleba jest zupełnie sucha, do 1, gdy jest nasycona wodą, według szacunku NASA POWER."
   },
   "suitability-class": {
     "label": "klasa przydatności",
