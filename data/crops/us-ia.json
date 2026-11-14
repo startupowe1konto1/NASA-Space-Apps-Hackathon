@@ -194,7 +194,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Soybean chapter, page 128: soybean is very sensitive to frost at seed emergence and pod filling; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months; emergence month May (FAO-56 Table 11 initial stage from the 20 May sowing midpoint), pod filling August and September (second half of the FAO-56 mid-season stage)"
+        "locator": "Soybean chapter, page 128: soybean is very sensitive to frost at seed emergence and pod filling; threshold 1 = two or more frost days (the engine counts a month when FROST_DAYS > threshold) (NASA POWER FROST_DAYS) in those months; emergence month May (FAO-56 Table 11 initial stage from the 20 May sowing midpoint), pod filling August and September (second half of the FAO-56 mid-season stage)"
       },
       {
         "title": "Licht (2020), Cold temperatures on the way; what will it mean for corn and soybean seedlings?, Iowa State University Extension, Integrated Crop Management",
@@ -297,7 +297,7 @@
       {
         "title": "FAO Irrigation and Drainage Paper 66, Crop yield response to water (2012)",
         "url": "https://www.fao.org/4/i2800e/i2800e.pdf",
-        "locator": "Wheat chapter, page 93: during head development and flowering frost may lead to loss of spikelets; threshold 1 = at least one frost day (NASA POWER FROST_DAYS) in those months (heading and grain-filling months)"
+        "locator": "Wheat chapter, page 93: during head development and flowering frost may lead to loss of spikelets; threshold 1 = two or more frost days (the engine counts a month when FROST_DAYS > threshold) (NASA POWER FROST_DAYS) in those months (heading and grain-filling months)"
       },
       {
         "title": "Shroyer, Mikesell and Paulsen (1995), Spring Freeze Injury to Kansas Wheat, C646, Kansas State University",
