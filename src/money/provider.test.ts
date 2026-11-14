@@ -23,6 +23,10 @@ const tables: MoneyTables = {
           ref('direct costs: page 3', 'https://www.extension.iastate.edu/agdm/crops/pdf/a1-20.pdf'),
         ],
       },
+      {
+        crop: 'cereal-rye', kind: 'cover', directCostsPerHa: 70, costsPeriod: '2026 survey',
+        sources: [ref('direct costs: operations only', 'https://www.extension.iastate.edu/agdm/crops/pdf/a3-10.pdf')],
+      },
     ],
     payments: [],
   },
@@ -33,7 +37,10 @@ const trait = (id: string, kind: CropTraits['kind']): CropTraits => ({
   id, family: 'Poaceae', legume: false, kind, sowMonth: 4, harvestMonth: 10, sensitive: [], forage: false,
   residueCover: 'high', sources: [{ title: 't', url: 'https://example.org', locator: 'p. 1' }],
 });
-const crops = { US: [trait('maize', 'cash'), trait('soybean', 'cash'), trait('cereal-rye', 'cover')], PL: [] };
+const crops = {
+  US: [trait('maize', 'cash'), trait('soybean', 'cash'), trait('cereal-rye', 'cover'), trait('red-clover', 'cover')],
+  PL: [],
+};
 const provider = createTableMoneyProvider(tables, crops);
 const iowa = demoFields.iowa;
 
@@ -57,10 +64,32 @@ describe('getEconomics', () => {
     expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'soybean' } } });
   });
 
-  it('does not ask cover crops for a yield or a price', async () => {
-    const result = await provider.getEconomics(iowa, ['maize', 'cereal-rye']);
+  it('skips a cover crop without a row: it is not sold, and its cost becomes a gap in the engine (D34)', async () => {
+    const result = await provider.getEconomics(iowa, ['maize', 'red-clover']);
     expect(result.status).toBe('ready');
     if (result.status === 'ready') expect(result.data.map((e) => e.crop)).toEqual(['maize']);
+  });
+
+  it('returns the sourced direct costs of a cover crop with a row, and no yield or price (D34, #98 item 5)', async () => {
+    const result = await provider.getEconomics(iowa, ['maize', 'cereal-rye']);
+    expect(result.status).toBe('ready');
+    if (result.status !== 'ready') return;
+    expect(result.data.map((e) => e.crop)).toEqual(['maize', 'cereal-rye']);
+    const rye = result.data.find((e) => e.crop === 'cereal-rye')!;
+    const row = tables.US.economics.find((r) => r.crop === 'cereal-rye')!;
+    expect(rye.directCostsPerHa).toMatchObject({ value: row.directCostsPerHa, unit: 'USD/ha', datasetIds: ['isu-agdm-a3-10'], kind: 'model' });
+    for (const missing of [rye.referenceYieldTPerHa, rye.pricePerT]) {
+      expect(missing).toMatchObject({ value: null, missingReason: 'cover crop, not sold (D34)' });
+    }
+    for (const value of [rye.referenceYieldTPerHa, rye.pricePerT, rye.directCostsPerHa]) {
+      expect(sourced.safeParse(value).success).toBe(true);
+    }
+  });
+
+  it('never lets a cover-crop row stand in for a sold crop', async () => {
+    const asCash = createTableMoneyProvider(tables, { ...crops, US: [trait('cereal-rye', 'cash')] });
+    const result = await asCash.getEconomics(iowa, ['cereal-rye']);
+    expect(result).toEqual({ status: 'no-data', reason: { code: 'money.no-economics', params: { crop: 'cereal-rye' } } });
   });
 
   it('returns each crop once', async () => {
@@ -82,9 +111,29 @@ describe('tableMoneyProvider on the shipped tables', () => {
     if (result.status === 'ready') {
       const oats = result.data.find((e) => e.crop === 'oats')!;
       const oatsRow = usIa.economics.find((e) => e.crop === 'oats')!;
-      expect(oats.referenceYieldTPerHa.value).toBeCloseTo(oatsRow.referenceYieldTPerHa, 3);
+      expect(oats.referenceYieldTPerHa.value).toBeCloseTo(oatsRow.referenceYieldTPerHa!, 3);
       expect(oats.pricePerT).toMatchObject({ unit: 'USD/t', datasetIds: ['usda-nass-quickstats-prices'] });
     }
+  });
+
+  it('returns the sourced operation costs of the Iowa cover crops, cereal rye and red clover', async () => {
+    const covers = usIa.economics.filter((r) => 'kind' in r && r.kind === 'cover');
+    expect(covers.map((r) => r.crop).sort()).toEqual(['cereal-rye', 'red-clover']);
+    const result = await tableMoneyProvider.getEconomics(demoFields.iowa, ['maize', ...covers.map((r) => r.crop)]);
+    expect(result.status).toBe('ready');
+    if (result.status !== 'ready') return;
+    for (const row of covers) {
+      const e = result.data.find((x) => x.crop === row.crop)!;
+      expect(e.directCostsPerHa).toMatchObject({ value: row.directCostsPerHa, unit: 'USD/ha', datasetIds: ['isu-agdm-a3-10'] });
+      expect(e.referenceYieldTPerHa.value).toBeNull();
+      expect(e.pricePerT.value).toBeNull();
+    }
+  });
+
+  it('skips the Poznań cover crops, which have no sourced cost', async () => {
+    const result = await tableMoneyProvider.getEconomics(demoFields.poznan, ['winter-wheat', 'white-mustard', 'phacelia']);
+    expect(result.status).toBe('ready');
+    if (result.status === 'ready') expect(result.data.map((e) => e.crop)).toEqual(['winter-wheat']);
   });
 
   it('names winter wheat as missing in Iowa', async () => {
@@ -130,6 +179,7 @@ describe('the period of each money value', () => {
         [e.directCostsPerHa, row.costsPeriod],
       ] as const;
       for (const [value, period] of pairs) {
+        if (value.value === null) continue; // a cover crop has no yield or price (D34)
         expect(typeof period, `${e.crop}: period missing`).toBe('string');
         expect(value.datasetIds, e.crop).toHaveLength(1);
         const dataset = datasets.find((d) => d.id === value.datasetIds[0]);
