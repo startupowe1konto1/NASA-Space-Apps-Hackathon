@@ -376,7 +376,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
       } catch (e) {
         paymentGaps.push({ code: 'gap.payments-error', params: { source: sourceOf(e) } });
       }
-      const income = incomeEstimate(years, crops, climate, economics.data, payments, labels.currency, labels.campaign, rules.droughtPercentile);
+      const income = incomeEstimate(years, crops, climate, economics.data, payments, labels.currency, labels.campaign, rules.droughtPercentile, rules.heatMinDays);
       if (income.status !== 'ready') {
         const status = income.status === 'not-loaded' ? (INCOME_NOT_WIRED as NotReady<Score>) : income.status === 'no-data' ? { ...income, reason: incomeMessage(income.reason) } : income;
         return { money: status, status, gaps: [...('reason' in status ? [status.reason] : []), ...paymentGaps] };

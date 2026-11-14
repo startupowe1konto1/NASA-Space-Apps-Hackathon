@@ -115,6 +115,19 @@ describe('yearlyYield', () => {
     expect(mean(rows.map((r) => r.yieldTPerHa))).toBeCloseTo(10, 10);
   });
 
+  // D43 (#113): heat counts only when at least heatMinDays days are hot, the same rule as climate resilience.
+  it('counts heat by the same minimum of hot days as climate resilience', () => {
+    const july = (hot: number) => [...Array<number>(hot).fill(38), ...Array<number>(31 - hot).fill(25)];
+    const climate = makeClimate((r) => (r.month === 7 ? { ...r, tMaxDailyC: july(r.year % 2 === 0 ? 2 : 0) } : r));
+    const hot = (rows: ReturnType<typeof yearlyYield>) => rows.filter((r) => r.loss > 0).length;
+    expect(hot(yearlyYield(cropA, climate, 10, DROUGHT_P, 1))).toBeGreaterThan(0);
+    expect(hot(yearlyYield(cropA, climate, 10, DROUGHT_P, 3))).toBe(0);
+    const r1 = incomeEstimate([{ crop: 'a' }], crops, climate, economics, [], 'USD', 'FY2026', DROUGHT_P, 1);
+    const r3 = incomeEstimate([{ crop: 'a' }], crops, climate, economics, [], 'USD', 'FY2026', DROUGHT_P, 3);
+    if (r1.status !== 'ready' || r3.status !== 'ready') throw new Error('expected ready');
+    expect(r1.data.estimate.marginPerHa.range!.low).toBeLessThan(r3.data.estimate.marginPerHa.range!.low);
+  });
+
   it('gives zero yield in every year when every replayed year is a total loss, and never divides by zero', () => {
     const climate = makeClimate((r) => (r.month === 7 ? { ...r, rootWetness: r.year % 2 === 0 ? 0 : 0.5, tMaxC: 38 } : r));
     const harsh = { ...cropA, sensitive: [{ hazard: 'heat' as const, months: [7], threshold: 35, lossShare: 1 }] };

@@ -83,7 +83,8 @@ export function yearlyYield(
   climate: ClimateProfile,
   referenceYieldTPerHa: number,
   droughtPercentile: number,
-  hits: ReturnType<typeof yearlyHitsDetailed> = yearlyHitsDetailed(crop, climate, droughtPercentile),
+  heatMinDays = 1,
+  hits: ReturnType<typeof yearlyHitsDetailed> = yearlyHitsDetailed(crop, climate, droughtPercentile, heatMinDays),
 ): YearYield[] {
   const years = recordYears(climate);
   const ky = (crop as { yieldResponseFactor?: number }).yieldResponseFactor;
@@ -148,6 +149,7 @@ export function incomeEstimate(
   currency: MoneyEstimate['currency'],
   campaign: string,
   droughtPercentile: number,
+  heatMinDays = 1,
 ): AsyncResult<IncomeResult> {
   const mainIds: CropId[] = [...new Set(years.map((y) => y.crop))];
 
@@ -164,10 +166,10 @@ export function incomeEstimate(
     const crop = crops.find((c) => c.id === id);
     if (!crop) throw new Error(`income: no crop traits for '${id}'`);
 
-    const hits = yearlyHitsDetailed(crop, climate, droughtPercentile);
+    const hits = yearlyHitsDetailed(crop, climate, droughtPercentile, heatMinDays);
     let rows: YearYield[];
     try {
-      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile, hits);
+      rows = yearlyYield(crop, climate, econ.referenceYieldTPerHa.value, droughtPercentile, heatMinDays, hits);
     } catch {
       return { status: 'no-data', reason: { code: 'income.no-yield-response', params: { crop: id } } };
     }
