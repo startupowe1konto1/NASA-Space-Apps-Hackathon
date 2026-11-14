@@ -427,29 +427,26 @@ describe('incomeScores', () => {
     expect(s.r3!.value).toBe(100);
   });
 
-  // Issue #98: mean, bad year and good year share one scale, from the lowest bad year to the highest good year, so no
-  // value is clamped and the bad year stays below the mean and the good year above it on every card.
-  it('puts the mean, the bad year and the good year on one scale from the lowest bad year to the highest good year', () => {
-    const s = incomeScores({ r1: total(100, 50, 150), r2: total(200, 150, 250), r3: total(300, 250, 350) });
-    // scale 50..350
-    expect(s.r1).toMatchObject({ low: 0, value: round1((50 / 300) * 100), high: round1((100 / 300) * 100) });
-    expect(s.r2).toMatchObject({ low: round1((100 / 300) * 100), value: 50, high: round1((200 / 300) * 100) });
-    expect(s.r3).toMatchObject({ low: round1((200 / 300) * 100), value: round1((250 / 300) * 100), high: 100 });
+  // SPEC §7 (decision on #100): the means are scaled 0-100 across the candidates. The bad year and the good year go
+  // through the same transform and are clamped to 0-100, so low <= value <= high still holds on every card.
+  it('scales the means 0-100 across the candidates and puts the bad and good year on the same transform', () => {
+    const s = incomeScores({ r1: total(100, 80, 120), r2: total(200, 180, 220), r3: total(300, 280, 320) });
+    // means 100..300, span 200
+    expect(s.r1).toMatchObject({ value: 0, low: 0, high: round1((20 / 200) * 100) });
+    expect(s.r2).toMatchObject({ value: 50, low: round1((80 / 200) * 100), high: round1((120 / 200) * 100) });
+    expect(s.r3).toMatchObject({ value: 100, low: round1((180 / 200) * 100), high: 100 });
   });
 
-  it('never clamps: candidates with wide year-to-year spreads keep distinct bad-year and good-year scores', () => {
-    // means close together, spreads wide (the Iowa demo pattern): under the old mean-only scale every low was 0 and
-    // every high 100
+  it('clamps the bad and good year to 0-100 and keeps low <= value <= high', () => {
     const s = incomeScores({ r1: total(626, 247, 912), r2: total(698, 364, 913), r3: total(662, 306, 913) });
-    const lows = Object.values(s).map((x) => x.low);
-    expect(new Set(lows).size).toBe(3);
+    expect(s.r1!.value).toBe(0);
+    expect(s.r2!.value).toBe(100);
     for (const x of Object.values(s)) {
+      expect(x.low).toBeGreaterThanOrEqual(0);
       expect(x.low).toBeLessThanOrEqual(x.value);
       expect(x.value).toBeLessThanOrEqual(x.high);
-      expect(x.low).toBeGreaterThanOrEqual(0);
       expect(x.high).toBeLessThanOrEqual(100);
     }
-    // the order of the means is kept
     expect(s.r1!.value).toBeLessThan(s.r3!.value);
     expect(s.r3!.value).toBeLessThan(s.r2!.value);
   });
@@ -460,7 +457,7 @@ describe('incomeScores', () => {
     expect(s.r2!.value).toBe(50);
   });
 
-  it('gives a single candidate its own range on the shared scale', () => {
+  it('gives 50 when the means are equal, with the spread shown as 0 and 100', () => {
     expect(incomeScores({ only: total(10, 5, 15) }).only).toMatchObject({ low: 0, value: 50, high: 100 });
   });
 
