@@ -4,8 +4,10 @@ import { demoFields } from '../fixtures';
 import terms from '../steps/glossary/terms.en.json';
 import { encodeShare } from '../steps/report/shareLink';
 import { App } from './App';
-import { t } from './i18n';
-import { canContinue, useAppStore } from './store';
+import { setLang, t, textFor } from './i18n';
+import en from './messages/en.json';
+import pl from './messages/pl.json';
+import { STEP_COUNT, canContinue, useAppStore } from './store';
 
 // These tests check the step shell, so they run on the fixture analysis whatever engine providers.ts points at.
 vi.mock('./providers', async (importOriginal) => {
@@ -124,6 +126,46 @@ describe('glossary link', () => {
     screen.getByRole('button', { name: 'Glossary' }).focus();
     await user.keyboard('{Enter}');
     expect(await screen.findByRole('heading', { name: 'Words used in this tool' })).toBeInTheDocument();
+  });
+});
+
+describe('language switch', () => {
+  afterEach(() => {
+    setLang('en');
+  });
+
+  it('switches the shell to Polish and back without losing the field or the step', async () => {
+    const user = userEvent.setup();
+    useAppStore.getState().addField(demoFields.poznan);
+    useAppStore.getState().goToStep(2);
+    const before = useAppStore.getState();
+    render(<App />);
+    const group = screen.getByRole('group', { name: en['app.language'] });
+    const english = within(group).getByRole('button', { name: en['app.lang.en'] });
+    const polish = within(group).getByRole('button', { name: pl['app.lang.pl'] });
+    expect(english).toHaveAttribute('aria-pressed', 'true');
+    expect(polish).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(polish);
+    const polishHeading = `${textFor('app.stepOf', 'pl', { n: 2, total: STEP_COUNT })}: ${pl['app.step.field']}`;
+    expect(await screen.findByRole('heading', { level: 1, name: polishHeading })).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: pl['app.language'] })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: pl['app.glossary'] })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: pl['app.back'] })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: pl['app.next'] })).toBeInTheDocument();
+    expect(polish).toHaveAttribute('aria-pressed', 'true');
+    expect(english).toHaveAttribute('aria-pressed', 'false');
+    expect(document.documentElement.lang).toBe('pl');
+    const after = useAppStore.getState();
+    expect(after.step).toBe(2);
+    expect(after.fields).toBe(before.fields);
+    expect(after.selectedFieldId).toBe(demoFields.poznan.id);
+
+    await user.click(english);
+    const englishHeading = `${textFor('app.stepOf', 'en', { n: 2, total: STEP_COUNT })}: ${en['app.step.field']}`;
+    expect(await screen.findByRole('heading', { level: 1, name: englishHeading })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: en['app.glossary'] })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
   });
 });
 
