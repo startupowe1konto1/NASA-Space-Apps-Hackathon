@@ -38,9 +38,14 @@ describe('cropTraits', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cover' }).success).toBe(true);
   });
 
-  it('still requires both for cash and perennial crops', () => {
+  it('still requires water need for cash and perennial crops', () => {
     expect(cropTraits.safeParse({ ...base, kind: 'cash' }).success).toBe(false);
-    expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(false);
+    expect(cropTraits.safeParse({ ...base, kind: 'perennial', yieldResponseFactor: 1.1 }).success).toBe(false);
     expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low', yieldResponseFactor: 1.05 }).success).toBe(true);
+  });
+
+  it('accepts any crop kind without a yield response factor (D29: a missing Ky gives no-data income)', () => {
+    expect(cropTraits.safeParse({ ...base, kind: 'cash', waterNeed: 'low' }).success).toBe(true);
+    expect(cropTraits.safeParse({ ...base, kind: 'perennial', waterNeed: 'high' }).success).toBe(true);
   });
 });

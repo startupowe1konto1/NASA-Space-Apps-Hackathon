@@ -66,7 +66,7 @@ export interface CropTraits {
   sowMonth: number; harvestMonth: number;          // harvestMonth < sowMonth means harvest in the next calendar year
   sensitive: { hazard: Hazard; months: number[]; threshold: number; lossShare: number }[]; // lossShare 0-1 when the hazard hits
   waterNeed?: 'low' | 'medium' | 'high';           // required unless kind is 'cover' (schema enforces it)
-  yieldResponseFactor?: number;                    // FAO Ky; required unless kind is 'cover': cover crops are not harvested for yield
+  yieldResponseFactor?: number;                    // FAO Ky; optional for every crop kind (D29): a missing Ky gives no-data income
   forage: boolean;
   residueCover: 'low' | 'medium' | 'high';
   sources: SourceRef[];                            // min 1
