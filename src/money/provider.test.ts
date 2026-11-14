@@ -3,6 +3,7 @@ import type { CropTraits, Field } from '../contracts';
 import { sourced } from '../contracts/schemas';
 import { demoFields } from '../fixtures/fields';
 import { createTableMoneyProvider, tableMoneyProvider, type MoneyTables } from './provider';
+import usIa from '../../data/money/us-ia.json';
 
 const ref = (locator: string, url: string) => ({ title: 'test source', url, locator });
 
@@ -77,7 +78,8 @@ describe('tableMoneyProvider on the shipped tables', () => {
     expect(result.status).toBe('ready');
     if (result.status === 'ready') {
       const oats = result.data.find((e) => e.crop === 'oats')!;
-      expect(oats.referenceYieldTPerHa.value).toBeCloseTo(2.963, 3);
+      const oatsRow = usIa.economics.find((e) => e.crop === 'oats')!;
+      expect(oats.referenceYieldTPerHa.value).toBeCloseTo(oatsRow.referenceYieldTPerHa, 3);
       expect(oats.pricePerT).toMatchObject({ unit: 'USD/t', datasetIds: ['usda-nass-quickstats'] });
     }
   });
