@@ -440,38 +440,28 @@ describe('incomeScores', () => {
     expect(s.r3!.value).toBe(100);
   });
 
-  // SPEC §7 (decision on #100): the means are scaled 0-100 across the candidates. The bad year and the good year go
-  // through the same transform and are clamped to 0-100, so low <= value <= high still holds on every card.
-  it('scales the means 0-100 across the candidates and puts the bad and good year on the same transform', () => {
+  // D44 (SPEC §7): the means are scaled 0-100 across the candidates. The bad-year and good-year range stays in money
+  // (incomeTotal / the estimate's range), never clamped onto the score scale, so the score range is the value itself.
+  it('scales the means 0-100 across the candidates', () => {
     const s = incomeScores({ r1: total(100, 80, 120), r2: total(200, 180, 220), r3: total(300, 280, 320) });
-    // means 100..300, span 200
-    expect(s.r1).toMatchObject({ value: 0, low: 0, high: round1((20 / 200) * 100) });
-    expect(s.r2).toMatchObject({ value: 50, low: round1((80 / 200) * 100), high: round1((120 / 200) * 100) });
-    expect(s.r3).toMatchObject({ value: 100, low: round1((180 / 200) * 100), high: 100 });
+    expect(s.r1).toMatchObject({ value: 0, low: 0, high: 0 });
+    expect(s.r2).toMatchObject({ value: 50, low: 50, high: 50 });
+    expect(s.r3).toMatchObject({ value: 100, low: 100, high: 100 });
   });
 
-  it('clamps the bad and good year to 0-100 and keeps low <= value <= high', () => {
+  it('does not let wide year-to-year spreads compress or clamp the means', () => {
     const s = incomeScores({ r1: total(626, 247, 912), r2: total(698, 364, 913), r3: total(662, 306, 913) });
     expect(s.r1!.value).toBe(0);
     expect(s.r2!.value).toBe(100);
-    for (const x of Object.values(s)) {
-      expect(x.low).toBeGreaterThanOrEqual(0);
-      expect(x.low).toBeLessThanOrEqual(x.value);
-      expect(x.value).toBeLessThanOrEqual(x.high);
-      expect(x.high).toBeLessThanOrEqual(100);
-    }
-    expect(s.r1!.value).toBeLessThan(s.r3!.value);
-    expect(s.r3!.value).toBeLessThan(s.r2!.value);
+    expect(s.r3!.value).toBe(round1(((662 - 626) / (698 - 626)) * 100));
+    for (const x of Object.values(s)) expect([x.low, x.high]).toEqual([x.value, x.value]);
   });
 
-  it('gives 50 to every candidate when every year of every candidate earns the same', () => {
-    const s = incomeScores({ r1: total(100, 100, 100), r2: total(100, 100, 100) });
+  it('gives 50 to every candidate when the means are equal', () => {
+    const s = incomeScores({ r1: total(100, 50, 150), r2: total(100, 100, 100) });
     expect(s.r1).toMatchObject({ value: 50, low: 50, high: 50 });
     expect(s.r2!.value).toBe(50);
-  });
-
-  it('gives 50 when the means are equal, with the spread shown as 0 and 100', () => {
-    expect(incomeScores({ only: total(10, 5, 15) }).only).toMatchObject({ low: 0, value: 50, high: 100 });
+    expect(incomeScores({ only: total(10, 5, 15) }).only).toMatchObject({ low: 50, value: 50, high: 50 });
   });
 
   it('is never strong: moderate with a full record, weak when a year was left out', () => {

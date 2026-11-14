@@ -280,11 +280,11 @@ export function incomeTotal(r: IncomeResult): IncomeTotal {
 }
 
 /**
- * Income scores of the candidates of one field (SPEC §7). The mean (margin plus confirmed payments) is scaled 0-100
- * across the candidates: the lowest mean gets 0, the highest 100. The bad year and the good year go through the same
- * transform and are clamped to 0-100, so each card keeps low <= value <= high. When all means are equal every value
- * is 50, and a bad or good year that differs from the mean shows as 0 or 100. Confidence is never strong:
- * 'moderate', or 'weak' when climate data was missing.
+ * Income scores of the candidates of one field (SPEC §7, D44). The mean (margin plus confirmed payments) is scaled
+ * 0-100 across the candidates: the lowest mean gets 0, the highest 100, and all equal means get 50. The bad-year and
+ * good-year range is not put on this scale (clamping it would hide how wide it is); it stays in money in
+ * `incomeTotal` and the estimate's `marginPerHa.range`, so the score's own low and high equal its value.
+ * Confidence is never strong: 'moderate', or 'weak' when climate data was missing.
  */
 export function incomeScores(totals: Record<string, IncomeTotal>): Record<string, Score> {
   const ids = Object.keys(totals);
@@ -292,19 +292,16 @@ export function incomeScores(totals: Record<string, IncomeTotal>): Record<string
   const means = ids.map((id) => totals[id]!.meanPerHa);
   const min = Math.min(...means);
   const span = Math.max(...means) - min;
-  const clamp = (x: number) => Math.min(100, Math.max(0, x));
-  const scale = (x: number) => {
-    if (span > 0) return round(clamp(((x - min) / span) * 100), 1);
-    return x < min ? 0 : x > min ? 100 : 50;
-  };
+  const scale = (x: number) => (span === 0 ? 50 : round(((x - min) / span) * 100, 1));
 
   const out: Record<string, Score> = {};
   for (const id of ids) {
     const t = totals[id]!;
+    const value = scale(t.meanPerHa);
     out[id] = {
-      value: scale(t.meanPerHa),
-      low: scale(t.lowPerHa),
-      high: scale(t.highPerHa),
+      value,
+      low: value,
+      high: value,
       confidence: t.complete ? 'moderate' : 'weak',
       basis: { code: 'income.basis.replay', params: { years: t.years } },
     };
