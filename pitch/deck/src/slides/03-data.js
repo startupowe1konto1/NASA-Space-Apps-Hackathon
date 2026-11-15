@@ -20,9 +20,11 @@ const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
 
 const CSS = `
-.slide[data-name="data"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-50%); }
-.slide[data-name="data"] .lbl .n { display: inline-block; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
-.slide[data-name="data"] .lbl b { font-size: 27px; font-weight: 500; }
+/* The first line (number and name) is centred on the leader line; the source sits below it. */
+.slide[data-name="data"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-18px); }
+.slide[data-name="data"] .lbl .top { display: flex; align-items: center; height: 36px; }
+.slide[data-name="data"] .lbl .n { flex: none; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
+.slide[data-name="data"] .lbl b { font-size: 27px; font-weight: 500; line-height: 1; }
 .slide[data-name="data"] .lbl i { display: block; margin-left: 40px; font-style: normal; font-size: 20px; color: var(--muted); margin-top: 2px; }
 .slide[data-name="data"] .lbls { opacity: 0; transition: opacity .5s ease; }
 .slide[data-name="data"] .lbls.on { opacity: 1; }
@@ -85,7 +87,7 @@ export default {
       </div>
       <svg class="leaders" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
       <div class="lbls">
-        ${LAYERS.map((r, i) => `<div class="lbl"><span class="n">${String(i + 1).padStart(2, '0')}</span><b>${r.layer(clim)}</b><i>${r.source}</i></div>`).join('')}
+        ${LAYERS.map((r, i) => `<div class="lbl"><div class="top"><span class="n">${String(i + 1).padStart(2, '0')}</span><b>${r.layer(clim)}</b></div><i>${r.source}</i></div>`).join('')}
       </div>`;
 
     const leaders = ctx.el.querySelector('svg.leaders');

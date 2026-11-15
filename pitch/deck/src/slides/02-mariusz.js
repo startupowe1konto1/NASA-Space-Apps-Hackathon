@@ -12,7 +12,10 @@ const CSS = `
   font-size: 50px; line-height: 1; white-space: nowrap; align-items: flex-end; }
 .s-mariusz .nb .r b { font-weight: 500; width: 128px; flex: none; }
 .s-mariusz .nb .r.open { color: #b3361f; }
-.s-mariusz .nb .r.open i { font-style: normal; font-size: 64px; display: inline-block; transform-origin: 50% 70%; }
+/* Caveat's "?" draws about 11 px past its own box on the right. During the pulse Chrome puts it on a GPU layer cut to
+   that box, which hid the right half; the padding makes the box hold the whole glyph, the margin keeps the layout. */
+.s-mariusz .nb .r.open i { font-style: normal; font-size: 64px; display: inline-block; padding: 0 16px 6px 0; margin: 0 -16px -6px 0;
+  transform-origin: 50% 70%; }
 .s-mariusz .nb .r.open.pulse i { animation: s-mariusz-pulse .9s ease-in-out .6s 1; }
 @keyframes s-mariusz-pulse { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.45); } }
 .s-mariusz .nb .r[data-from] { transition: opacity .5s ease; transform: none; }
