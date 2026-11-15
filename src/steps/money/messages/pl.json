@@ -36,5 +36,6 @@
   "steps.money.deltaLess": "o {n} mniej niż twój płodozmian",
   "steps.money.payments": "Potwierdzone dopłaty: {name}",
   "steps.money.paymentsNone": "Brak potwierdzonych dopłat: {name}.",
-  "steps.money.more": "Zły i dobry rok, dopłaty i źródła"
+  "steps.money.more": "Zły i dobry rok, dopłaty i źródła",
+  "steps.money.switchTitle": "Zmienić czy zostać?"
 }

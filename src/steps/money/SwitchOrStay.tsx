@@ -113,8 +113,8 @@ export function SwitchOrStay({ rows, analysis, goal }: { rows: MoneyRow[]; analy
 
   return (
     <section aria-labelledby="switch-title" className="grid gap-4">
-      <h2 id="switch-title" className="sr-only">
-        {t('steps.money.compare')}
+      <h2 id="switch-title" className="text-xl font-bold tracking-tight text-zinc-950">
+        {t('steps.money.switchTitle')}
       </h2>
 
       {options.length > 1 ? (

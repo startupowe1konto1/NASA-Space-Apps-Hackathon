@@ -36,5 +36,6 @@
   "steps.money.deltaLess": "{n} less than your rotation",
   "steps.money.payments": "Confirmed payments for {name}",
   "steps.money.paymentsNone": "No confirmed payments found for {name}.",
-  "steps.money.more": "Bad and good years, payments and sources"
+  "steps.money.more": "Bad and good years, payments and sources",
+  "steps.money.switchTitle": "Switch or stay?"
 }
