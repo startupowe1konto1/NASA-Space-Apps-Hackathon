@@ -99,18 +99,18 @@ export function CalendarStrip(props: CalendarStripProps) {
 
   return (
     <StateBoundary state={months.length === 0 ? 'no-data' : 'ready'} reason={t('calendar.empty')}>
-      <div className="text-slate-900 [print-color-adjust:exact]">
+      <div className="text-zinc-900 [print-color-adjust:exact]">
         <table className="w-full table-fixed border-separate border-spacing-0.5 text-xs">
-          <caption className="mb-1 text-left text-sm font-semibold text-slate-900">
+          <caption className="mb-1 text-left text-sm font-semibold text-zinc-900">
             {label ? t('calendar.captionFor', { label }) : t('calendar.caption')}
           </caption>
           <thead>
             <tr>
-              <th scope="col" className="w-12 text-left font-normal text-slate-700">
+              <th scope="col" className="w-12 text-left font-normal text-zinc-700">
                 <span className="sr-only">{t('calendar.yearHeader')}</span>
               </th>
               {MONTHS.map((month) => (
-                <th key={month} scope="col" className="min-w-6 font-medium text-slate-700">
+                <th key={month} scope="col" className="min-w-6 font-medium text-zinc-700">
                   <span aria-hidden="true">{t(`calendar.monthShort.${month}`)}</span>
                   <span className="sr-only">{monthName(month)}</span>
                 </th>
@@ -120,14 +120,14 @@ export function CalendarStrip(props: CalendarStripProps) {
           <tbody>
             {years.map((yearIndex) => (
               <tr key={yearIndex}>
-                <th scope="row" className="whitespace-nowrap pr-1 text-left font-medium text-slate-700">
+                <th scope="row" className="whitespace-nowrap pr-1 text-left font-medium text-zinc-700">
                   {t('calendar.year', { n: yearNumber(yearIndex) })}
                 </th>
                 {MONTHS.map((month) => {
                   const cell = find(yearIndex, month);
                   const hazards = hazardsOf(cell);
                   const text = cellLabel(month, cell, cropName, hazards);
-                  const colour = cell ? COVER_CLASS[cell.cover] : 'border border-dashed border-slate-500 bg-white';
+                  const colour = cell ? COVER_CLASS[cell.cover] : 'border border-dashed border-zinc-500 bg-white';
                   const box = `flex h-10 min-w-6 w-full items-center justify-center rounded-sm ${colour}`;
 
                   // Screen readers often skip aria-label on a <td>, so the words sit in the cell as sr-only text.
@@ -148,7 +148,7 @@ export function CalendarStrip(props: CalendarStripProps) {
                         aria-expanded={isOpen}
                         aria-controls={isOpen ? detailsId : undefined}
                         onClick={() => setSelected(isOpen ? null : { yearIndex, month })}
-                        className={`${box} cursor-pointer outline-none ring-offset-1 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-slate-900 motion-safe:transition ${isOpen ? 'ring-2 ring-slate-900' : ''}`}
+                        className={`${box} cursor-pointer outline-none ring-offset-1 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-zinc-900 motion-safe:transition ${isOpen ? 'ring-2 ring-zinc-900' : ''}`}
                       >
                         <span className="sr-only">{text}</span>
                         <Marks {...hazards} />
@@ -165,16 +165,16 @@ export function CalendarStrip(props: CalendarStripProps) {
           <section
             id={detailsId}
             aria-label={t('calendar.detail.title', { month: monthName(selected.month), year: yearNumber(selected.yearIndex) })}
-            className="mt-2 rounded-lg border border-slate-300 bg-slate-50 p-3 text-sm"
+            className="mt-2 rounded-lg border border-zinc-300 bg-zinc-50 p-3 text-sm"
           >
-            <p className="font-semibold text-slate-900">{cellLabel(selected.month, selectedCell, cropName)}</p>
+            <p className="font-semibold text-zinc-900">{cellLabel(selected.month, selectedCell, cropName)}</p>
             <div className="mt-1 space-y-1">
               {selectedCell.exposure
                 .filter((e) => selectedHazards.marked.includes(e.hazard) || selectedHazards.missing.includes(e.hazard))
                 .map((e) => (
                   <div key={e.hazard} className="flex flex-wrap items-center gap-x-2">
                     {isMissing(e.probability) ? <MissingMark size={14} /> : <HazardMark hazard={e.hazard} size={14} />}
-                    <span className="text-slate-900">
+                    <span className="text-zinc-900">
                       {t('calendar.detail.hazard', { hazard: hazardName(e.hazard), month: monthName(selected.month) })}
                     </span>
                     <SourcedNumber value={shareForDisplay(e.probability)} datasets={datasets} decimals={0} />
@@ -183,10 +183,10 @@ export function CalendarStrip(props: CalendarStripProps) {
             </div>
           </section>
         ) : months.some((m) => hasDetails(hazardsOf(m))) ? (
-          <p className="mt-1 text-xs text-slate-700">{t('calendar.detail.hint')}</p>
+          <p className="mt-1 text-xs text-zinc-700">{t('calendar.detail.hint')}</p>
         ) : null}
 
-        <div role="group" aria-label={t('calendar.legend')} className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-700">
+        <div role="group" aria-label={t('calendar.legend')} className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-700">
           {COVER_STATES.map((cover) => (
             <span key={cover} className="inline-flex items-center gap-1">
               <span aria-hidden="true" data-testid={`swatch-${cover}`} className={`inline-block h-3 w-4 rounded-sm ${COVER_CLASS[cover]}`} />
@@ -204,7 +204,7 @@ export function CalendarStrip(props: CalendarStripProps) {
             {t('calendar.legend.missing')}
           </span>
         </div>
-        <p className="mt-1 text-xs text-slate-700">{t('calendar.note')}</p>
+        <p className="mt-1 text-xs text-zinc-700">{t('calendar.note')}</p>
       </div>
     </StateBoundary>
   );

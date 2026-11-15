@@ -9,10 +9,10 @@ function Meter({ label, score }: { label: string; score: Score }) {
   return (
     <div className="grid gap-1">
       <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="text-slate-600">{label}</span>
-        <span className="font-semibold tabular-nums text-slate-900">{value}</span>
+        <span className="text-zinc-600">{label}</span>
+        <span className="font-semibold tabular-nums text-zinc-900">{value}</span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
+      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-200" aria-hidden="true">
         <div className="h-full rounded-full bg-emerald-600" style={{ width: `${value}%` }} />
       </div>
     </div>
@@ -40,22 +40,22 @@ export function OptionPicker(props: {
             aria-checked={on}
             aria-label={`${label}: ${rotationTitle(r)}`}
             onClick={() => onSelect(r.id)}
-            className={`grid content-start gap-3 rounded-xl border bg-white p-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 motion-reduce:transition-none ${
-              on ? 'border-emerald-700 ring-1 ring-emerald-700' : 'border-slate-200 hover:border-slate-400'
+            className={`grid content-start gap-3 rounded-2xl border bg-white p-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 motion-reduce:transition-none ${
+              on ? 'border-zinc-900 ring-1 ring-zinc-900' : 'border-zinc-200 hover:border-zinc-400'
             }`}
           >
             <span className="flex items-center justify-between gap-2">
-              <span className={`text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-slate-500' : 'text-emerald-700'}`}>
+              <span className={`text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-zinc-500' : 'text-emerald-700'}`}>
                 {label}
               </span>
               <span
                 aria-hidden="true"
-                className={`grid h-4 w-4 place-items-center rounded-full border ${on ? 'border-emerald-700 bg-emerald-700' : 'border-slate-300'}`}
+                className={`grid h-4 w-4 place-items-center rounded-full border ${on ? 'border-zinc-900 bg-zinc-900' : 'border-zinc-300'}`}
               >
                 {on ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
               </span>
             </span>
-            <span className="min-h-10 text-sm font-semibold leading-snug text-slate-900">{rotationTitle(r)}</span>
+            <span className="min-h-10 text-sm font-semibold leading-snug text-zinc-900">{rotationTitle(r)}</span>
             <span className="grid gap-2">
               <Meter label={t('steps.rotations.soilHealth')} score={r.soilHealth} />
               <Meter label={t('steps.rotations.climate')} score={r.climateResilience} />

@@ -12,7 +12,7 @@ import { isPolishQuery, searchPlaces } from './search';
 import type { Throttle } from './throttle';
 
 const BUTTON =
-  'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60';
+  'min-h-11 rounded-lg border border-zinc-300 bg-white px-4 text-base font-medium text-zinc-900 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 active:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60';
 
 type Search =
   | { kind: 'idle' }
@@ -61,7 +61,7 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
 
   return (
     <section className="grid gap-2">
-      <h2 className="text-lg font-semibold text-slate-900">{t('search.title')}</h2>
+      <h2 className="text-lg font-semibold text-zinc-900">{t('search.title')}</h2>
       <form
         role="search"
         className="flex flex-col gap-2 sm:flex-row sm:items-end"
@@ -71,7 +71,7 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
         }}
       >
         <div className="grid flex-1 gap-1">
-          <label htmlFor={inputId} className="text-base font-medium text-slate-900">
+          <label htmlFor={inputId} className="text-base font-medium text-zinc-900">
             {t('search.label')}
           </label>
           <input
@@ -81,7 +81,7 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
             enterKeyHint="search"
-            className="min-h-11 rounded-lg border border-slate-400 bg-white px-3 text-base text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+            className="min-h-11 rounded-lg border border-zinc-400 bg-white px-3 text-base text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
           />
         </div>
         <button type="submit" className={BUTTON} disabled={!online || search.kind === 'loading'}>
@@ -117,10 +117,10 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
         </ul>
       ) : null}
       {fromNominatim && (search.kind === 'list' || search.kind === 'moved' || search.kind === 'none') ? (
-        <p className="text-sm text-slate-600">{t('search.attribution')}</p>
+        <p className="text-sm text-zinc-600">{t('search.attribution')}</p>
       ) : null}
       {search.kind === 'moved' ? (
-        <p role="status" className="text-base text-emerald-900">
+        <p role="status" className="text-base text-zinc-950">
           {t('search.moved', { label: search.label })}
         </p>
       ) : null}

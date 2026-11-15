@@ -3,7 +3,7 @@
 // bottom (SPEC section 11). Everything else sits in one list of folded rows (HANDOFF-frontend step 5): how the scores
 // are made (the range note is said once above the cards), the income, the reasons, the evidence, the benefits and the regions. Folded, not deleted.
 import { useState, type ReactNode } from 'react';
-import { t } from '../../app/i18n';
+import { currentLang, t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { moneyAvailable as moneyOn } from '../../app/providers';
 import { SourcedNumber, StateBoundary } from '../../ui-kit';
@@ -12,6 +12,8 @@ import { IncomeSection } from './IncomeSection';
 import { ScoreRow } from './ScoreRow';
 
 export function ordinal(n: number): string {
+  // Polish writes an ordinal as the number with a dot ("132."), English adds a suffix ("132nd").
+  if (currentLang() === 'pl') return `${n}.`;
   const tens = n % 100;
   if (tens >= 11 && tens <= 13) return `${n}th`;
   return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
@@ -27,7 +29,7 @@ export function rotationTitle(rotation: RotationOption): string {
 function Section({ title, empty, children }: { title: string; empty?: boolean; children: ReactNode }) {
   return (
     <section className="grid gap-1.5">
-      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+      <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
       <StateBoundary state={empty ? 'no-data' : 'ready'} reason={t('steps.rotations.sectionEmpty')}>
         {children}
       </StateBoundary>
@@ -38,10 +40,10 @@ function Section({ title, empty, children }: { title: string; empty?: boolean; c
 /** One folded row of the card's detail list: closed by default, opened by its title. Native <details>. */
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="group border-t border-slate-200 first:border-t-0">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 sm:px-6 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden">
-        <h3 className="text-sm font-medium text-slate-900">{title}</h3>
-        <span aria-hidden="true" className="text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none">
+    <details className="group border-t border-zinc-200 first:border-t-0">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 sm:px-6 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-zinc-900 [&::-webkit-details-marker]:hidden">
+        <h3 className="text-sm font-medium text-zinc-900">{title}</h3>
+        <span aria-hidden="true" className="text-zinc-500 transition-transform group-open:rotate-180 motion-reduce:transition-none">
           ▾
         </span>
       </summary>
@@ -53,7 +55,7 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 /** The engine may repeat a code with other params, so the key holds both. */
 const keyOf = (m: Message, i: number) => `${m.code}:${JSON.stringify(m.params ?? {})}:${i}`;
 
-const Para = ({ m }: { m: Message }) => <p className="text-base leading-snug text-slate-800">{t(m)}</p>;
+const Para = ({ m }: { m: Message }) => <p className="text-base leading-snug text-zinc-800">{t(m)}</p>;
 
 /** Gaps and local risks show their first lines on the tile; the rest open with one button, so no list buries the card. */
 const SHORT_LIST = 2;
@@ -63,7 +65,7 @@ function ShortList({ label, items }: { label: string; items: Message[] }) {
   const rest = items.length - SHORT_LIST;
   return (
     <>
-      <ul aria-label={label} className="list-disc space-y-1 pl-5 text-sm leading-snug text-slate-800">
+      <ul aria-label={label} className="list-disc space-y-1 pl-5 text-sm leading-snug text-zinc-800">
         {(all ? items : items.slice(0, SHORT_LIST)).map((m, i) => (
           <li key={keyOf(m, i)}>{t(m)}</li>
         ))}
@@ -73,7 +75,7 @@ function ShortList({ label, items }: { label: string; items: Message[] }) {
           type="button"
           aria-expanded={all}
           onClick={() => setAll(!all)}
-          className="min-h-9 w-fit rounded text-left text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+          className="min-h-9 w-fit rounded text-left text-sm font-semibold text-zinc-900 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
         >
           {all ? t('steps.rotations.listLess') : t('steps.rotations.listMore', { count: rest })}
         </button>
@@ -101,20 +103,28 @@ export function RotationCard(props: {
   return (
     <article
       data-testid={`card-${r.id}`}
-      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      className="flex flex-col overflow-hidden rounded-[20px] border border-zinc-200 bg-white"
     >
       <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
         <div className="grid content-start gap-5">
         <header className="grid gap-1.5">
+          {!r.isCurrent && rank === 1 ? (
+            <span className="mb-1 inline-flex w-fit items-center gap-2 rounded-xl bg-lime-300 px-3 py-1.5 text-sm font-bold text-zinc-950">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12 5 5 9-10" />
+              </svg>
+              {t('steps.rotations.bestFor', { goal: goalName })}
+            </span>
+          ) : null}
           <span
-            className={`w-fit text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-slate-500' : 'text-emerald-700'}`}
+            className={`w-fit text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-zinc-500' : 'text-emerald-700'}`}
           >
             {r.isCurrent ? t('steps.rotations.current') : t('steps.rotations.option', { n: rank })}
           </span>
-          <h2 className="text-xl font-semibold leading-snug tracking-tight text-slate-900">{rotationTitle(r)}</h2>
-          {r.why[0] ? <p className="text-sm leading-snug text-slate-600">{t(r.why[0])}</p> : null}
+          <h2 className="text-xl font-semibold leading-snug tracking-tight text-zinc-900">{rotationTitle(r)}</h2>
+          {r.why[0] ? <p className="text-sm leading-snug text-zinc-600">{t(r.why[0])}</p> : null}
           {goal !== 'keepSoil' && keepRank !== undefined ? (
-            <p className="text-sm text-slate-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
+            <p className="text-sm text-zinc-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
           ) : null}
         </header>
 
@@ -126,7 +136,7 @@ export function RotationCard(props: {
               <ScoreRow label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} />
             ) : (
               <div className="grid gap-1">
-                <p className="text-sm font-medium text-slate-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
+                <p className="text-sm font-medium text-zinc-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
                 <StateBoundary
                   state={total.status === 'error' ? 'error' : 'no-data'}
                   source={total.status === 'error' ? total.source : t('steps.rotations.goalTotalSource')}
@@ -142,7 +152,7 @@ export function RotationCard(props: {
         {calendar}
         </div>
 
-        <div className="grid content-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="grid content-start gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />
             {t('steps.rotations.checkTitle')}
@@ -156,19 +166,19 @@ export function RotationCard(props: {
         </div>
       </div>
 
-      <div className="mt-auto border-t border-slate-200">
+      <div className="mt-auto border-t border-zinc-200">
         <Fold title={t('steps.rotations.scoresHow')}>
-          <p className="text-sm leading-snug text-slate-700">
-            <span className="font-semibold text-slate-900">{t('steps.rotations.soilHealth')}: </span>
+          <p className="text-sm leading-snug text-zinc-700">
+            <span className="font-semibold text-zinc-900">{t('steps.rotations.soilHealth')}: </span>
             {t(r.soilHealth.basis)}
           </p>
-          <p className="text-sm leading-snug text-slate-700">
-            <span className="font-semibold text-slate-900">{t('steps.rotations.climate')}: </span>
+          <p className="text-sm leading-snug text-zinc-700">
+            <span className="font-semibold text-zinc-900">{t('steps.rotations.climate')}: </span>
             {t(r.climateResilience.basis)}
           </p>
           {goal !== 'keepSoil' && total.status === 'ready' ? (
-            <p className="text-sm leading-snug text-slate-700">
-              <span className="font-semibold text-slate-900">{t('steps.rotations.goalTotal', { goal: goalName })}: </span>
+            <p className="text-sm leading-snug text-zinc-700">
+              <span className="font-semibold text-zinc-900">{t('steps.rotations.goalTotal', { goal: goalName })}: </span>
               {t(total.data.basis)}
             </p>
           ) : null}
@@ -194,7 +204,7 @@ export function RotationCard(props: {
               <div key={keyOf(e.message, i)} className="grid gap-1">
                 <Para m={e.message} />
                 {e.values.length > 0 ? (
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-base text-slate-900">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-base text-zinc-900">
                     {e.values.map((v, j) => (
                       <SourcedNumber key={j} value={v} datasets={datasets} />
                     ))}
@@ -209,14 +219,14 @@ export function RotationCard(props: {
           {r.benefits.length > 0 ? (
             r.benefits.map((m, i) => <Para key={keyOf(m, i)} m={m} />)
           ) : (
-            <p className="text-base text-slate-700">{t('steps.rotations.benefitsNone')}</p>
+            <p className="text-base text-zinc-700">{t('steps.rotations.benefitsNone')}</p>
           )}
         </Fold>
 
         <Fold title={t('steps.rotations.twins')}>
           {r.twins.status === 'ready' ? (
             <div className="grid gap-2">
-              <p className="text-base text-slate-800">
+              <p className="text-base text-zinc-800">
                 {t('steps.rotations.twinsReady', {
                   count: r.twins.data.caseCount,
                   similarity: Math.round(r.twins.data.meanSimilarity),
@@ -224,10 +234,10 @@ export function RotationCard(props: {
               </p>
               {/* A table, not a list: the card keeps exactly two lists (gaps, local risks). */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-base text-slate-800">
+                <table className="w-full text-left text-base text-zinc-800">
                   <caption className="sr-only">{t('steps.rotations.twinsTable')}</caption>
                   <thead>
-                    <tr className="border-b border-slate-300 text-sm text-slate-700">
+                    <tr className="border-b border-zinc-300 text-sm text-zinc-700">
                       <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsRegion')}</th>
                       <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsCrops')}</th>
                       <th scope="col" className="py-1 pr-3 font-medium">{t('steps.rotations.twinsYears')}</th>
@@ -237,7 +247,7 @@ export function RotationCard(props: {
                   </thead>
                   <tbody>
                     {r.twins.data.cases.map((c, i) => (
-                      <tr key={`${c.regionName}:${c.years}:${i}`} className="border-b border-slate-200 align-top">
+                      <tr key={`${c.regionName}:${c.years}:${i}`} className="border-b border-zinc-200 align-top">
                         <th scope="row" className="py-1.5 pr-3 font-medium">{c.regionName}</th>
                         <td className="py-1.5 pr-3">{c.crops.map((crop) => cropName(crop)).join(', ')}</td>
                         <td className="py-1.5 pr-3">{c.years}</td>
@@ -278,7 +288,7 @@ export function RotationCard(props: {
         </Fold>
       </div>
 
-      <p className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-sm leading-snug text-slate-600 sm:px-6">{t('app.support')}</p>
+      <p className="border-t border-zinc-200 bg-zinc-50 px-5 py-3 text-sm leading-snug text-zinc-600 sm:px-6">{t('app.support')}</p>
     </article>
   );
 }

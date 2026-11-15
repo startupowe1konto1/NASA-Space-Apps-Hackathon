@@ -13,17 +13,20 @@ Written Sat 14 Nov 2026 after a `ui-ux-pro-max` pass. Its generated design syste
 5. **One main action per screen,** in the footer ("Next"). Choices on a step are big cards, not small controls.
 6. **Motion is short and optional:** colour and transform only, 150 ms, and off under `prefers-reduced-motion`.
 
-## Colours (Tailwind defaults, so no theme change is needed)
+## Colours: Grafit (O1-F10, Tailwind defaults, so no theme change is needed)
 
-The skeleton already uses emerald and slate, so the steps use the same scale. No `[contract]` PR to `tailwind.config.ts` was needed.
+Chosen Sun 15 Nov 2026 from three colorways in the redesign mockup. Grafit is close to Revolut: grey page, white panels, black actions, a lime accent. Controls are grey and black; data stays green, so a green mark on screen always means a result, never a button.
 
 | Role | Class | Hex | Use |
 |---|---|---|---|
-| Primary | `emerald-700` | #047857 | chosen card border, switch on, main button |
-| Primary tint | `emerald-50` | #ECFDF5 | chosen card background |
-| Text | `slate-900` | #0F172A | headings, labels |
-| Text, secondary | `slate-700` | #334155 | hints, explanations (9.6:1 on white) |
-| Lines | `slate-300` / `slate-500` hover | | card borders |
+| Page background | `zinc-100` | #F4F4F5 | behind the panels |
+| Primary | `zinc-900` | #18181B | main button, chosen card border, switch on, focus ring (white text 17.7:1) |
+| Primary tint | `lime-100` | #ECFCCB | chosen card background |
+| Accent | `lime-300` | #BEF264 | done step mark, order numbers; always with `zinc-900`/`zinc-950` text (15:1) |
+| Text | `zinc-900` / `zinc-950` | #18181B | headings, labels |
+| Text, secondary | `zinc-700` | #3F3F46 | hints, explanations |
+| Lines | `zinc-300` / `zinc-500` hover | | card borders |
+| Data | `emerald-600` / `emerald-700` | | score bars, score ranges, crop months, margin bars, the "observed" dot |
 | Notice | `amber-50` bg, `amber-900` text | | "not loaded yet", "check locally" |
 | Error | `amber-700` border | | source errors (from `<StateBoundary>`) |
 
@@ -46,7 +49,7 @@ Inter (`@fontsource-variable/inter`), then the system font stack (Tailwind `font
 
 ## Components used on the steps
 
-- **Choice card** (goal step): full-width button, `role="radio"`, icon in a 48 px circle, title and one-line hint. Chosen: emerald border and tint, white icon on emerald.
+- **Choice card** (goal step): full-width button, `role="radio"`, icon in a 48 px circle, title and one-line hint. Chosen: zinc-900 border, lime-100 tint, white icon on zinc-900.
 - **Switch row** (priorities): label wrapping a visually hidden checkbox, title and hint, switch drawn at the end. The input is labelled by the title only, the hint is its description.
 - **Tick list** (excluded crops): two columns from 640 px, one column on phones; a ticked crop is struck through.
 - **States:** every list that loads goes through `<StateBoundary>` (loading, offline, no data, source error with retry).

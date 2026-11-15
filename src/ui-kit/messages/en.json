@@ -26,5 +26,8 @@
   "ui.confidence.weak": "Weak evidence",
   "ui.score.value": "{value} / 100",
   "ui.score.range": "range {low}–{high}",
-  "ui.score.barLabel": "{label}: {value} out of 100, range {low} to {high}"
+  "ui.score.barLabel": "{label}: {value} out of 100, range {low} to {high}",
+  "ui.sources.line": "Numbers here: {kinds}, from {names}. Tap a number for its source.",
+  "ui.sources.lineNoNames": "Numbers here: {kinds}. Tap a number for its source.",
+  "ui.sources.more": "and {n} more"
 }

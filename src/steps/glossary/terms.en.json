@@ -50,5 +50,9 @@
   "margin": {
     "label": "margin",
     "explanation": "Crop sales per hectare minus direct costs such as seed, fertiliser, sprays and fuel, before land, labour, machinery ownership and payments."
+  },
+  "government-support": {
+    "label": "government support",
+    "explanation": "Money a government agency pays per hectare each year, if you apply, for practices that protect soil and water, such as cover crops."
   }
 }

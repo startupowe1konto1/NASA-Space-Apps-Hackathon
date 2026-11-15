@@ -1,6 +1,6 @@
 # Spec: Field Shift decision-support tool
 
-Written Sat 14 Nov 2026, 14:45 CET (T+3:36) from `HANDOFF.md` v3 with PRs #19 and #20, `context/field-shift-*.md` and the team discussion. The project name is decided at the end; until then the working name is "Field Shift tool" and the name lives in one constant (`src/app/brand.ts`) and one line of `README.md`.
+Written Sat 14 Nov 2026, 14:45 CET (T+3:36) from `HANDOFF.md` v3 with PRs #19 and #20, `context/field-shift-*.md` and the team discussion. The project is called CropShifter (D55; "Field Shift tool" was the working name until Sun 15 Nov). The name lives in one constant (`src/app/brand.ts`), the `<title>` of `index.html` and one line of `README.md`.
 
 ## 1. Goal
 

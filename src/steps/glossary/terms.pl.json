@@ -50,5 +50,9 @@
   "margin": {
     "label": "nadwyżka bezpośrednia",
     "explanation": "Przychód ze sprzedaży plonu z hektara minus koszty bezpośrednie (nasiona, nawozy, środki ochrony roślin, paliwo), bez kosztów ziemi, pracy, posiadania maszyn i bez dopłat."
+  },
+  "government-support": {
+    "label": "wsparcie z programów rolnych",
+    "explanation": "Pieniądze, które państwowa agencja płaci co roku za hektar, po złożeniu wniosku, za praktyki chroniące glebę i wodę, na przykład poplony."
   }
 }

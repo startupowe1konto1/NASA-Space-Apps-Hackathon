@@ -33,7 +33,7 @@ const byYear = (a: CropYear, b: CropYear) => a.year - b.year;
 
 export function CropsStep() {
   const field = useAppStore(selectedField);
-  if (!field) return <p className="text-base text-slate-700">{t('steps.crops.noField')}</p>;
+  if (!field) return <p className="text-base text-zinc-700">{t('steps.crops.noField')}</p>;
   return <CropsForField key={field.id} field={field} />;
 }
 
@@ -67,7 +67,7 @@ function CropsForField({ field }: { field: Field }) {
 
   useEffect(() => load(), [load]);
 
-  const saved = stored && stored.length > 0 ? <p role="status" className="text-base font-medium text-emerald-800">{stored.length === 1 ? t('steps.crops.saved.one') : t('steps.crops.saved', { n: stored.length })}</p> : null;
+  const saved = stored && stored.length > 0 ? <p role="status" className="text-base font-medium text-zinc-900">{stored.length === 1 ? t('steps.crops.saved.one') : t('steps.crops.saved', { n: stored.length })}</p> : null;
 
   if (history.status === 'loading') {
     return <StateBoundary state="loading" source={t('steps.crops.loadingSource')}>{null}</StateBoundary>;
@@ -94,7 +94,7 @@ function CropsForField({ field }: { field: Field }) {
           {null}
         </StateBoundary>
       ) : (
-        <p className="rounded-lg bg-slate-100 px-3 py-2 text-base text-slate-800">{t(history.reason)}</p>
+        <p className="rounded-lg bg-zinc-100 px-3 py-2 text-base text-zinc-800">{t(history.reason)}</p>
       )}
       <PickSeasons crops={crops} stored={stored} onRetry={load} onSave={(years) => setCropHistory(field.id, years)} />
       {saved}
@@ -122,19 +122,19 @@ function Confirm(props: {
 
   return (
     <section className="grid gap-3">
-      <h2 className="text-lg font-semibold text-slate-900">{t('steps.crops.proposed')}</h2>
+      <h2 className="text-lg font-semibold text-zinc-900">{t('steps.crops.proposed')}</h2>
       <ul aria-label={t('steps.crops.listLabel')} className="grid gap-2">
         {[...visible].reverse().map((y) => (
-          <li key={y.year} className="grid gap-2 rounded-xl border-2 border-slate-200 bg-white px-3 py-2">
+          <li key={y.year} className="grid gap-2 rounded-2xl border-2 border-zinc-200 bg-white px-3 py-2">
             <div className="flex min-h-11 items-center gap-3">
-              <span className="w-12 shrink-0 text-base font-semibold tabular-nums text-slate-700">{y.year}</span>
-              <span className="shrink-0 text-emerald-800">
+              <span className="w-12 shrink-0 text-base font-semibold tabular-nums text-zinc-700">{y.year}</span>
+              <span className="shrink-0 text-zinc-900">
                 <CropIcon crop={y.crop} size={28} />
               </span>
-              <span className="flex-1 text-base font-medium text-slate-900">
+              <span className="flex-1 text-base font-medium text-zinc-900">
                 {cropName(y.crop)}
                 {y.source === 'farmer' ? (
-                  <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900">
+                  <span className="ml-2 rounded-full bg-lime-300 px-2 py-0.5 text-sm text-zinc-950">
                     {t('steps.crops.byFarmer')}
                   </span>
                 ) : null}
@@ -144,7 +144,7 @@ function Confirm(props: {
                 aria-label={t('steps.crops.change', { year: y.year })}
                 aria-expanded={editing === y.year}
                 onClick={() => setEditing(editing === y.year ? null : y.year)}
-                className="min-h-11 cursor-pointer rounded-lg border border-slate-400 px-3 text-base text-slate-800 hover:bg-slate-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40"
+                className="min-h-11 cursor-pointer rounded-lg border border-zinc-400 px-3 text-base text-zinc-800 hover:bg-zinc-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40"
               >
                 {editing === y.year ? t('steps.crops.done') : t('steps.crops.changeShort')}
               </button>
@@ -161,7 +161,7 @@ function Confirm(props: {
         <button
           type="button"
           onClick={() => setShowAll(true)}
-          className="min-h-11 w-fit cursor-pointer rounded-lg px-2 text-base font-medium text-emerald-800 underline underline-offset-2 hover:text-emerald-950 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40"
+          className="min-h-11 w-fit cursor-pointer rounded-lg px-2 text-base font-medium text-zinc-900 underline underline-offset-2 hover:text-zinc-950 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40"
         >
           {t('steps.crops.showEarlier', { n: hidden })}
         </button>
@@ -169,7 +169,7 @@ function Confirm(props: {
       <button
         type="button"
         onClick={() => onSave(shown)}
-        className="min-h-12 cursor-pointer rounded-xl bg-emerald-700 px-4 text-lg font-semibold text-white hover:bg-emerald-800 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40"
+        className="min-h-12 cursor-pointer rounded-2xl bg-zinc-900 px-4 text-lg font-semibold text-white hover:bg-zinc-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40"
       >
         {t('steps.crops.confirm')}
       </button>
@@ -195,14 +195,14 @@ function PickSeasons(props: {
 
   return (
     <section className="grid gap-3">
-      <h2 className="text-lg font-semibold text-slate-900">{t('steps.crops.pickTitle')}</h2>
-      <p className="text-base text-slate-700">{t('steps.crops.pickHint')}</p>
+      <h2 className="text-lg font-semibold text-zinc-900">{t('steps.crops.pickTitle')}</h2>
+      <p className="text-base text-zinc-700">{t('steps.crops.pickHint')}</p>
       <CropsBoundary crops={crops} onRetry={onRetry}>
         {(list) => (
           <div className="grid gap-5">
             {seasons.map((year) => (
               <div key={year} className="grid gap-2">
-                <p className="text-base font-semibold tabular-nums text-slate-800">{year}</p>
+                <p className="text-base font-semibold tabular-nums text-zinc-800">{year}</p>
                 <CropPicker year={year} crops={list} value={picked.get(year)?.crop} onPick={(crop) => pick(year, crop)} />
               </div>
             ))}

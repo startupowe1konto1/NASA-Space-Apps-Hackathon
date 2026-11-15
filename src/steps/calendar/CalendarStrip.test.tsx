@@ -110,7 +110,7 @@ describe('CalendarStrip', () => {
     expect(await within(details).findByText('Drought in July')).toBeInTheDocument();
     expect(within(details).getByText(String(Math.round(above * 100)))).toBeInTheDocument();
     expect(within(details).getByText('% of years')).toBeInTheDocument();
-    expect(within(details).getByText('model estimate')).toBeInTheDocument();
+    expect(within(details).getByRole('button', { name: /model estimate/ })).toBeInTheDocument();
     await user.click(within(details).getByRole('button', { name: /model estimate/ }));
     expect(await within(details).findByText('NASA POWER monthly agroclimatology')).toBeInTheDocument();
     expect(within(details).getByText('1981–2025')).toBeInTheDocument();

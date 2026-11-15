@@ -20,13 +20,13 @@ export function Margins({ m, datasets }: { m: Sourced; datasets: Dataset[] }) {
   }
   return (
     <div className="grid gap-1">
-      <p className="text-base text-slate-800">
+      <p className="text-base text-zinc-800">
         <TermText code="steps.rotations.income.marginLead" terms={{ margin: 'margin' }} />
       </p>
       <dl className="grid gap-1">
         {rows.map(([label, value]) => (
-          <div key={label} className="flex flex-wrap items-center justify-between gap-x-3 border-b border-slate-100 py-1 last:border-b-0">
-            <dt className="text-base text-slate-700">{t(label)}</dt>
+          <div key={label} className="flex flex-wrap items-center justify-between gap-x-3 border-b border-zinc-100 py-1 last:border-b-0">
+            <dt className="text-base text-zinc-700">{t(label)}</dt>
             <dd className="text-base">
               <SourcedNumber value={value} datasets={datasets} decimals={DECIMALS} />
             </dd>
@@ -41,31 +41,31 @@ export function Payments({ money, datasets }: { money: MoneyEstimate; datasets: 
   const headingId = useId();
   return (
     <div role="group" aria-labelledby={headingId} className="grid gap-2">
-      <h4 id={headingId} className="text-base font-semibold text-slate-900">
+      <h4 id={headingId} className="text-base font-semibold text-zinc-900">
         {t('steps.rotations.income.payments')}
       </h4>
       {money.payments.length === 0 ? (
-        <p className="text-base text-slate-700">{t('steps.rotations.income.paymentsNone')}</p>
+        <p className="text-base text-zinc-700">{t('steps.rotations.income.paymentsNone')}</p>
       ) : (
         money.payments.map((p, i) => (
           <div
             key={`${p.programme}:${i}`}
             role="group"
             aria-label={p.programme}
-            className={`grid gap-1 rounded-lg border p-3 ${p.confirmed ? 'border-slate-200' : 'border-dashed border-amber-700 bg-amber-50'}`}
+            className={`grid gap-1 rounded-lg border p-3 ${p.confirmed ? 'border-zinc-200' : 'border-dashed border-amber-700 bg-amber-50'}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-x-3">
-              <span className="text-base font-medium text-slate-900">{p.programme}</span>
+              <span className="text-base font-medium text-zinc-900">{p.programme}</span>
               <SourcedNumber value={p.amountPerHa} datasets={datasets} decimals={DECIMALS} />
             </div>
             {p.confirmed ? null : (
               <p className="text-base font-semibold text-amber-950">{t('steps.rotations.income.unconfirmed')}</p>
             )}
-            <p className="text-sm leading-snug text-slate-700">{t(p.condition)}</p>
+            <p className="text-sm leading-snug text-zinc-700">{t(p.condition)}</p>
           </div>
         ))
       )}
-      <p className="text-sm text-slate-700">{t('steps.rotations.income.campaign', { campaign: money.campaign })}</p>
+      <p className="text-sm text-zinc-700">{t('steps.rotations.income.campaign', { campaign: money.campaign })}</p>
     </div>
   );
 }
@@ -80,10 +80,10 @@ export function IncomeSection(props: {
   const headingId = useId();
   return (
     <section aria-labelledby={headingId} className="grid gap-2">
-      <h3 id={headingId} className={headingHidden ? 'sr-only' : 'text-base font-semibold text-slate-900'}>
+      <h3 id={headingId} className={headingHidden ? 'sr-only' : 'text-base font-semibold text-zinc-900'}>
         {t('steps.rotations.income.title')}
       </h3>
-      <p className="text-sm font-medium text-slate-800">{t('steps.rotations.income.notForecast')}</p>
+      <p className="text-sm font-medium text-zinc-800">{t('steps.rotations.income.notForecast')}</p>
       {money.status === 'ready' ? (
         <div className="grid gap-3">
           <Margins m={money.data.marginPerHa} datasets={datasets} />

@@ -31,25 +31,36 @@ export function GoalStep() {
               role="radio"
               aria-checked={chosen}
               onClick={() => setGoal(id)}
-              className={`flex min-h-[72px] w-full cursor-pointer items-start gap-4 rounded-xl border-2 px-4 py-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 ${
-                chosen ? 'border-emerald-700 bg-emerald-50' : 'border-slate-300 bg-white hover:border-slate-500'
+              className={`flex min-h-[76px] w-full cursor-pointer items-center gap-4 rounded-[20px] border-2 px-4 py-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40 ${
+                chosen ? 'border-zinc-900 bg-lime-100' : 'border-zinc-200 bg-white hover:border-zinc-500'
               }`}
             >
               <span
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
-                  chosen ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-800'
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] ${
+                  chosen ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-800'
                 }`}
               >
                 <Icon size={28} />
               </span>
-              <span className="grid gap-1">
-                <span className="text-lg font-semibold text-slate-900">{t(`steps.goal.${id}`)}</span>
-                <span className="text-base leading-snug text-slate-700">{t(`steps.goal.${id}.hint`)}</span>
+              <span className="grid flex-1 gap-1">
+                <span className="text-lg font-semibold text-zinc-900">{t(`steps.goal.${id}`)}</span>
+                <span className="text-base leading-snug text-zinc-700">{t(`steps.goal.${id}.hint`)}</span>
                 {showNote ? (
                   <span className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-sm text-amber-900">
                     {t('steps.goal.income.noMoney')}
                   </span>
                 ) : null}
+              </span>
+              {/* The tick repeats the chosen state as a shape, so colour is not the only sign (design.md rule 4). */}
+              <span
+                aria-hidden="true"
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 ${
+                  chosen ? 'border-zinc-900 bg-zinc-900 text-white' : 'border-zinc-300 text-transparent'
+                }`}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m5 12 5 5 9-10" />
+                </svg>
               </span>
             </button>
           );

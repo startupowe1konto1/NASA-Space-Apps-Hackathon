@@ -3,6 +3,7 @@
   "steps.rotations.goalNoData": "Price data is not loaded yet, so the rotations are ranked on keeping the soil.",
   "steps.rotations.current": "Your rotation",
   "steps.rotations.option": "Option {n}",
+  "steps.rotations.bestFor": "Best for: {goal}",
   "steps.rotations.soilHealth": "Soil health",
   "steps.rotations.climate": "Climate resilience",
   "steps.rotations.goalTotal": "Score for \"{goal}\"",

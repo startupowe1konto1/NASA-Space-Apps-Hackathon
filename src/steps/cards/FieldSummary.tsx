@@ -1,7 +1,7 @@
 // The field's NASA climate record and soil in a few lines, above the cards. Every value goes through <SourcedNumber>.
 import { t } from '../../app/i18n';
 import type { Analysis, Dataset, Hazard, Sourced } from '../../contracts';
-import { SourcedNumber } from '../../ui-kit';
+import { SourcesNote, SourcedNumber } from '../../ui-kit';
 import { TermText } from './TermText';
 
 // Drought is measured against the field's own record (D42), so every month is a drought in about the same share of
@@ -59,8 +59,8 @@ function droughtLabel(analysis: Analysis): string {
 function Row({ label, value, datasets, decimals }: { label: string; value: Sourced; datasets: Dataset[]; decimals?: number }) {
   return (
     <div className="grid content-start gap-1 py-1">
-      <dt className="text-sm text-slate-600">{label}</dt>
-      <dd className="text-lg font-semibold tabular-nums text-slate-900">
+      <dt className="text-sm text-zinc-600">{label}</dt>
+      <dd className="text-lg font-semibold tabular-nums text-zinc-900">
         <SourcedNumber value={value} datasets={datasets} decimals={decimals} />
       </dd>
     </div>
@@ -99,7 +99,7 @@ function SeasonStripes({ analysis }: { analysis: Analysis }) {
           );
         })}
       </div>
-      <figcaption className="flex flex-wrap justify-between gap-x-3 text-xs text-slate-600">
+      <figcaption className="flex flex-wrap justify-between gap-x-3 text-xs text-zinc-600">
         <span className="tabular-nums">{first}</span>
         <span>{t('steps.rotations.summary.stripes.caption')}</span>
         <span className="tabular-nums">{last}</span>
@@ -111,29 +111,29 @@ function SeasonStripes({ analysis }: { analysis: Analysis }) {
 export function FieldSummary({ analysis }: { analysis: Analysis }) {
   const { profile, datasets, field } = analysis;
   return (
-    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-[20px] border border-zinc-200 bg-white p-5 sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="field-summary-title" className="text-base font-semibold text-slate-900">
+        <h2 id="field-summary-title" className="text-base font-semibold text-zinc-900">
           {t('steps.rotations.summary.title')}: {field.name}
         </h2>
-        <span className="text-xs text-slate-500">{t('steps.rotations.summary.stripes.title')}</span>
+        <span className="text-xs text-zinc-500">{t('steps.rotations.summary.stripes.title')}</span>
       </div>
       <SeasonStripes analysis={analysis} />
       <details className="group">
-        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-zinc-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 [&::-webkit-details-marker]:hidden">
           {t('steps.rotations.summary.droughtWhat')}
-          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+          <span aria-hidden="true" className="text-zinc-900 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>
-        <p className="pb-3 text-sm leading-relaxed text-slate-700">
+        <p className="pb-3 text-sm leading-relaxed text-zinc-700">
           <TermText
             code="steps.rotations.summary.droughtNote"
             terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
           />
         </p>
       </details>
-      <dl className="grid gap-x-6 gap-y-2 border-y border-slate-100 py-3 sm:grid-cols-3">
+      <dl className="grid gap-x-6 gap-y-2 border-y border-zinc-100 py-3 sm:grid-cols-3">
         <Row label={droughtLabel(analysis)} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);
@@ -147,7 +147,7 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
               );
             }
             return (
-              <div key={hazard} className="py-1 text-sm text-slate-700">
+              <div key={hazard} className="py-1 text-sm text-zinc-700">
                 {t('steps.rotations.summary.peak.none', { hazard: name })}
               </div>
             );
@@ -165,9 +165,9 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
       </dl>
       {/* Soil and slope fold away so the cards start on the first screen of a phone. */}
       <details className="group">
-        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-zinc-900 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 [&::-webkit-details-marker]:hidden">
           {t('steps.rotations.summary.soilAndSlope')}
-          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+          <span aria-hidden="true" className="text-zinc-900 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>
@@ -178,6 +178,10 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
           <Row label={t('steps.rotations.summary.slope')} value={profile.slopePct} datasets={datasets} />
         </dl>
       </details>
+      <SourcesNote
+        values={[droughtYears(analysis), profile.soil.sandPct, profile.soil.clayPct, profile.soil.organicCarbon, profile.slopePct]}
+        datasets={datasets}
+      />
     </section>
   );
 }

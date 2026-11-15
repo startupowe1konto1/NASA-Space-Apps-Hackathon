@@ -1,6 +1,6 @@
-# Field Shift tool
+# CropShifter
 
-Working name; the final name is chosen at the end (see `docs/DECISIONS.md` D13 and `src/app/brand.ts`).
+The name was chosen on Sun 15 Nov (`docs/DECISIONS.md` D55); it lives in `src/app/brand.ts`.
 
 A farmer says what matters most (keep the soil, improve it, or income), marks a field and gets the three best crop rotations for that goal plus the current one. Every rotation is scored against 45 years of NASA data for that field and shows its evidence, its data gaps and the risks to check locally. The tool supports the farmer's decision and does not replace it.
 
