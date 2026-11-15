@@ -1,6 +1,6 @@
 # Repo rules (read before every change)
 
-Project: Field Shift tool (working name, final name at the end, D13) · Team: Vibecodersi · Challenge: Field Shift: Adapting Farms with NASA Data · NASA Space Apps Challenge 2026.
+Project: CropShifter (D13, D55) · Team: Vibecodersi · Challenge: Field Shift: Adapting Farms with NASA Data · NASA Space Apps Challenge 2026.
 T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 11:59 CET (Polish time). Process and prompts: HACKATHON.md. Event rules: context/rules.md.
 
 - Spec: docs/SPEC.md. Current plan: docs/PLAN.md (a newer version wins). Decisions: docs/DECISIONS.md.
