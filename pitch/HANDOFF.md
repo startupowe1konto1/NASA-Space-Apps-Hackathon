@@ -13,7 +13,10 @@ Written Sun 15 Nov 2026, about 01:45 CET, by the lead session of the deck, at th
 
 ## Rules from the pitch owner (newer than SPEC)
 
-1. **One key press plays a whole slide.** `src/stage.js` plays a slide's steps in a row; a press during the sequence jumps to its end. Only slide 6 takes one press per step (`manual: true`), one per app screenshot.
+1. **One key press plays a whole slide, on every slide.** `src/stage.js` plays a slide's steps in a row; a press during the sequence jumps to its end. No slide takes one press per step any more (`manual: true` is still supported, unused). Check with `node scripts/walk.mjs <outDir>` from `pitch/deck`.
+5. **Seven slides, seven PDF pages** (owner, Sun 15 Nov ~09:50): orbit, Mariusz, data, regions, app 1 (screenshots 01 and 02), app 2 (screenshots 03 and 04, then the judgment sentence), close.
+6. **The engine slide is parked**, not deleted: `SHOW_ENGINE_SLIDE` in `src/constants.js` (false). true puts "replay on the field" back as slide 4 and makes the deck 8 slides. Slides are listed by name in `stage.js`; styles and scripts find a slide by `data-name`, so numbers may shift safely.
+7. If a change seems not to show in the owner's browser, it is the browser's module cache: Cmd+Shift+R, or serve on a new port.
 2. **Slides must be very simple.** Three minutes in total; one idea per slide.
 3. Slide 1 is approved. Slide 5 (similar regions) is approved ("top"). Slide 7 (zoom out to orbit) is approved.
 4. Every number on a slide comes from `field.json`; the deck throws if a table and the data disagree. Keep it that way.

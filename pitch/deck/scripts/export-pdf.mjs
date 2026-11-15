@@ -1,5 +1,5 @@
 // Exports the deck: seven stills (assets/stills/01.png ... 07.png) and a seven-page PDF (pitch/out/deck.pdf).
-// Run from pitch/deck: npm run pdf            (fails if slide 6 has missing app screenshots)
+// Run from pitch/deck: npm run pdf            (fails if an app slide has missing screenshots)
 //                      npm run pdf -- --allow-missing   (rehearsal: that one check becomes a warning)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -71,8 +71,8 @@ async function captureSlide(context, base, n, failures, warnings) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
   page.on('console', (m) => {
-    // A missing app screenshot logs Chrome's own 404 on every slide, because slide 6 preloads its images at start.
-    // Slide 6's data-missing check below is the gate for that case, so with --allow-missing the 404 for assets/app/
+    // A missing app screenshot logs Chrome's own 404 on every slide, because the app slides preload their images at start.
+    // The app slides' data-missing check below is the gate for that case, so with --allow-missing the 404 for assets/app/
     // is a warning, not a failure.
     const from = m.location()?.url ?? '';
     if (m.type() === 'error' && allowMissing && from.includes('/assets/app/')) warnings.push(`slide ${n}: ${m.text()} (${from})`);
@@ -85,12 +85,13 @@ async function captureSlide(context, base, n, failures, warnings) {
     await page.waitForTimeout(2500);
     const fonts = await page.evaluate(() => document.fonts.status);
     if (fonts !== 'loaded') errors.push(`fonts status is "${fonts}", expected "loaded"`);
-    if (await page.evaluate((k) => document.querySelector(`.slide[data-slide="${k}"]`)?.dataset.name === 'answer', n)) {
-      const missing = await page.evaluate(() =>
-        Number(document.querySelector('.slide[data-name="answer"]')?.dataset.missing ?? 0));
+    {
+      // The app slides (tool-1, tool-2) count their screenshots that did not load.
+      const missing = await page.evaluate((k) =>
+        Number(document.querySelector(`.slide[data-slide="${k}"]`)?.dataset.missing ?? 0), n);
       if (missing > 0) {
         const msg = `${missing} app screenshots missing (run P8 first)`;
-        if (allowMissing) warnings.push(`slide 6: ${msg} (allowed by --allow-missing)`);
+        if (allowMissing) warnings.push(`slide ${n}: ${msg} (allowed by --allow-missing)`);
         else errors.push(msg);
       }
     }

@@ -6,13 +6,13 @@ import mariusz from './slides/02-mariusz.js';
 import dataSlide from './slides/03-data.js';
 import engine from './slides/04-engine.js';
 import regions from './slides/05-regions.js';
-import answer from './slides/06-answer.js';
+import { toolStart, toolResult } from './slides/06-answer.js';
 import close from './slides/07-close.js';
 
 // Slide interface: { steps, mount(ctx), enter(step, ctx), final(ctx) }.
 //  steps          how many steps the slide has after it appears (0 = none). One key press plays them all in a row
 //                 (the pitch owner's rule: one press, one slide); a slide with `manual: true` takes one press per step.
-//  manual         optional: true = one key press per step (slide 6, the app screenshots).
+//  manual         optional: true = one key press per step (no slide uses it now).
 //  mount(ctx)     once, before the first show: build the DOM inside ctx.el.
 //  enter(step)    leave the slide in the final state of `step` (0 is the slide appearing). Must be safe to call again
 //                 for the same step, and from any earlier state: the stage calls it with ctx.instant = true to finish
@@ -24,7 +24,7 @@ import close from './slides/07-close.js';
 // Slide numbers (#n.step, data-slide, assets/stills/0n.png) follow this list, so they shift when a slide is left out.
 // Scripts find a slide by its name (data-name) and read the count from #stage[data-count].
 const NAMED = [['orbit', orbit], ['mariusz', mariusz], ['data', dataSlide], ['engine', engine],
-  ['regions', regions], ['answer', answer], ['close', close]]
+  ['regions', regions], ['tool-1', toolStart], ['tool-2', toolResult], ['close', close]]
   .filter(([name]) => name !== 'engine' || constants.SHOW_ENGINE_SLIDE);
 const SLIDES = NAMED.map(([, slide]) => slide);
 
