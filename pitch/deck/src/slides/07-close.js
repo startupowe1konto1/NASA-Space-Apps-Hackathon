@@ -33,6 +33,15 @@ function groups(data) {
     return d;
   });
   if (new Set(used).size !== used.length) throw new Error('Slide 7: duplicate dataset id in datasetsUsedForThisField');
+  // The parcel outline comes from the land register through the map, not through the analysis, so it may have no
+  // dataset id in the export. Then it is named from field.source ("GUGiK ULDK (land register parcel)"). Once the app
+  // registers it as a dataset, it arrives in `rows` and this adds nothing.
+  const src = data.field?.source ?? '';
+  const m = /^(\S+)\s+(\S+)\s*\((.+)\)$/.exec(src);
+  if (!m) throw new Error(`Slide 7: cannot read the parcel source from field.source "${src}"`);
+  if (!rows.some((d) => short(d.provider) === m[1] || d.provider.includes(m[1]))) {
+    rows.push({ id: 'field.source', provider: m[1], name: `${m[2]} ${m[3]}`, nasa: false });
+  }
   const nasa = rows.filter((d) => d.nasa === true);
   const providers = new Map();
   for (const d of rows.filter((x) => x.nasa !== true)) {

@@ -2,7 +2,8 @@
 // lines names them, the facts row counts up. Everything runs on elapsed time (spec section 9).
 
 // Table rows. `ids` are dataset ids that must be in datasetsUsedForThisField.ids; if one is not, mount throws so a stale
-// table cannot ship. The parcel outline has no dataset id (it is `field.source`), so that row is checked by `source`.
+// table cannot ship. The parcel outline comes through the map, not the analysis, so that row is checked by
+// `field.source`, which names GUGiK whether or not the app registers the land register as a dataset.
 const LAYERS = [
   { layer: (c) => `Weather, ${c.firstYear}–${c.lastYear}`, source: 'NASA POWER', ids: ['nasa-power-monthly'] },
   // Root-zone soil wetness (GWETROOT) is one of the POWER monthly parameters.
