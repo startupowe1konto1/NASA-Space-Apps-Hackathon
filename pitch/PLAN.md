@@ -105,7 +105,7 @@ P3 to P7 can run at the same time once P1 and P2 are merged into the branch: eac
 
 - Play the deck start to end at 1920 × 1080 and 1366 × 768. For each slide compare the final state with spec §5 and §8 and list every difference.
 - Read every English line for plain wording (the anti-ai-writing check) and fix it.
-- Time the Polish notes read aloud at a normal pace; adjust the notes, not the slides, to land at 2:50–3:05.
+- Time the talk at a normal pace; adjust what is said, not the slides, to land at 2:50–3:05.
 - Give the fixes to the slide owners or make them; rerun.
 
 ### P11 · PDF and backup video (Haiku, 25 min)

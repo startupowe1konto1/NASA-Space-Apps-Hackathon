@@ -45,11 +45,11 @@ Written Sun 15 Nov 2026, about 01:45 CET, by the lead session of the deck, at th
 1. **Slide 4**, once the owner picks a concept.
 2. **Check slides 2, 3 and 5 live** with one press each, from the previous slide (`shoot.mjs` with `ArrowRight`). In zsh, do not loop over `"a b c"` strings with `set -- $spec`: zsh does not split them, and the test silently opens slide 1.
 3. **P8, app screenshots** for slide 6, after the owner says the app's UI is frozen: `scripts/shoot-app.mjs` (spec in `PLAN.md` P8), four PNGs in `assets/app/`. Then check that the shrunken screenshot on step 5 of slide 6 is readable.
-4. **Rerun the export** before the freeze (`main` keeps changing; the last run was `main` at `73e7d71`). Then check the numbers quoted in the Polish notes in `SPEC.md` (22, 45, 9, 13, 4, 27, 77, 58, 10) against the file.
+4. **Rerun the export** before the freeze (`main` keeps changing; the last run was `main` at `030ad74`). The slides read every number from `field.json`, so nothing else needs updating.
 5. **P12 final checks** (list in `PLAN.md`): numbers on the stills equal `field.json`; `grep -rin forecast pitch/deck/src` shows only "not a forecast"; no NASA logo; slide 1 names team, members, challenge; PDF has 7 pages; `~/.local/bin/trufflehog git file://. --no-update` is clean.
 6. **Final PDF and video.** The descent hold in `record.mjs` is 6.5 s; check that the recording does not swallow a key after the descent.
 7. **PR `[contract] Pitch deck`** from this branch to `main`, only after the owner says yes. The branch contains merges of `main` and of the task branches; rebase or squash as O1 prefers.
-8. **People (P13):** a timed read-through of the notes (target 2:50 to 3:05), the deck once on the pitch laptop on a second screen, upload the PDF, open its link in a private window.
+8. **People (P13):** a timed run-through of the talk (target 2:50 to 3:05), the deck once on the pitch laptop on a second screen, upload the PDF, open its link in a private window.
 
 ## Decisions for the owner
 
@@ -67,4 +67,4 @@ Written Sun 15 Nov 2026, about 01:45 CET, by the lead session of the deck, at th
 
 - One lead session owns the shared files (`index.html`, `src/stage.js`, `src/scene.js`, `src/tokens.css`, `src/constants.js`, `src/crops.js`) and merges task branches into `o2/contract-pitch-deck`. Tasks ran as subagents in their own worktrees (`../NASA-wt-pitch-p1` … `p11`, all merged; safe to remove with `git worktree remove`).
 - Commit after each finished task; no PR until the owner says yes; answer the owner in Polish, write repo and slide text in English.
-- The owner's global rules apply: English text through the anti-ai-writing check, Polish notes through `miodkuj`.
+- The owner's global rules apply: English text through the anti-ai-writing check. The repo is English only; there are no speaker notes in it.
