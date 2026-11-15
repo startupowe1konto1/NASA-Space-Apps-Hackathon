@@ -3,7 +3,7 @@
 // bottom (SPEC section 11). Everything else sits in one list of folded rows (HANDOFF-frontend step 5): how the scores
 // are made (the range note is said once above the cards), the income, the reasons, the evidence, the benefits and the regions. Folded, not deleted.
 import { useState, type ReactNode } from 'react';
-import { t } from '../../app/i18n';
+import { currentLang, t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { moneyAvailable as moneyOn } from '../../app/providers';
 import { SourcedNumber, StateBoundary } from '../../ui-kit';
@@ -12,6 +12,8 @@ import { IncomeSection } from './IncomeSection';
 import { ScoreRow } from './ScoreRow';
 
 export function ordinal(n: number): string {
+  // Polish writes an ordinal as the number with a dot ("132."), English adds a suffix ("132nd").
+  if (currentLang() === 'pl') return `${n}.`;
   const tens = n % 100;
   if (tens >= 11 && tens <= 13) return `${n}th`;
   return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;

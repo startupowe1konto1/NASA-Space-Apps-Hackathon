@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import type { Dataset, Sourced, ValueKind } from '../contracts';
-import { t } from '../app/i18n';
+import { currentLang, t } from '../app/i18n';
+import { localText } from './localText';
 
 function formatNumber(n: number, decimals: number): string {
   const text = new Intl.NumberFormat('en-US', { maximumFractionDigits: decimals }).format(n);
@@ -58,14 +59,14 @@ export function SourcedNumber(props: { value: Sourced<number | string>; datasets
             <span className="font-semibold tabular-nums text-zinc-900">
               {typeof raw === 'number' ? formatNumber(raw, decimals) : raw}
             </span>
-            {sourced.unit ? <span className="text-sm text-zinc-700">{sourced.unit}</span> : null}
+            {sourced.unit ? <span className="text-sm text-zinc-700">{localText(sourced.unit, currentLang())}</span> : null}
             {sourced.range ? (
               <span className="inline-flex flex-wrap items-baseline gap-x-1 text-sm text-zinc-700">
                 <span>{t('ui.range.label')}</span>
                 <span className="tabular-nums">
                   {`${formatNumber(sourced.range.low, decimals)}–${formatNumber(sourced.range.high, decimals)}`}
                 </span>
-                <span>{sourced.range.basis}</span>
+                <span>{localText(sourced.range.basis, currentLang())}</span>
               </span>
             ) : null}
           </span>
