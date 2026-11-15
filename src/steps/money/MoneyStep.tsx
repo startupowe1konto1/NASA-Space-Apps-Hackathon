@@ -32,7 +32,11 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
   if (!current || options.length === 0) return null;
   const best = options.reduce((a, b) => (b.mean! > a.mean! ? b : a));
   if (best.mean! <= current.mean!) {
-    return <p className="text-lg leading-snug text-slate-900">{t('steps.money.headlineNone')}</p>;
+    return (
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base leading-snug text-slate-800">
+        {t('steps.money.headlineNone')}
+      </p>
+    );
   }
   const diff: Sourced = {
     value: best.mean! - current.mean!,
@@ -42,7 +46,10 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
     retrievedAt: best.margin!.retrievedAt,
   };
   return (
-    <p data-testid="money-headline" className="text-lg leading-snug text-slate-900">
+    <p
+      data-testid="money-headline"
+      className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base leading-relaxed text-emerald-950"
+    >
       <Template
         code="steps.money.headline"
         parts={{
@@ -56,20 +63,27 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
 
 function Details({ row, datasets }: { row: MoneyRow; datasets: Dataset[] }) {
   return (
-    <details data-testid="money-details" className="group rounded-lg border border-slate-200 bg-white">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600">
+    <details data-testid="money-details" className="group border-t border-slate-200 first:border-t-0">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 sm:px-5 [&::-webkit-details-marker]:hidden">
         <span className="grid">
           <span className="text-base font-medium text-slate-900">
             {row.title}
-            {row.isCurrent ? <span className="text-slate-700"> · {t('steps.money.current')}</span> : null}
+            {row.isCurrent ? (
+              <span className="ml-2 inline-block rounded-full bg-slate-800 px-2 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-white">
+                {t('steps.money.current')}
+              </span>
+            ) : null}
           </span>
-          <span className="text-sm text-slate-700">{t('steps.money.details')}</span>
+          <span className="text-sm text-slate-600">{t('steps.money.details')}</span>
         </span>
-        <span aria-hidden="true" className="text-slate-700 transition-transform duration-150 group-open:rotate-180">
+        <span
+          aria-hidden="true"
+          className="text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+        >
           ▾
         </span>
       </summary>
-      <div className="grid gap-3 border-t border-slate-200 px-3 py-3">
+      <div className="grid items-start gap-3 px-4 pb-4 sm:px-5 lg:grid-cols-2 lg:gap-6">
         {row.status === 'ready' && row.money ? (
           <>
             <Margins m={row.money.marginPerHa} datasets={datasets} />
@@ -134,34 +148,43 @@ export function MoneyStep() {
   const anyReady = rows.some((r) => r.status === 'ready');
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-2">
-        <h2 className="text-2xl text-slate-900">{t('steps.money.title')}</h2>
-        <p data-testid="money-intro" className="text-base leading-relaxed text-slate-700">
-          <TermText code="steps.money.intro" terms={{ margin: 'margin' }} />
-        </p>
-      </div>
+    <div className="grid gap-5">
+      <section
+        aria-labelledby="money-title"
+        className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+      >
+        <div className="grid gap-1.5">
+          <h2 id="money-title" className="text-lg font-semibold text-slate-900">
+            {t('steps.money.title')}
+          </h2>
+          <p data-testid="money-intro" className="max-w-3xl text-sm leading-relaxed text-slate-700">
+            <TermText code="steps.money.intro" terms={{ margin: 'margin' }} />
+          </p>
+          <p className="text-sm font-medium text-slate-800">{t('steps.rotations.income.notForecast')}</p>
+        </div>
 
-      {anyReady ? (
-        <Headline rows={rows} datasets={data.datasets} />
-      ) : (
-        <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-base text-amber-900">
-          {t('steps.money.noneReady')}
-        </p>
-      )}
+        {anyReady ? (
+          <Headline rows={rows} datasets={data.datasets} />
+        ) : (
+          <p
+            role="status"
+            className="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-base text-amber-900"
+          >
+            {t('steps.money.noneReady')}
+          </p>
+        )}
 
-      <MarginChart rows={rows} scale={scale} datasets={data.datasets} />
+        <MarginChart rows={rows} scale={scale} datasets={data.datasets} />
+      </section>
 
-      <div className="grid gap-2">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         {rows.map((row) => (
           <Details key={row.id} row={row} datasets={data.datasets} />
         ))}
-      </div>
-
-      <div className="grid gap-2">
-        <p className="text-sm font-medium text-slate-800">{t('steps.rotations.income.notForecast')}</p>
-        <p className="rounded-lg bg-slate-100 px-3 py-2 text-base leading-snug text-slate-800">{t('app.support')}</p>
-      </div>
+        <p className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-snug text-slate-700 sm:px-5">
+          {t('app.support')}
+        </p>
+      </section>
     </div>
   );
 }
