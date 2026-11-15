@@ -17,6 +17,8 @@ const PL_EXACT: Record<string, string> = {
   'years of crop history': 'lat historii upraw',
   'months with a living crop per cycle': 'mies. z żywą uprawą w cyklu',
   'bare months per cycle': 'mies. z odkrytą glebą w cyklu',
+  'bare months per rotation cycle': 'mies. z odkrytą glebą w cyklu płodozmianu',
+  'mm per year in bare months': 'mm rocznie w miesiącach z odkrytą glebą',
   '% of crop-years with no hazard in sensitive months': '% lat uprawy bez zagrożeń w miesiącach wrażliwych',
   '10th–90th percentile year': 'rok od 10. do 90. percentyla',
   '10th to 90th percentile year of the record': 'rok od 10. do 90. percentyla w danych',
