@@ -22,6 +22,14 @@ Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 23:30 by the
 - #152: `src/ui-kit/messages/pl.json` (28 strings: "Słabe dowody", "Źródło: szacunek modelowy", "Spróbuj ponownie", the term button "Co znaczy „…”?").
 - #153: the hourly e2e went red (5 of 6) after #145, because Vite's dependency scan crawled `pitch/farm-stills/render-src/scene.html`, which imports `three`, and React then broke in the dev server. `vite.config.ts` now sets `optimizeDeps: { entries: ['index.html'] }`. CI did not catch it: it runs `vite build` and no e2e.
 
+## Open: red e2e on step 6 (hourly run, Sun 10:17, main `01a1611`)
+
+The user asked to note it and check it later. The hourly e2e had 2 of 9 failing, both the new step 6 check in `e2e/demo-fields.spec.ts:20` ("step 6 shows a money row for every rotation of step 5, in the same order"), on the Iowa and the Poznań demo:
+- `getByRole('figure').getByRole('group').filter({ hasText: 'Your rotation' })` expected 1, received 4.
+- Likely cause, not checked in the code: every row group of the chart contains the text "Your rotation" somewhere (the reference line label or a heading), so `hasText` matches all four rows. If so, the fix is a narrower selector in the test (the row's own title), not a change in the data; if the chart really marks every row as the current rotation, it is a UI bug.
+- vitest was green (995). Main has moved since (#194 step 6 "Switch or stay?", #195 the name CropShifter, #196), so run `npx playwright test` on current `main` first: it may already pass or fail differently.
+- The hourly job does not post on #1 until a second red run in a row.
+
 ## Step 6 "Money": build plan ready, backend data incomplete (Sat 23:30)
 
 The full build plan, with the chart spec, the data mapping, the states, the EN/PL texts, the tests and a copy-paste prompt for the lane, is `docs/superpowers/plans/2026-11-14-step-6-money.md`. The user gave steps 5 and 6 to O3 and O4 (`HANDOFF-frontend.md`).
