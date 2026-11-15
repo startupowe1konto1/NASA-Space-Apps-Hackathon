@@ -150,3 +150,7 @@ The team wrote the code, data tables and documents with Claude Code (Anthropic, 
 Imagery: NASA GIBS. Spacecraft model: Landsat 8, NASA 3D Resources. Typefaces: Inter and Caveat, SIL Open Font License 1.1. Map tiles © OpenStreetMap contributors. Libraries: React, Leaflet, Leaflet-Geoman, proj4, zod, zustand, Three.js.
 
 No NASA logo or insignia is used.
+
+## License
+
+Code, rule tables and documents: Apache License 2.0, see [LICENSE](LICENSE). Copyright 2026 team Vibecodersi. Data, imagery, fonts and libraries keep their own terms, listed in [DATA-LICENSES.md](DATA-LICENSES.md).
