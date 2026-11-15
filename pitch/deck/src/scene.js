@@ -26,8 +26,9 @@ const EUROPE_BOX = { s: 36, w: -20, n: 66, e: 50 };
 // Rest views of the ground scene (1 unit = 1 km). The field sits left of centre so the table has the right-hand side.
 const VIEW = {
   field: { pos: new THREE.Vector3(1.3, 1.3, 1.62), look: new THREE.Vector3(0.24, 0.36, -0.2), dim: 0.36, grid: 0.13 },
-  // Slide 3: the field a little to the right, so the stack of sheets clears the facts row under the title.
-  data: { pos: new THREE.Vector3(1.07, 1.3, 1.76), look: new THREE.Vector3(0.01, 0.36, -0.06), dim: 0.36, grid: 0.13 },
+  // Slide 3: lower and from the south-west, so the five sheets (140 m apart) read as separate plates, one above the
+  // other, between the text block and their labels.
+  data: { pos: new THREE.Vector3(-2.524, 1.092, 2.16), look: new THREE.Vector3(-0.3, 0.3, 0), dim: 0.36, grid: 0.13 },
   // Slide 4: the lower half of the screen is a panel, so the field moves up and right.
   engine: { pos: new THREE.Vector3(0.94, 2.06, 3.24), look: new THREE.Vector3(-0.12, 0.36, 1.42), dim: 0.3, grid: 0.1 },
   // About 1.9 km per pixel: every twin place and the field fit in the strip between the text block and the table.

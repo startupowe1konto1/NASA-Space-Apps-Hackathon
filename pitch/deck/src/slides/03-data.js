@@ -13,12 +13,19 @@ const LAYERS = [
   { layer: () => 'Parcel boundary', source: 'GUGiK land register', parcelSource: /GUGiK/i },
 ];
 
-const SHEET_FALL_S = 0.9, SHEET_GAP_S = 0.22, COUNT_S = 0.8, START_Y = 1.0;
+const SHEET_FALL_S = 0.9, SHEET_GAP_S = 0.22, COUNT_S = 0.8, START_Y = 1.9;
+const SHEET_LOW = 0.06, SHEET_STEP = 0.14;   // km above the field: bottom sheet and spacing
+const LABEL_X = 1340;                        // stage px: left edge of the labels
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
 
 const CSS = `
-.slide[data-slide="3"] .layers .row { grid-template-columns: 38px 1fr auto; }
+.slide[data-slide="3"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-50%); }
+.slide[data-slide="3"] .lbl .n { display: inline-block; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
+.slide[data-slide="3"] .lbl b { font-size: 27px; font-weight: 500; }
+.slide[data-slide="3"] .lbl i { display: block; margin-left: 40px; font-style: normal; font-size: 20px; color: var(--muted); margin-top: 2px; }
+.slide[data-slide="3"] .lbls { opacity: 0; transition: opacity .5s ease; }
+.slide[data-slide="3"] .lbls.on { opacity: 1; }
 .slide[data-slide="3"] .facts span { padding: 0 20px; }
 .slide[data-slide="3"] .facts span:first-child { padding-left: 0; }
 .slide[data-slide="3"] .facts small { white-space: normal; max-width: 170px; min-height: 2.6em; line-height: 1.3; }
@@ -53,7 +60,9 @@ function checkIds(data) {
 }
 
 export default {
+  // One key press plays all three: (1) the sheets fall, (2) their labels appear, (3) the facts count up.
   steps: 3,
+  stepMs: 1900,   // the fall of five sheets: 0.9 s + 4 x 0.22 s
   mount(ctx) {
     const { data, scene } = ctx;
     const clim = data.climate;
@@ -75,14 +84,15 @@ export default {
         <div class="facts" data-from="3">${facts.map((f) => `<span><small>${f.label}</small><b></b></span>`).join('')}</div>
       </div>
       <svg class="leaders" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
-      <div class="panel layers" data-from="2">
-        <div class="row head" style="grid-template-columns:38px 1fr auto"><span>#</span><span>Layer</span><span>Source</span></div>
-        ${LAYERS.map((r, i) => `<div class="row"><span class="n">${String(i + 1).padStart(2, '0')}</span><span>${r.layer(clim)}</span><span class="src">${r.source}</span></div>`).join('')}
+      <div class="lbls">
+        ${LAYERS.map((r, i) => `<div class="lbl"><span class="n">${String(i + 1).padStart(2, '0')}</span><b>${r.layer(clim)}</b><i>${r.source}</i></div>`).join('')}
       </div>`;
 
     const leaders = ctx.el.querySelector('svg.leaders');
-    const panel = ctx.el.querySelector('.layers');
-    const rows = [...panel.querySelectorAll('.row:not(.head)')];
+    const lblBox = ctx.el.querySelector('.lbls');
+    const lbls = [...lblBox.querySelectorAll('.lbl')];
+    // Without WebGL the labels stand as a plain list on the right.
+    lbls.forEach((l, i) => { l.style.top = `${300 + i * 120}px`; });
     const factEls = [...ctx.el.querySelectorAll('.facts b')];
     const setFacts = (p) => factEls.forEach((b, i) => {
       b.textContent = String(Math.round(facts[i].value * p));
@@ -125,9 +135,9 @@ export default {
       group.add(fill, edge);
       group.visible = false;
       scene.ground.add(group);
-      return { group, fillMat, edgeMat, rest: 0.22 - i * 0.05, y: START_Y };
+      return { group, fillMat, edgeMat, rest: SHEET_LOW + (LAYERS.length - 1 - i) * SHEET_STEP, y: START_Y };
     });
-    const FILL_OPACITY = 0.14;
+    const FILL_OPACITY = 0.26;
     const v = new THREE.Vector3();
 
     scene.onFrame(({ now }) => {
@@ -139,23 +149,20 @@ export default {
         const q = live ? easeOut((el - i * SHEET_GAP_S) / SHEET_FALL_S) : 0;   // top sheet (01) first
         s.y = START_Y + (s.rest - START_Y) * q;
         s.group.position.y = s.y;
-        s.fillMat.opacity = FILL_OPACITY * q; s.edgeMat.opacity = 0.9 * q;
+        s.fillMat.opacity = FILL_OPACITY * q; s.edgeMat.opacity = q;
         s.group.visible = q > 0.001;
       });
 
-      // Leader lines: straight, from the same corner of every sheet (the ring vertex furthest right on screen) to the
-      // left end of its row. All anchors share one x and keep the rows' order, so the lines cannot cross.
-      if (!live || st.step < 2) { leaders.innerHTML = ''; return; }
-      let best = 0, bx = -Infinity;
-      scene.fieldRing.forEach((p, k) => { const [x] = scene.project(v.set(p.x, sheets[0].rest, p.z)); if (x > bx) { bx = x; best = k; } });
-      const corner = scene.fieldRing[best];
-      const tx = panel.offsetLeft - 18;
+      // Each label stands at the height of its sheet's middle, with a short horizontal leader from the sheet's right
+      // edge. The sheets do not overlap on screen, so neither do the labels or the lines.
+      if (!live) { leaders.innerHTML = ''; return; }
       let out = '';
       sheets.forEach((s, i) => {
-        const [x, y] = scene.project(v.set(corner.x, s.y, corner.z));
-        const ty = panel.offsetTop + rows[i].offsetTop + rows[i].offsetHeight / 2;
-        out += `<line x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${tx}" y2="${ty.toFixed(1)}" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>`
-          + `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#fff"/>`;
+        let rx = -Infinity, sy = 0;
+        for (const p of scene.fieldRing) { const [x, y] = scene.project(v.set(p.x, s.y, p.z)); if (x > rx) rx = x; sy += y; }
+        const y = sy / scene.fieldRing.length;
+        lbls[i].style.top = `${y.toFixed(1)}px`;
+        out += `<line x1="${(rx + 14).toFixed(1)}" y1="${y.toFixed(1)}" x2="${LABEL_X - 18}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.45)" stroke-width="1.5"/>`;
       });
       leaders.innerHTML = out;
     });
@@ -170,6 +177,7 @@ export default {
       else if (st.fallAt === null) st.fallAt = performance.now();
     } else st.fallAt = null;
     ctx.el.querySelector('svg.leaders').style.opacity = ctx.scene.available && step >= 2 ? '1' : '0';
+    ctx.el.querySelector('.lbls').classList.toggle('on', step >= 2);
     if (step >= 3) st.startCount(ctx.instant); else st.resetCount();
   },
   final(ctx) { this.enter(this.steps, ctx); },

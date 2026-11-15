@@ -38,6 +38,7 @@ const CSS = `
 
 export default {
   steps: 5,
+  manual: true,   // one key press per app screenshot (the pitch owner's exception to one press per slide)
   stepMs: 1400,
   mount(ctx) {
     if (!document.getElementById('s-answer-css')) {

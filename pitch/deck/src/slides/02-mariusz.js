@@ -21,7 +21,10 @@ const CSS = `
 const fmtCoord = (v, pos, neg) => `${(Math.round(Math.abs(v) * 1e4 + 1e-6) / 1e4).toFixed(4)}° ${v >= 0 ? pos : neg}`;
 
 export default {
-  steps: 3,
+  // One key press: the descent lands on the parcel (step 0), then title, facts and notebook together (1), then the
+  // open 2027 row (2). The stage plays the steps in a row.
+  steps: 2,
+  stepMs: 1100,   // the notebook slides in before the 2027 row appears
   mount(ctx) {
     if (!document.getElementById('s-mariusz-css')) {
       const st = document.createElement('style'); st.id = 's-mariusz-css'; st.textContent = CSS; document.head.append(st);
@@ -30,27 +33,27 @@ export default {
     ctx.el.classList.add('s-mariusz');
     const rows = notebook.map((n) => `<div class="r"><b>${n.year}</b>${cropName(n.crop)}</div>`).join('');
     ctx.el.innerHTML = `
-      <div class="copy">
+      <div class="copy" data-from="1">
         <div class="eyebrow">The problem</div>
         <div class="title">Mariusz plans next year from a notebook.</div>
-        <div class="facts" data-from="1">
+        <div class="facts">
           <span><small>Location</small>Uzarzewo, near Poznań</span>
           <span><small>Coordinates</small>${fmtCoord(field.centroid.lat, 'N', 'S')}, ${fmtCoord(field.centroid.lon, 'E', 'W')}</span>
           <span><small>Area</small>${field.areaHa.toFixed(1)} ha</span>
         </div>
       </div>
-      <div class="nb" data-from="2">
+      <div class="nb" data-from="1">
         ${rows}
-        <div class="r open" data-from="3"><b>${notebook[notebook.length - 1].year + 1}</b><i>?</i></div>
+        <div class="r open" data-from="2"><b>${notebook[notebook.length - 1].year + 1}</b><i>?</i></div>
       </div>`;
     this.open = ctx.el.querySelector('.r.open');
   },
   enter(step, ctx) {
     ctx.scene.goTo('field', { instant: ctx.instant });
-    ctx.setWash(1, step >= 2 ? 0.6 : 0);
+    ctx.setWash(step >= 1 ? 1 : 0, step >= 1 ? 0.6 : 0);
     const o = this.open;
     o.classList.remove('pulse');
-    if (step >= 3 && !ctx.instant) { void o.offsetWidth; o.classList.add('pulse'); }
+    if (step >= 2 && !ctx.instant) { void o.offsetWidth; o.classList.add('pulse'); }
   },
   final(ctx) { this.enter(this.steps, ctx); },
 };

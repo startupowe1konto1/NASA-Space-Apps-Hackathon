@@ -10,13 +10,16 @@ import answer from './slides/06-answer.js';
 import close from './slides/07-close.js';
 
 // Slide interface: { steps, mount(ctx), enter(step, ctx), final(ctx) }.
-//  steps          how many key presses the slide takes after it appears (0 = none).
+//  steps          how many steps the slide has after it appears (0 = none). One key press plays them all in a row
+//                 (the pitch owner's rule: one press, one slide); a slide with `manual: true` takes one press per step.
+//  manual         optional: true = one key press per step (slide 6, the app screenshots).
 //  mount(ctx)     once, before the first show: build the DOM inside ctx.el.
 //  enter(step)    leave the slide in the final state of `step` (0 is the slide appearing). Must be safe to call again
 //                 for the same step, and from any earlier state: the stage calls it with ctx.instant = true to finish
 //                 a step early, to go back, and to open the deck at a URL such as #4.2.
 //  final(ctx)     the final state of the whole slide (print mode, reduced motion).
-//  stepMs         optional: how long a step's own animation takes (default 700), for "a key press finishes it".
+//  stepMs         optional: how long a step's own animation takes (default 700). In a played sequence the next step
+//                 starts when this time and the camera move are both over.
 // ctx: { scene, el, data, constants, stage, index, instant, setWash(left, right) }.
 const SLIDES = [orbit, mariusz, dataSlide, engine, regions, answer, close];
 
@@ -63,6 +66,8 @@ const ctxs = SLIDES.map((slide, index) => {
 let pos = { slide: -1, step: 0 };
 let busyUntil = 0;
 let instantTimer = 0;
+let playTimer = 0;      // the next step of a played sequence
+let playing = false;
 
 function reveal(ctx, step) {
   ctx.el.dataset.step = String(step);
@@ -95,17 +100,42 @@ function show(slide, step, { instant = false, final = false } = {}) {
   }
 }
 
+function stopPlay() { clearTimeout(playTimer); playTimer = 0; playing = false; }
+
+/** Wait until the current step's own animation and the camera have finished. */
+function stepWaitMs(mod) { return Math.max(scene.eta() * 1000 + 150, mod.stepMs ?? 700); }
+
+/** Plays a slide from its first step to its last, one after another, on a single key press. */
+function play(slide) {
+  stopPlay();
+  show(slide, 0);
+  const mod = SLIDES[slide];
+  if (mod.manual || mod.steps === 0 || noMotion) return;
+  playing = true;
+  const next = () => {
+    if (pos.slide !== slide || pos.step >= mod.steps) { stopPlay(); return; }
+    show(slide, pos.step + 1);
+    if (pos.step >= mod.steps) { playing = false; busyUntil = performance.now() + stepWaitMs(mod); return; }
+    playTimer = setTimeout(next, stepWaitMs(mod));
+  };
+  playTimer = setTimeout(next, stepWaitMs(mod));
+}
+
 function advance(dir) {
-  if (performance.now() < busyUntil) {            // a key press during an animation finishes that step
-    show(pos.slide, pos.step, { instant: true });
+  const mod = SLIDES[pos.slide];
+  if (playing || performance.now() < busyUntil) {  // a key press during an animation finishes it
+    stopPlay();
+    show(pos.slide, mod.manual ? pos.step : mod.steps, { instant: true });
     return;
   }
-  const mod = SLIDES[pos.slide];
   if (dir > 0) {
-    if (pos.step < mod.steps) show(pos.slide, pos.step + 1);
-    else if (pos.slide < SLIDES.length - 1) show(pos.slide + 1, 0);
-  } else if (pos.step > 0) show(pos.slide, pos.step - 1, { instant: true });
+    if (pos.step < mod.steps) {
+      if (mod.manual) show(pos.slide, pos.step + 1);
+      else show(pos.slide, mod.steps, { instant: true });   // opened mid-slide by URL: finish it
+    } else if (pos.slide < SLIDES.length - 1) play(pos.slide + 1);
+  } else if (mod.manual && pos.step > 0) show(pos.slide, pos.step - 1, { instant: true });
   else if (pos.slide > 0) show(pos.slide - 1, SLIDES[pos.slide - 1].steps, { instant: true });
+  else if (pos.step > 0) show(0, 0, { instant: true });
 }
 
 function parseHash() {
@@ -122,7 +152,7 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('hashchange', () => {
   const { slide, step } = parseHash();
-  if (slide !== pos.slide || step !== pos.step) show(slide, step, { instant: true });
+  if (slide !== pos.slide || step !== pos.step) { stopPlay(); show(slide, step, { instant: true }); }
 });
 
 const start = parseHash();
