@@ -1,5 +1,7 @@
 # CropShifter
 
+**Live app: https://cropshifter-demo.vercel.app** (English: `?lang=en`, Polish: `?lang=pl`)
+
 CropShifter helps a farmer choose a crop rotation for one field. The farmer marks the field on a map, picks a goal (keep the soil, improve it, or income) and says what grew there in the last years. The app compares the current rotation with the three best alternatives for that goal. Each rotation is scored on soil health and climate resilience against 45 years (1981–2025) of NASA data for that field, and each card lists its evidence, its data gaps and the risks to check locally. The tool supports the farmer's judgment. It does not replace it.
 
 Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/).
@@ -9,7 +11,7 @@ Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift
 | Team | Vibecodersi, local event Poznań, Poland |
 | Members | Mikołaj Konieczny, Mateusz Wojciechowski, Oskar Pelzer, Wojciech Rudnicki |
 | App | https://cropshifter-demo.vercel.app/?lang=en (English; `?lang=pl` for Polish) |
-| Pitch deck (7 slides) | PDF: https://cropshifter-demo.vercel.app/pitch/deck.pdf · animated HTML on a laptop: https://cropshifter-demo.vercel.app/pitch/ (right arrow or space to advance) |
+| Pitch deck (7 slides) | PDF: [pitch/out/deck.pdf](pitch/out/deck.pdf) · animated HTML: run `pitch/deck` locally (see [pitch/deck/README.md](pitch/deck/README.md)) |
 | Space Apps project page | https://www.spaceappschallenge.org/2026/find-a-team/ai-slopers/?tab=project |
 
 ## Try it
@@ -23,7 +25,7 @@ Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift
 
 The app works on a phone. It has no accounts and stores nothing on a server.
 
-The hosted app is built by Vercel from `main` of this repository, with the settings in `vercel.json`. [startupowe1konto1/cropshifter-demo](https://github.com/startupowe1konto1/cropshifter-demo) was the app-only copy used for the demo before that; its changes are merged here. On its two demo field buttons (Uzarzewo and Iowa) the current rotation is shown with illustrative scores below every option, labelled as such on screen. Any other field shows the engine's own result.
+The hosted app is built by Vercel from [startupowe1konto1/cropshifter-demo](https://github.com/startupowe1konto1/cropshifter-demo), an app-only copy of this code. The same app code is in `main` here (#207). On its two demo field buttons (Uzarzewo and Iowa) the current rotation is shown with illustrative scores below every option, labelled as such on screen. Any other field shows the engine's own result.
 
 ## What it does
 
