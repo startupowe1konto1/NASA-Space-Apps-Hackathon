@@ -145,7 +145,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
   });
   const fitted = new THREE.Group(); fitted.add(model); fitted.scale.setScalar(3.6 / Math.max(size.x, size.y, size.z));
   sat.add(fitted);
-  const satHome = C0.clone().addScaledVector(fwd, 7.4).addScaledVector(right, -1.25).addScaledVector(up, -1.08); // below the facts row, clear of Poland
+  const satHome = C0.clone().addScaledVector(fwd, 7.4).addScaledVector(right, -1.15).addScaledVector(up, -1.26); // below the text column on slides 1 and 7
   sat.position.copy(satHome);
   const sx = right.clone().addScaledVector(fwd, 0.5).addScaledVector(up, 0.18).normalize();
   const sy0 = up.clone().addScaledVector(fwd, -0.35).normalize();

@@ -49,7 +49,7 @@ Mariusz farms 22 hectares near Poznań and plans next year's crop from a noteboo
 
 Stage: 1920 × 1080. Each slide lists its steps (one key press each) and its **final state**, which is what the PDF page shows and must make sense without the speaker.
 
-Times add up to 180 s. Speaker notes are in Polish because that is the language spoken. The notes hold about 300 words, roughly 2:30 of speech at a calm pace; the rest is the descent, the camera moves and the pauses on slide 6. Numbers in the notes (22, 45, 9, 13, 4, 27, 77, 58, 10) must match `data/field.json` after every rerun of the export.
+Times add up to 180 s. Speaker notes are in Polish because that is the language spoken. The notes hold about 300 words, roughly 2:30 of speech at a calm pace; the rest is the descent, the camera moves and the pauses on slide 6. Numbers in the notes (22, 45, 9, 14, 4, 45, 77, 75, 10) must match `data/field.json` after every rerun of the export.
 
 ### Slide 1 · Orbit (10 s)
 
@@ -86,10 +86,10 @@ The camera accelerates from orbit to the field's coordinates, passes a bright fl
   | 04 | Soil | SoilGrids |
   | 05 | Parcel boundary | GUGiK land register |
 
-- **Facts row under the title, from `datasetsUsedForThisField` and `climate.years`:** `Datasets for this field` 13 · `From NASA` 4 · `Weather record` 45 years.
+- **Facts row under the title, from `datasetsUsedForThisField` and `climate.years`:** `Datasets for this field` 14 · `From NASA` 4 · `Weather record` 45 years.
 - **Steps:** (1) sheets fall, top first; (2) table and leader lines fade in; (3) facts row counts up.
 - **Final state:** stack, table, facts.
-- **Notes (PL):** „O tym polu sporo już wiadomo i te dane są otwarte. NASA POWER daje 45 lat pogody i wilgotność gleby w strefie korzeni. NASADEM daje nachylenie terenu, SoilGrids glebę, a rejestr gruntów GUGiK dokładną granicę działki. Razem 13 zbiorów danych, z czego 4 z NASA. Wszystko dla tego jednego miejsca.”
+- **Notes (PL):** „O tym polu sporo już wiadomo i te dane są otwarte. NASA POWER daje 45 lat pogody i wilgotność gleby w strefie korzeni. NASADEM daje nachylenie terenu, SoilGrids glebę, a rejestr gruntów GUGiK dokładną granicę działki. Razem 14 zbiorów danych, z czego 4 z NASA. Wszystko dla tego jednego miejsca.”
 - **Rule:** a layer is listed only if its dataset id is in `datasetsUsedForThisField.ids`. SMAP is registered in the app but is not read for the field today, so it is not a layer. If that changes before the freeze, rerun the export and update the row.
 
 ### Slide 4 · The engine (35 s)

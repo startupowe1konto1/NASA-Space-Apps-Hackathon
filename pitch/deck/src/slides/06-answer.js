@@ -52,7 +52,6 @@ export default {
       </div>
       <div class="frame"><div class="bar"></div><div class="view"></div></div>
       <div class="closing">
-        <div class="lead" data-from="5">Two things are on every card.</div>
         <h3 data-from="5">What we do not know</h3>
         <h3 data-from="5">Check locally</h3>
         <div class="rule" data-from="5"><span>The tool supports the farmer's judgment.</span> <span>It does not replace it.</span></div>
