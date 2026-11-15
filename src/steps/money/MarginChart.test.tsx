@@ -60,7 +60,7 @@ describe('MarginChart', () => {
     const current = rows.find((r) => r.isCurrent)!;
     expect(await screen.findAllByText(t('steps.money.current'))).not.toHaveLength(0);
     const bar = barOf(current.title);
-    expect(bar.querySelector('[data-part="range"]')).toHaveClass('bg-slate-300');
+    expect(bar.querySelector('[data-part="range"]')).toHaveClass('bg-zinc-300');
     const refs = document.querySelectorAll<HTMLElement>('[data-part="reference"]');
     expect(refs.length).toBeGreaterThan(0);
     refs.forEach((ref) => expect(ref.style.left).toBe(pctStyle(scale.pct(current.mean!))));

@@ -35,7 +35,7 @@ export function RotationsStep() {
           {null}
         </StateBoundary>
         {analysis.status === 'loading' && liveSoilData ? (
-          <p className="mt-2 text-base text-slate-700">{t('steps.rotations.loadingNote')}</p>
+          <p className="mt-2 text-base text-zinc-700">{t('steps.rotations.loadingNote')}</p>
         ) : null}
       </>
     );
@@ -62,16 +62,16 @@ export function RotationsStep() {
         <>
           <div className="grid gap-2">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <p className="text-base text-slate-700">{t('steps.rotations.intro')}</p>
+              <p className="text-base text-zinc-700">{t('steps.rotations.intro')}</p>
               {/* Said once for all cards: how the ranges under the scores are made. */}
-              <details className="group rounded-lg border border-slate-200 bg-white px-3 sm:max-w-md">
-                <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+              <details className="group rounded-lg border border-zinc-200 bg-white px-3 sm:max-w-md">
+                <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-zinc-900 [&::-webkit-details-marker]:hidden">
                   {t('steps.rotations.rangeNoteTitle')}
-                  <span aria-hidden="true" className="text-slate-600 transition-transform group-open:rotate-180">
+                  <span aria-hidden="true" className="text-zinc-600 transition-transform group-open:rotate-180">
                     ▾
                   </span>
                 </summary>
-                <p className="pb-3 text-sm leading-relaxed text-slate-700">
+                <p className="pb-3 text-sm leading-relaxed text-zinc-700">
                   <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
                 </p>
               </details>

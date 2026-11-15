@@ -53,17 +53,17 @@ export function App() {
   const width = wide ? 'max-w-7xl' : key ? 'max-w-3xl' : 'max-w-6xl';
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur print:hidden">
+    <div className="flex min-h-screen flex-col bg-zinc-100 text-zinc-950">
+      <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 text-white shadow-sm">
+            <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-lg bg-zinc-900 text-white shadow-sm">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
                 <path d="M4 19c5-1 8-5 10-9s4-5 6-6" />
                 <path d="M4 12c3-.5 5-2 6-4" />
               </svg>
             </span>
-            <p className="text-base font-semibold tracking-tight text-slate-900">{PROJECT_NAME}</p>
+            <p className="text-base font-semibold tracking-tight text-zinc-900">{PROJECT_NAME}</p>
           </div>
           {key ? (
             <ol className="order-3 flex w-full gap-1 overflow-x-auto lg:order-none lg:w-auto lg:flex-1 lg:justify-center" aria-label={t('app.progress')}>
@@ -76,13 +76,13 @@ export function App() {
                     key={k}
                     aria-current={now ? 'step' : undefined}
                     className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-sm font-medium ${
-                      now ? 'bg-slate-900 text-white' : done ? 'text-emerald-800' : 'text-slate-500'
+                      now ? 'bg-zinc-900 text-white' : done ? 'text-zinc-900' : 'text-zinc-500'
                     }`}
                   >
                     <span
                       aria-hidden="true"
                       className={`grid h-5 w-5 place-items-center rounded-full text-[11px] font-semibold ${
-                        now ? 'bg-white text-slate-900' : done ? 'bg-emerald-100 text-emerald-800' : 'border border-slate-300'
+                        now ? 'bg-white text-zinc-900' : done ? 'bg-lime-300 text-zinc-900' : 'border border-zinc-300'
                       }`}
                     >
                       {done ? '✓' : n}
@@ -98,20 +98,20 @@ export function App() {
               ref={glossaryButton}
               type="button"
               aria-expanded={glossaryOpen}
-              className={`h-9 rounded-full border px-4 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 ${
+              className={`h-9 rounded-full border px-4 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 ${
                 glossaryOpen
-                  ? 'border-emerald-700 bg-emerald-700 text-white'
-                  : 'border-slate-300 bg-white text-emerald-800 hover:border-emerald-700 hover:bg-emerald-50'
+                  ? 'border-zinc-900 bg-zinc-900 text-white'
+                  : 'border-zinc-300 bg-white text-zinc-900 hover:border-zinc-900 hover:bg-lime-100'
               }`}
               onClick={() => (glossaryOpen ? closeGlossary() : setGlossaryOpen(true))}
             >
               {t('app.glossary')}
             </button>
             {/* A two-way switch: the green thumb slides under the chosen language. */}
-            <div role="group" aria-label={t('app.language')} className="relative grid h-9 grid-cols-2 rounded-full bg-slate-100 p-1">
+            <div role="group" aria-label={t('app.language')} className="relative grid h-9 grid-cols-2 rounded-full bg-zinc-100 p-1">
               <span
                 aria-hidden="true"
-                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-emerald-700 shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-zinc-900 shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
                   lang === LANGS[1] ? 'translate-x-full' : 'translate-x-0'
                 }`}
               />
@@ -121,8 +121,8 @@ export function App() {
                   type="button"
                   lang={code}
                   aria-pressed={lang === code}
-                  className={`relative z-10 rounded-full px-3 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-                    lang === code ? 'text-white' : 'text-slate-700 hover:text-slate-900'
+                  className={`relative z-10 rounded-full px-3 text-sm font-medium transition-colors duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
+                    lang === code ? 'text-white' : 'text-zinc-700 hover:text-zinc-900'
                   }`}
                   onClick={() => setLang(code)}
                 >
@@ -137,11 +137,11 @@ export function App() {
       <main className={`mx-auto w-full flex-1 px-4 pb-8 pt-6 sm:px-6 ${width}`}>
         {key && !glossaryOpen ? (
           <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
               <span className="sr-only">{t('app.stepOf', { n: state.step, total: STEP_COUNT })}:</span>{' '}
               {t(`app.step.${key}`)}
             </h1>
-            <span aria-hidden="true" className="text-sm font-medium text-slate-500">
+            <span aria-hidden="true" className="text-sm font-medium text-zinc-500">
               {t('app.stepOf', { n: state.step, total: STEP_COUNT })}
             </span>
           </div>
@@ -161,11 +161,11 @@ export function App() {
       </main>
 
       {glossaryOpen || !Step ? null : (
-        <footer className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur print:hidden">
+        <footer className="sticky bottom-0 z-20 border-t border-zinc-200 bg-white/95 backdrop-blur print:hidden">
           <div className={`mx-auto flex justify-between gap-3 px-4 py-3 sm:px-6 ${width}`}>
             <button
               type="button"
-              className="min-h-11 rounded-xl border border-slate-300 bg-white px-5 font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-40"
+              className="min-h-11 rounded-xl border border-zinc-300 bg-white px-5 font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-40"
               onClick={() => state.goToStep(state.step - 1)}
             >
               {t('app.back')}
@@ -174,7 +174,7 @@ export function App() {
             {state.step < STEP_COUNT ? (
               <button
                 type="button"
-                className="min-h-11 rounded-xl bg-emerald-700 px-6 font-semibold text-white shadow-sm hover:bg-emerald-800 disabled:opacity-40"
+                className="min-h-11 rounded-xl bg-zinc-900 px-6 font-semibold text-white shadow-sm hover:bg-zinc-700 disabled:opacity-40"
                 disabled={!canContinue(state)}
                 onClick={() => state.goToStep(state.step + 1)}
               >

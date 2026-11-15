@@ -8,9 +8,9 @@ import type { Field } from '../../contracts';
 import { joinFields } from '../parcels/editFields';
 
 const BUTTON =
-  'min-h-11 shrink-0 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
+  'min-h-11 shrink-0 rounded-lg border border-zinc-300 bg-white px-4 text-base font-medium text-zinc-900 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 active:bg-zinc-100';
 const INPUT =
-  'min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-base text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600';
+  'min-h-11 w-full min-w-0 rounded-lg border border-zinc-300 bg-white px-3 text-base text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900';
 
 export function FieldList() {
   const fields = useAppStore((s) => s.fields);
@@ -34,8 +34,8 @@ export function FieldList() {
 
   return (
     <section>
-      <h2 className="text-lg font-semibold text-slate-900">{t('map.fields')}</h2>
-      {fields.length === 0 ? <p className="mt-1 text-slate-700">{t('map.fields.empty')}</p> : null}
+      <h2 className="text-lg font-semibold text-zinc-900">{t('map.fields')}</h2>
+      {fields.length === 0 ? <p className="mt-1 text-zinc-700">{t('map.fields.empty')}</p> : null}
       <fieldset className="mt-2">
         <legend className="sr-only">{t('draw.fields.select')}</legend>
         <ul aria-label={t('map.fields')} className="grid gap-2">
@@ -54,7 +54,7 @@ export function FieldList() {
       </fieldset>
       {canJoin ? (
         <div className="mt-3 grid gap-2">
-          <p className="text-sm text-slate-600">{t('edit.join.hint')}</p>
+          <p className="text-sm text-zinc-600">{t('edit.join.hint')}</p>
           <div>
             <button type="button" className={BUTTON} disabled={pair.length !== 2} onClick={join}>
               {t('edit.join.button')}
@@ -62,7 +62,7 @@ export function FieldList() {
           </div>
         </div>
       ) : null}
-      <div role="status" className="mt-2 text-base text-slate-900">
+      <div role="status" className="mt-2 text-base text-zinc-900">
         {note?.fields === fields ? note.text : null}
       </div>
     </section>
@@ -90,7 +90,7 @@ function FieldRow({ field, selected, groupName, joinable, ticked, onToggleJoin }
     <li
       aria-current={selected ? 'true' : undefined}
       className={`rounded-lg border px-4 py-3 text-base ${
-        selected ? 'border-emerald-700 bg-emerald-50 text-emerald-950' : 'border-slate-300 bg-white text-slate-900'
+        selected ? 'border-zinc-900 bg-lime-100 text-zinc-950' : 'border-zinc-300 bg-white text-zinc-900'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -100,19 +100,19 @@ function FieldRow({ field, selected, groupName, joinable, ticked, onToggleJoin }
           name={groupName}
           checked={selected}
           onChange={() => selectField(field.id)}
-          className="h-6 w-6 shrink-0 accent-emerald-700"
+          className="h-6 w-6 shrink-0 accent-zinc-900"
         />
         <label htmlFor={pickId} id={rowId} className={`flex min-h-11 flex-1 items-center ${selected ? 'font-medium' : ''}`}>
           {t('map.fields.item', { name: field.name, area: field.areaHa.toFixed(1) })}
         </label>
         {joinable ? (
-          <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-slate-700">
+          <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-zinc-700">
             <input
               type="checkbox"
               checked={ticked}
               onChange={onToggleJoin}
               aria-label={t('edit.join.pickField', { name: field.name })}
-              className="h-6 w-6 shrink-0 accent-emerald-700"
+              className="h-6 w-6 shrink-0 accent-zinc-900"
             />
             <span aria-hidden="true">{t('edit.join.pick')}</span>
           </label>
@@ -120,7 +120,7 @@ function FieldRow({ field, selected, groupName, joinable, ticked, onToggleJoin }
       </div>
       <div className="mt-2 flex items-end gap-2">
         <div className="min-w-0 flex-1">
-          <label htmlFor={nameId} className="block text-sm text-slate-600">
+          <label htmlFor={nameId} className="block text-sm text-zinc-600">
             {t('draw.fields.name')}
           </label>
           <NameInput id={nameId} field={field} />

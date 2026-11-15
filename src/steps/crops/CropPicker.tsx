@@ -22,14 +22,14 @@ export function CropPicker(props: {
             role="radio"
             aria-checked={chosen}
             onClick={() => onPick(crop.id)}
-            className={`flex min-h-[64px] cursor-pointer items-center gap-2 rounded-xl border-2 px-3 py-2 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 ${
-              chosen ? 'border-emerald-700 bg-emerald-50 text-emerald-900' : 'border-slate-300 bg-white text-slate-800 hover:border-slate-500'
+            className={`flex min-h-[64px] cursor-pointer items-center gap-2 rounded-xl border-2 px-3 py-2 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40 ${
+              chosen ? 'border-zinc-900 bg-lime-100 text-zinc-950' : 'border-zinc-300 bg-white text-zinc-800 hover:border-zinc-500'
             }`}
           >
             <span className="shrink-0">
               <CropIcon crop={crop.id} size={28} />
             </span>
-            <span className="text-base font-medium leading-tight text-slate-900">{cropName(crop.id)}</span>
+            <span className="text-base font-medium leading-tight text-zinc-900">{cropName(crop.id)}</span>
           </button>
         );
       })}
