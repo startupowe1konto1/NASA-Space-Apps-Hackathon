@@ -1,10 +1,11 @@
-// The step 6 margin chart: positions come from moneyScale, numbers from the estimates the test builds.
+// The step 6 chart: the farmer's rotation first as the reference, each option as its difference from it.
+// Numbers come from the estimates the test builds, never from the fixtures.
 import { render, screen, within } from '@testing-library/react';
 import { t } from '../../app/i18n';
 import type { RotationOption } from '../../contracts';
 import { iowaAnalysis } from '../../fixtures';
 import { MarginChart } from './MarginChart';
-import { moneyRows, moneyScale } from './moneyRows';
+import { compareRows, moneyRows } from './moneyRows';
 import { estimate, withMoney } from './testMoney';
 
 const datasets = iowaAnalysis.datasets;
@@ -12,101 +13,97 @@ const ids = iowaAnalysis.shownByGoal.keepSoil ?? [];
 const currentIndex = ids.findIndex((id) => iowaAnalysis.rotations.find((r) => r.id === id)?.isCurrent);
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
 
-// One value set per shown rotation; the current one gets a negative bad year so the zero line shows.
-const values = ids.map((_, i): [number, number, number] =>
-  i === currentIndex ? [650, -10, 1119] : [1000 * (i + 1), 500 * (i + 1), 1500 * (i + 1)],
-);
+// The reference earns 650; the options earn 100, 1199 and 5263 in turn, so one earns less and the others more.
+const means = ids.map((_, i) => (i === currentIndex ? 650 : [100, 1199, 5263, 3000][i]!));
+const ready = (): RotationOption['money'][] =>
+  means.map((m) => ({ status: 'ready', data: estimate(m, m - 400, m + 400, 'PLN') }));
 
-function draw(
-  money: RotationOption['money'][] = values.map(([v, lo, hi]) => ({
-    status: 'ready' as const,
-    data: estimate(v, lo, hi, 'PLN'),
-  })),
-) {
+function draw(money: RotationOption['money'][] = ready()) {
   const rows = moneyRows(withMoney(iowaAnalysis, money), 'keepSoil');
-  const scale = moneyScale(rows);
-  render(<MarginChart rows={rows} scale={scale} datasets={datasets} />);
-  return { rows, scale };
+  render(<MarginChart rows={rows} datasets={datasets} />);
+  return { rows, ...compareRows(rows) };
 }
 
-const barOf = (title: string) => within(screen.getByRole('group', { name: title })).getByRole('img');
-const pctStyle = (n: number) => `${n}%`;
-
 describe('MarginChart', () => {
-  it('draws one bar per rotation: the range from bad to good year and the marker at the average', async () => {
-    const { rows, scale } = draw();
-    await screen.findByRole('group', { name: rows[0]!.title });
-    for (const row of rows) {
-      const bar = barOf(row.title);
+  it('shows the current rotation first, as the reference, with its average-year margin', async () => {
+    const { current } = draw();
+    const reference = await screen.findByRole('group', { name: `${t('steps.money.reference')}: ${current!.title}` });
+    expect(reference).toHaveTextContent(t('steps.money.current'));
+    expect(reference).toHaveTextContent(fmt(current!.mean!));
+    const groups = within(screen.getByRole('figure')).getAllByRole('group');
+    expect(groups[0]).toBe(reference);
+  });
+
+  it('draws each option as its difference from the reference, best first, from a centre line', async () => {
+    const { options, current, pct } = draw();
+    await screen.findByRole('group', { name: options[0]!.title });
+    const names = within(screen.getByRole('figure'))
+      .getAllByRole('group')
+      .slice(1)
+      .map((g) => g.getAttribute('aria-label'));
+    expect(names).toEqual(options.map((o) => o.title));
+    for (const option of options) {
+      const diff = option.mean! - current!.mean!;
+      const bar = within(screen.getByRole('group', { name: option.title })).getByRole('img');
       expect(bar).toHaveAccessibleName(
         t('steps.money.barLabel', {
-          name: row.title,
-          mean: fmt(row.mean!),
-          low: fmt(row.low!),
-          high: fmt(row.high!),
+          name: option.title,
+          diff: fmt(Math.abs(diff)),
           unit: 'PLN',
+          direction: diff > 0 ? t('steps.money.more') : t('steps.money.less'),
         }),
       );
-      const marker = bar.querySelector<HTMLElement>('[data-part="marker"]')!;
-      const range = bar.querySelector<HTMLElement>('[data-part="range"]')!;
-      expect(marker.style.left).toBe(pctStyle(scale.pct(row.mean!)));
-      expect(range.style.left).toBe(pctStyle(scale.pct(row.low!)));
-      expect(range.style.width).toBe(pctStyle(scale.pct(row.high!) - scale.pct(row.low!)));
+      const fill = bar.querySelector<HTMLElement>('[data-part="bar"]')!;
+      expect(fill.style.left).toBe(`${Math.min(50, pct(diff))}%`);
+      expect(fill.style.width).toBe(`${Math.abs(pct(diff) - 50)}%`);
+      expect(fill).toHaveClass(diff > 0 ? 'bg-emerald-600' : 'bg-red-600');
     }
   });
 
-  it('greys the current rotation, labels it, and puts the reference line at its average', async () => {
-    const { rows, scale } = draw();
-    const current = rows.find((r) => r.isCurrent)!;
-    expect(await screen.findAllByText(t('steps.money.current'))).not.toHaveLength(0);
-    const bar = barOf(current.title);
-    expect(bar.querySelector('[data-part="range"]')).toHaveClass('bg-slate-300');
-    const refs = document.querySelectorAll<HTMLElement>('[data-part="reference"]');
-    expect(refs.length).toBeGreaterThan(0);
-    refs.forEach((ref) => expect(ref.style.left).toBe(pctStyle(scale.pct(current.mean!))));
-    expect(screen.getByText(t('steps.money.reference'))).toBeInTheDocument();
+  it('says in words whether an option earns more or less, with the difference as a sourced number', async () => {
+    const { options, current } = draw();
+    await screen.findByRole('group', { name: options[0]!.title });
+    for (const option of options) {
+      const diff = option.mean! - current!.mean!;
+      const row = screen.getByRole('group', { name: option.title });
+      expect(row).toHaveTextContent(fmt(Math.abs(diff)));
+      expect(row).toHaveTextContent(diff > 0 ? t('steps.money.more') : t('steps.money.less'));
+      expect(within(row).getByRole('button', { name: /our calculation/ })).toBeInTheDocument();
+    }
   });
 
-  it('draws the zero line when a value is negative', async () => {
-    const { scale } = draw();
-    await screen.findByText(t('steps.money.reference'));
-    const zeros = document.querySelectorAll<HTMLElement>('[data-part="zero"]');
-    expect(zeros.length).toBeGreaterThan(0);
-    zeros.forEach((z) => expect(z.style.left).toBe(pctStyle(scale.pct(0))));
-  });
-
-  it('keeps a rotation without money as a row with its reason and no marker', async () => {
+  it('keeps an option without money as a row with its reason and no bar', async () => {
     const reason = { code: 'income.no-yield-response', params: { crop: 'oats' } };
-    const money: RotationOption['money'][] = values.map(([v, lo, hi], i) =>
-      i === 0
-        ? ({ status: 'no-data', reason } as const)
-        : ({ status: 'ready', data: estimate(v, lo, hi, 'PLN') } as const),
-    );
+    const money = ready();
+    const noMoney = currentIndex === 0 ? 1 : 0;
+    money[noMoney] = { status: 'no-data', reason };
     const { rows } = draw(money);
-    const row = await screen.findByRole('group', { name: rows[0]!.title });
+    const row = await screen.findByRole('group', { name: rows[noMoney]!.title });
     expect(row).toHaveTextContent(t(reason));
-    expect(row.querySelector('[data-part="marker"]')).toBeNull();
-    expect(row).not.toHaveTextContent(/\b0 PLN/);
+    expect(within(row).queryByRole('img')).toBeNull();
   });
 
-  it('has a hidden table with one row per rotation and the same numbers', async () => {
-    const { rows } = draw();
+  it('shows the options on their own when the current rotation has no money', async () => {
+    const money = ready();
+    money[currentIndex] = {
+      status: 'no-data',
+      reason: { code: 'income.no-yield-response', params: { crop: 'maize' } },
+    };
+    draw(money);
+    expect(await screen.findByText(t('steps.money.noReference'))).toBeInTheDocument();
+    expect(within(screen.getByRole('figure')).queryAllByRole('img')).toHaveLength(0);
+  });
+
+  it('has a hidden table with every rotation, its average and its difference', async () => {
+    const { rows, current } = draw();
     const table = await screen.findByRole('table', { name: t('steps.money.table') });
     const bodyRows = within(table).getAllByRole('row').slice(1);
     expect(bodyRows).toHaveLength(rows.length);
-    rows.forEach((row, i) => {
-      const cells = bodyRows[i]!;
-      expect(cells).toHaveTextContent(row.title);
-      expect(cells).toHaveTextContent(fmt(row.low!));
-      expect(cells).toHaveTextContent(fmt(row.mean!));
-      expect(cells).toHaveTextContent(fmt(row.high!));
-    });
-  });
-
-  it('shows the axis ticks in the currency per hectare', async () => {
-    const { scale } = draw();
-    await screen.findByText(t('steps.money.axis', { currency: 'PLN' }));
-    for (const tick of scale.ticks)
-      expect(screen.getByText(fmt(tick), { selector: '[data-part="tick"]' })).toBeInTheDocument();
+    expect(bodyRows[0]).toHaveTextContent(current!.title);
+    for (const row of rows) {
+      const line = bodyRows.find((r) => r.textContent?.startsWith(row.title))!;
+      expect(line).toHaveTextContent(fmt(row.mean!));
+      if (!row.isCurrent) expect(line).toHaveTextContent(fmt(Math.abs(row.mean! - current!.mean!)));
+    }
   });
 });

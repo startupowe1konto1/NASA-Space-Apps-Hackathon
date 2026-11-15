@@ -1,0 +1,10 @@
+{
+  "income.not-wired": "Dochód nie jest jeszcze liczony. Ceny i koszty nie są wczytane.",
+  "income.no-price": "Brak udokumentowanej ceny, plonu lub kosztów bezpośrednich dla: {crop}, więc dochodu dla tego płodozmianu nie szacujemy.",
+  "income.no-yield-response": "Brak współczynnika reakcji plonu na wodę dla: {crop}, więc nie da się odtworzyć jej plonu w suchych latach.",
+  "income.no-climate-years": "W danych klimatycznych nie ma roku, w którym dałoby się sprawdzić każdą uprawę tego płodozmianu, więc dochodu nie szacujemy.",
+  "income.total-loss-every-year": "Każdy miniony rok to całkowita strata dla: {crop} według sprawdzanych zagrożeń, więc dochodu tego płodozmianu nie da się odtworzyć.",
+  "income.cover-no-revenue": "{crop} nie przynosi bezpośredniego przychodu. Zwraca się przez wyniki zdrowia gleby.",
+  "income.error": "Nie udało się wczytać cen i kosztów z: {source}, więc dochodu nie szacujemy.",
+  "income.current-missing": "Twój obecny płodozmian nie ma szacunku dochodu, więc nie ma z czym porównać tego dochodu."
+}

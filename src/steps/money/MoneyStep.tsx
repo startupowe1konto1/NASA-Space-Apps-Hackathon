@@ -1,9 +1,10 @@
 // Step 6: what each rotation from step 5 would have earned on this field (SPEC section 12, plan
-// docs/superpowers/plans/2026-11-14-step-6-money.md). Same rotations and order as the cards; a bar per rotation on one
-// axis, then a disclosure per rotation with the bad, average and good year, the payments and the campaign dates.
+// docs/superpowers/plans/2026-11-14-step-6-money.md). Same rotations as the cards: the farmer's rotation first as the
+// reference, each option as its difference from it, then a disclosure per rotation with the bad, average and good year,
+// the payments and the campaign dates. Data text (sources, programmes, campaign) is shown in Polish under Polish.
 // Income is a replay of past years at today's prices, never a forecast.
 import { Fragment, useEffect, type ReactNode } from 'react';
-import { t } from '../../app/i18n';
+import { t, useLang } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { useOnline } from '../../app/useOnline';
 import type { Dataset, Sourced } from '../../contracts';
@@ -11,7 +12,8 @@ import { SourcedNumber, StateBoundary } from '../../ui-kit';
 import { Margins, Payments } from '../cards/IncomeSection';
 import { TermText } from '../cards/TermText';
 import { MarginChart } from './MarginChart';
-import { moneyRows, moneyScale, type MoneyRow } from './moneyRows';
+import { compareRows, moneyRows, type MoneyRow } from './moneyRows';
+import { localizeDatasets, localizeMoney } from './plText';
 
 /** A message template with React elements in place of its {placeholders}, as TermText does for glossary terms. */
 function Template({ code, parts }: { code: string; parts: Record<string, ReactNode> }) {
@@ -114,6 +116,7 @@ export function MoneyStep() {
   const goal = useAppStore((s) => s.goal);
   const runAnalysis = useAppStore((s) => s.runAnalysis);
   const online = useOnline();
+  const lang = useLang((s) => s.lang);
 
   // The analysis needs NASA POWER, so it waits for a connection instead of starting a request that will fail.
   useEffect(() => {
@@ -143,8 +146,11 @@ export function MoneyStep() {
     );
   }
 
-  const rows = moneyRows(data, goal);
-  const scale = moneyScale(rows);
+  const datasets = localizeDatasets(data.datasets, lang);
+  const rows = moneyRows(data, goal).map((r) => (r.money ? { ...r, money: localizeMoney(r.money, lang) } : r));
+  // The disclosures follow the chart: the farmer's rotation first, then the options as the chart orders them.
+  const { current, options } = compareRows(rows);
+  const ordered = [...(current ? [current] : []), ...options];
   const anyReady = rows.some((r) => r.status === 'ready');
 
   return (
@@ -164,7 +170,7 @@ export function MoneyStep() {
         </div>
 
         {anyReady ? (
-          <Headline rows={rows} datasets={data.datasets} />
+          <Headline rows={rows} datasets={datasets} />
         ) : (
           <p
             role="status"
@@ -174,12 +180,12 @@ export function MoneyStep() {
           </p>
         )}
 
-        <MarginChart rows={rows} scale={scale} datasets={data.datasets} />
+        <MarginChart rows={rows} datasets={datasets} />
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {rows.map((row) => (
-          <Details key={row.id} row={row} datasets={data.datasets} />
+        {ordered.map((row) => (
+          <Details key={row.id} row={row} datasets={datasets} />
         ))}
         <p className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-snug text-slate-700 sm:px-5">
           {t('app.support')}
