@@ -22,6 +22,10 @@ const CSS = `
 @keyframes regions-ring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
 .slide[data-name="regions"] .foot { color: #b4bcc7; }
 .slide[data-name="regions"] .lede { margin-top: 24px; }
+.slide[data-name="regions"] .eq { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--hairline); display: grid; grid-template-columns: auto 1fr; column-gap: 24px; row-gap: 12px; align-items: baseline; font-size: 30px; line-height: 1.25; }
+.slide[data-name="regions"] .eq small { font-size: var(--fs-label); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.slide[data-name="regions"] .eq .was { color: var(--muted); }
+.slide[data-name="regions"] .eq b { font-weight: 600; color: var(--twin); }
 .slide[data-name="regions"] .twins { position: absolute; right: var(--margin); top: 196px; width: 572px; }
 .slide[data-name="regions"] .twins .row { display: grid; grid-template-columns: 36px 1fr 100px 160px; column-gap: 8px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--hairline); font-size: 23px; line-height: 1.2; }
 .slide[data-name="regions"] .twins .row.head { border-top: 0; padding: 0 0 12px; font-size: 16px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); align-items: end; }
@@ -55,11 +59,15 @@ export default {
       <div class="copy">
         <div class="eyebrow">Similar regions</div>
         <div class="title lines">Fields like Jan's<br>across the globe<br>and their past yields</div>
+        <div class="eq">
+          <small>Climate twins</small><span class="was">climate</span>
+          <small>CropShifter</small><span>climate <b>+ soil moisture</b></span>
+        </div>
       </div>
       <div class="twins" data-from="3">
         <div class="row head"><span>#</span><span>Region</span><span class="num">Similarity</span><span class="num">Winter rapeseed, t/ha</span></div>${rows}
       </div>
-      <div class="foot" data-from="3">Similarity is our calculation on five NASA POWER climate features. Yields: Eurostat, mean of ${esc(years)}. Evidence, not a forecast.</div>`;
+      <div class="foot" data-from="3">Similarity: our calculation on NASA POWER growing-season rain, root-zone soil moisture, frost days and the year's highest temperature, 2001–2025 (model estimates). Yields: Eurostat, mean of ${esc(years)}. Evidence, not a forecast.</div>`;
 
     const svg = ctx.el.querySelector('svg.map');
     const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };

@@ -19,6 +19,9 @@ const CSS = `
 .s-mariusz .nb .r.open.pulse i { animation: s-mariusz-pulse .9s ease-in-out .6s 1; }
 @keyframes s-mariusz-pulse { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.45); } }
 .s-mariusz .nb .r[data-from] { transition: opacity .5s ease; transform: none; }
+.s-mariusz .scale { margin-top: 30px; font-size: 30px; line-height: 1.3; color: #d5dbe3; }
+.s-mariusz .scale b { font-weight: 600; color: var(--text); }
+.s-mariusz .scale small { display: block; margin-top: 6px; font-size: var(--fs-foot); color: var(--muted); }
 `;
 
 const fmtCoord = (v, pos, neg) => `${(Math.round(Math.abs(v) * 1e4 + 1e-6) / 1e4).toFixed(4)}° ${v >= 0 ? pos : neg}`;
@@ -33,6 +36,7 @@ export default {
       const st = document.createElement('style'); st.id = 's-mariusz-css'; st.textContent = CSS; document.head.append(st);
     }
     const { field, notebook } = ctx.data;
+    const { FARMS_WORLD } = ctx.constants;
     ctx.el.classList.add('s-mariusz');
     const rows = notebook.map((n) => `<div class="r"><b>${n.year}</b>${cropName(n.crop)}</div>`).join('');
     ctx.el.innerHTML = `
@@ -44,6 +48,7 @@ export default {
           <span><small>Coordinates</small>${fmtCoord(field.centroid.lat, 'N', 'S')}, ${fmtCoord(field.centroid.lon, 'E', 'W')}</span>
           <span><small>Area</small>${field.areaHa.toFixed(1)} ha</span>
         </div>
+        <div class="scale"><b>${FARMS_WORLD.lead}</b> ${FARMS_WORLD.rest}<small>Source: ${FARMS_WORLD.source}</small></div>
       </div>
       <div class="nb" data-from="1">
         ${rows}

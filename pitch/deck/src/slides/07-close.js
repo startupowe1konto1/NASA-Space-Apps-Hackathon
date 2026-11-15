@@ -69,7 +69,7 @@ export default {
     }
     // The QR code sits bottom-left with the owner's Polish invitation (Sun 15 Nov 2026); the URL is printed under it.
     const qr = APP_URL ? `<div class="qr"><img src="assets/img/qr-app.png" alt="QR code: ${esc(APP_URL)}">
-      <div><b>Zapraszamy do skorzystania</b><span>${esc(APP_URL.replace(/^https:\/\//, ''))}</span></div></div>` : '';
+      <div><b>Zapraszamy do skorzystania z aplikacji</b><span>${esc(APP_URL.replace(/^https:\/\//, ''))}</span></div></div>` : '';
     const nasaHtml = nasa.map((d) => `<div class="ds nasa" data-id="${d.id}"><b>${esc(short(d.name))}</b></div>`).join('');
     const otherHtml = [...providers].map(([p, list]) =>
       `<div class="ds" data-id="${list.map((d) => d.id).join(' ')}"><i style="margin:0 0 3px">${esc(p)}</i>${
