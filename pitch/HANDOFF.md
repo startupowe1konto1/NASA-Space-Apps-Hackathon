@@ -17,7 +17,8 @@ Written Sun 15 Nov 2026, about 01:45 CET, by the lead session of the deck, at th
 5. **Seven slides, seven PDF pages** (owner, Sun 15 Nov ~09:50): orbit, Mariusz, data, regions, app 1 (screenshots 01 and 02), app 2 (screenshots 03 and 04, then the judgment sentence), close.
 6. **The engine slide is parked**, not deleted: `SHOW_ENGINE_SLIDE` in `src/constants.js` (false). true puts "replay on the field" back as slide 4 and makes the deck 8 slides. Slides are listed by name in `stage.js`; styles and scripts find a slide by `data-name`, so numbers may shift safely.
 7. **Slide titles 2 to 6 are the owner's wording** (Sun 15 Nov ~10:00). The slide files are the source for on-screen text; the titles and steps in `SPEC.md` describe the earlier deck.
-8. If a change seems not to show in the owner's browser, it is the browser's module cache: Cmd+Shift+R, or serve on a new port.
+8. **App screenshots (P8) are in** (Sun ~11:05, owner asked before the UI freeze): `node scripts/shoot-app.mjs <app url>` from `pitch/deck` against an app served from current `main` (the Uzarzewo parcel, its notebook and the goal come from `field.json`). Rerun it if the app's UI changes, then look at the four PNGs.
+9. If a change seems not to show in the owner's browser, it is the browser's module cache: Cmd+Shift+R, or serve on a new port.
 2. **Slides must be very simple.** Three minutes in total; one idea per slide.
 3. Slide 1 is approved. Slide 5 (similar regions) is approved ("top"). Slide 7 (zoom out to orbit) is approved.
 4. Every number on a slide comes from `field.json`; the deck throws if a table and the data disagree. Keep it that way.
