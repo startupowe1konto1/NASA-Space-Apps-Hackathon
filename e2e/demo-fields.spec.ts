@@ -17,10 +17,10 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       expect(errors).toEqual([]);
     });
 
-    test('step 6 shows a money row for every rotation of step 5, in the same order', async ({ page }) => {
+    test('step 6 shows your rotation first and every other rotation of step 5 against it', async ({ page }) => {
       await walkToPriorities(page, demo);
       await next(page);
-      // Step 5 shows one card at a time (#184), so the names come from its four picks, in the order step 5 shows them.
+      // Step 5 shows one card at a time (#184), so the names come from its four picks.
       const picks = await expectFourCards(page);
       const titles = await picks.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''));
       expect(titles).toHaveLength(4);
@@ -37,20 +37,28 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
         await expect(compare.getByRole('columnheader').filter({ hasText: title.split(': ')[1]! })).toHaveCount(1);
       }
 
-      // Every rotation, in step 5 order, sits in the chart under the details disclosure.
-      await page.getByText('Bad and good years, payments and sources').click();
+      // Under it, every rotation of step 5 as a ranked card against your rotation (O2-B6b).
       await expect(page.getByRole('heading', { name: 'What each rotation would have earned' })).toBeVisible();
-      const rows = page.getByRole('figure').getByRole('group');
-      await expect(rows).toHaveCount(titles.length);
-      const names = await rows.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''));
-      // A pick's name is "Your rotation: …" or "Option n: …" before the crops; the row name is the crops alone.
-      names.forEach((name, i) => expect(titles[i]).toContain(name));
+      const groups = page.getByRole('figure').getByRole('group');
+      await expect(groups).toHaveCount(titles.length);
 
-      // The current rotation has its average-year margin on the chart (both demo fields have money for it). The exact
-      // badge text, since every other row says "… than your rotation".
-      const current = rows.filter({ has: page.getByText('Your rotation', { exact: true }) });
-      await expect(current).toHaveCount(1);
-      await expect(current.getByRole('img')).toHaveAccessibleName(/average year -?[\d,]+ (USD|PLN) per hectare/);
+      // The first group is your rotation, the reference, with its average-year margin.
+      const reference = groups.first();
+      await expect(reference).toHaveAccessibleName(/^Your rotation, the reference: /);
+      await expect(reference).toContainText(/[\d,]+\s*(USD|PLN)\/ha/);
+      const currentName = ((await reference.getAttribute('aria-label')) ?? '').replace('Your rotation, the reference: ', '');
+      expect(titles.find((title) => title.startsWith('Your rotation'))).toContain(currentName);
+
+      // Every other pick is a row, with a bar that says how much more or less it earns than your rotation.
+      const names = await groups.evaluateAll((els) => els.slice(1).map((el) => el.getAttribute('aria-label') ?? ''));
+      for (const title of titles.filter((tt) => !tt.startsWith('Your rotation'))) {
+        expect(names.some((name) => title.includes(name))).toBe(true);
+      }
+      for (const name of names) {
+        await expect(page.getByRole('group', { name, exact: true }).getByRole('img')).toHaveAccessibleName(
+          /[\d,]+ (USD|PLN) per hectare (more|less) than your rotation in an average year/,
+        );
+      }
       await expect(page.getByText("Past years replayed at today's prices, not a forecast.")).toBeVisible();
     });
 
