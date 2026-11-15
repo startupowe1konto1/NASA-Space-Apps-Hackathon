@@ -1,7 +1,7 @@
 // The field's NASA climate record and soil in a few lines, above the cards. Every value goes through <SourcedNumber>.
 import { t } from '../../app/i18n';
 import type { Analysis, Dataset, Hazard, Sourced } from '../../contracts';
-import { SourcedNumber } from '../../ui-kit';
+import { SourcesNote, SourcedNumber } from '../../ui-kit';
 import { TermText } from './TermText';
 
 // Drought is measured against the field's own record (D42), so every month is a drought in about the same share of
@@ -178,6 +178,10 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
           <Row label={t('steps.rotations.summary.slope')} value={profile.slopePct} datasets={datasets} />
         </dl>
       </details>
+      <SourcesNote
+        values={[droughtYears(analysis), profile.soil.sandPct, profile.soil.clayPct, profile.soil.organicCarbon, profile.slopePct]}
+        datasets={datasets}
+      />
     </section>
   );
 }

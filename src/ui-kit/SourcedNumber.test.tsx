@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Dataset, Sourced } from '../contracts';
 import { SourcedNumber } from './SourcedNumber';
@@ -98,11 +98,15 @@ describe('SourcedNumber', () => {
     ['observation', 'observed'],
     ['model', 'model estimate'],
     ['derived', 'our calculation'],
-  ] as const)('labels the %s kind as "%s"', (kind, label) => {
+  ] as const)('names the %s kind as "%s" on the number and in its source panel', async (kind, label) => {
     render(<SourcedNumber value={{ ...moisture, kind }} datasets={[smap]} />);
-    // The visible text stays the kind; the accessible name adds "Source" so screen readers and e2e know what the chip opens.
-    const chip = screen.getByRole('button', { name: `Source: ${label}` });
-    expect(chip).toHaveTextContent(label);
+    // D56: no chip next to the number. The number is the button; its accessible name says what a tap opens, and the
+    // panel says the kind in words.
+    const number = screen.getByRole('button', { name: `Source: ${label}` });
+    expect(number).toHaveTextContent('0.3');
+    expect(number).not.toHaveTextContent(label);
+    await userEvent.setup().click(number);
+    expect(within(screen.getByRole('group', { name: 'Source details' })).getByText(label)).toBeInTheDocument();
   });
 
   it('lists a dataset id it cannot find as an unknown source', async () => {

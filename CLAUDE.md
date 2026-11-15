@@ -36,7 +36,7 @@ T0 = Sat 14 Nov 2026, 11:09 CET. Deadline = Sun 15 Nov 2026, 11:59 CET (Polish t
 
 ## Topic-specific content rules
 
-- A number from the analysis reaches the screen only as a `Sourced` value through `<SourcedNumber>`: dataset, native resolution, period, retrieval date, and "observed", "model estimate" or "our calculation". NASA POWER and SMAP L4 are model estimates; say so.
+- A number from the analysis reaches the screen only as a `Sourced` value through `<SourcedNumber>`: dataset, native resolution, period, retrieval date, and "observed", "model estimate" or "our calculation". NASA POWER and SMAP L4 are model estimates; say so. The kind is said once per section in a `<SourcesNote>` line and in the number's source panel, not in a chip next to every number (D56).
 - Missing data is `value: null` with a reason. Never fill a gap with a default or an invented value.
 - Every rule, crop trait, price and payment rate has a source (title, URL, locator) copied from the opened document, not from memory. `npm run validate:data` rejects rows without one.
 - Every rotation card has gaps and risks for local review in its body, and the sentence that the tool supports the farmer's judgment and does not replace it.
