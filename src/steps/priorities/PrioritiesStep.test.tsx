@@ -19,6 +19,19 @@ afterEach(() => {
 const SWITCHES = ['Use less water', 'Grow forage', 'Fix and keep nitrogen', 'Stop erosion', 'Build organic matter'];
 
 describe('PrioritiesStep', () => {
+  // Safari shrinks a <legend> to one word per line when its <fieldset> is a grid or flex box (O1-F12), so the
+  // fieldsets stay plain blocks and the grid sits on an inner element.
+  it('keeps every fieldset a plain block so Safari lays out the legend on one line', async () => {
+    useAppStore.getState().addField(demoFields.iowa);
+    const { container } = render(<PrioritiesStep />);
+    await screen.findByRole('checkbox', { name: SWITCHES[0] });
+    const sets = container.querySelectorAll('fieldset');
+    expect(sets.length).toBeGreaterThan(0);
+    for (const set of sets) {
+      expect(set.className).not.toMatch(/\b(grid|flex|inline-grid|inline-flex)\b/);
+    }
+  });
+
   it('shows five switches, each with a one-line explanation', async () => {
     useAppStore.getState().addField(demoFields.iowa);
     render(<PrioritiesStep />);

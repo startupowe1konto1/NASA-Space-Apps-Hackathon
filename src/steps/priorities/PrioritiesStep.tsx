@@ -44,55 +44,58 @@ export function PrioritiesStep() {
 
   return (
     <div className="grid gap-6">
-      <fieldset className="grid gap-3">
-        <legend className="mb-1 text-lg font-semibold text-zinc-900">{t('steps.priorities.intro')}</legend>
-        <p className="text-base text-zinc-700">{t('steps.priorities.soilAlways')}</p>
-        {switches.map(({ id, Icon }) => {
-          const on = priorities.on.includes(id);
-          const hintId = `priority-${id}-hint`;
-          const titleId = `priority-${id}-title`;
-          return (
-            // Title and switch share the top row; the hint runs under them across the card on a phone, so it is not
-            // squeezed into a narrow column between the icon and the switch.
-            <label
-              key={id}
-              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-2xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
-                on ? 'border-zinc-900 bg-lime-100' : 'border-zinc-300 bg-white hover:border-zinc-500'
-              }`}
-            >
-              <span className={`col-start-1 row-start-1 ${on ? 'text-zinc-900' : 'text-zinc-700'}`}>
-                <Icon size={28} />
-              </span>
-              <span id={titleId} className="col-start-2 row-start-1 min-w-0 text-lg font-semibold leading-snug text-zinc-900">
-                {t(`steps.priorities.${id}`)}
-              </span>
-              <span
-                id={hintId}
-                className="col-span-3 row-start-2 text-base leading-snug text-zinc-700 sm:col-span-1 sm:col-start-2"
+      {/* A plain-block fieldset with the grid inside: Safari shrinks the legend of a grid fieldset to one word per line. */}
+      <fieldset className="min-w-0">
+        <legend className="mb-4 text-lg font-semibold text-zinc-900">{t('steps.priorities.intro')}</legend>
+        <div className="grid gap-3">
+          <p className="text-base text-zinc-700">{t('steps.priorities.soilAlways')}</p>
+          {switches.map(({ id, Icon }) => {
+            const on = priorities.on.includes(id);
+            const hintId = `priority-${id}-hint`;
+            const titleId = `priority-${id}-title`;
+            return (
+              // Title and switch share the top row; the hint runs under them across the card on a phone, so it is not
+              // squeezed into a narrow column between the icon and the switch.
+              <label
+                key={id}
+                className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-2xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
+                  on ? 'border-zinc-900 bg-lime-100' : 'border-zinc-300 bg-white hover:border-zinc-500'
+                }`}
               >
-                {t(`steps.priorities.${id}.hint`)}
-              </span>
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={on}
-                aria-labelledby={titleId}
-                aria-describedby={hintId}
-                onChange={() => toggle(id)}
-              />
-              <span
-                aria-hidden="true"
-                className={`relative col-start-3 row-start-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-zinc-900' : 'bg-zinc-400'}`}
-              >
+                <span className={`col-start-1 row-start-1 ${on ? 'text-zinc-900' : 'text-zinc-700'}`}>
+                  <Icon size={28} />
+                </span>
+                <span id={titleId} className="col-start-2 row-start-1 min-w-0 text-lg font-semibold leading-snug text-zinc-900">
+                  {t(`steps.priorities.${id}`)}
+                </span>
                 <span
-                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform duration-150 motion-reduce:transition-none ${
-                    on ? 'translate-x-7' : 'translate-x-1'
-                  }`}
+                  id={hintId}
+                  className="col-span-3 row-start-2 text-base leading-snug text-zinc-700 sm:col-span-1 sm:col-start-2"
+                >
+                  {t(`steps.priorities.${id}.hint`)}
+                </span>
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={on}
+                  aria-labelledby={titleId}
+                  aria-describedby={hintId}
+                  onChange={() => toggle(id)}
                 />
-              </span>
-            </label>
-          );
-        })}
+                <span
+                  aria-hidden="true"
+                  className={`relative col-start-3 row-start-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-zinc-900' : 'bg-zinc-400'}`}
+                >
+                  <span
+                    className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform duration-150 motion-reduce:transition-none ${
+                      on ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </span>
+              </label>
+            );
+          })}
+        </div>
       </fieldset>
 
       <ExcludedCrops
@@ -178,8 +181,8 @@ function ExcludedCrops(props: {
           : undefined;
 
   return (
-    <fieldset className="grid gap-3">
-      <legend className="mb-1 text-lg font-semibold text-zinc-900">
+    <fieldset className="min-w-0">
+      <legend className="mb-4 text-lg font-semibold text-zinc-900">
         {t('steps.priorities.exclude.title')}
         {excluded.length > 0 ? (
           <span className="ml-2 rounded-full bg-zinc-200 px-2 py-0.5 text-sm font-medium text-zinc-800">
@@ -187,43 +190,45 @@ function ExcludedCrops(props: {
           </span>
         ) : null}
       </legend>
-      <p className="text-base text-zinc-700">{t('steps.priorities.exclude.hint')}</p>
-      <StateBoundary
-        state={boundary}
-        source={state.status === 'error' ? state.source : t('steps.priorities.exclude.source')}
-        reason={reason}
-        onRetry={load}
-      >
-        {state.status === 'ready' ? (
-          <ul className="grid grid-cols-2 gap-2">
-            {state.crops.map((crop) => {
-              const out = excluded.includes(crop.id);
-              return (
-                <li key={crop.id}>
-                  <label
-                    className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border-2 px-3 py-2 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
-                      out ? 'border-zinc-700 bg-zinc-100 text-zinc-600' : 'border-zinc-300 bg-white text-zinc-900 hover:border-zinc-500'
-                    }`}
-                  >
-                    <input type="checkbox" className="sr-only" checked={out} onChange={() => onToggle(crop.id)} />
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 ${
-                        out ? 'border-zinc-700 bg-zinc-700 text-white' : 'border-zinc-500 bg-white'
+      <div className="grid gap-3">
+        <p className="text-base text-zinc-700">{t('steps.priorities.exclude.hint')}</p>
+        <StateBoundary
+          state={boundary}
+          source={state.status === 'error' ? state.source : t('steps.priorities.exclude.source')}
+          reason={reason}
+          onRetry={load}
+        >
+          {state.status === 'ready' ? (
+            <ul className="grid grid-cols-2 gap-2">
+              {state.crops.map((crop) => {
+                const out = excluded.includes(crop.id);
+                return (
+                  <li key={crop.id}>
+                    <label
+                      className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border-2 px-3 py-2 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
+                        out ? 'border-zinc-700 bg-zinc-100 text-zinc-600' : 'border-zinc-300 bg-white text-zinc-900 hover:border-zinc-500'
                       }`}
                     >
-                      {out ? <IconCheck size={16} strokeWidth={3} /> : null}
-                    </span>
-                    <span className={`min-w-0 break-words text-base font-medium leading-snug ${out ? 'line-through' : ''}`}>
-                      {cropName(crop.id)}
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </StateBoundary>
+                      <input type="checkbox" className="sr-only" checked={out} onChange={() => onToggle(crop.id)} />
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 ${
+                          out ? 'border-zinc-700 bg-zinc-700 text-white' : 'border-zinc-500 bg-white'
+                        }`}
+                      >
+                        {out ? <IconCheck size={16} strokeWidth={3} /> : null}
+                      </span>
+                      <span className={`min-w-0 break-words text-base font-medium leading-snug ${out ? 'line-through' : ''}`}>
+                        {cropName(crop.id)}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </StateBoundary>
+      </div>
     </fieldset>
   );
 }
