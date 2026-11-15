@@ -93,5 +93,33 @@ export function textFor(
 export function t(message: Message | string, params?: Record<string, string | number>): string {
   const code = typeof message === 'string' ? message : message.code;
   const values = typeof message === 'string' ? params : { ...message.params, ...params };
-  return textFor(code, currentLang(), values);
+  const lang = currentLang();
+  if (lang === 'en' || !values) return textFor(code, lang, values);
+  const text = textFor(code, lang, localNames(values, dictionaries[lang]));
+  // A Polish sentence that opens with a crop name still opens with a capital letter.
+  return /^\{\w+\}/.test(dictionaries[lang][code] ?? '') ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
+
+const EN_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/**
+ * The engine fills its messages with English words: crop labels ("field pea", from the crop id), hazards ("drought")
+ * and month names ("July"). In another language each one is swapped for the name that language already has for it
+ * (crop.<id>, calendar.hazard.<id>, calendar.month.<n>), in lower case as it sits inside a sentence.
+ */
+function localNames(values: Record<string, string | number>, dict: Dictionary): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(values)) {
+    if (typeof value !== 'string') {
+      out[key] = value;
+      continue;
+    }
+    const month = EN_MONTHS.indexOf(value);
+    const local =
+      dict[`crop.${value.replace(/ /g, '-')}`] ??
+      dict[`calendar.hazard.${value}`] ??
+      (month >= 0 ? dict[`calendar.month.${month + 1}`] : undefined);
+    out[key] = local ? local.charAt(0).toLowerCase() + local.slice(1) : value;
+  }
+  return out;
 }
