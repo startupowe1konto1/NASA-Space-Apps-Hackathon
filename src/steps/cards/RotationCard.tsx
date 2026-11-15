@@ -1,15 +1,15 @@
-// One rotation. Soil health and climate resilience come first whatever the goal (D9); gaps and local risks are in the
-// body, never a footnote; the support sentence closes every card (SPEC section 11). Everything else is folded
-// (HANDOFF-frontend step 5): the first "why" line stays open; the range note, the income, the other reasons, the
-// evidence, the benefits and the regions open on a tap. Folded, not deleted.
-import type { ReactNode } from 'react';
+// One rotation as a tile. Open on the tile: the title with the first "why" line, soil health and climate resilience
+// first whatever the goal (D9), the calendar strip, the first gaps and local risks, and the support sentence at the
+// bottom (SPEC section 11). Everything else sits in one list of folded rows (HANDOFF-frontend step 5): how the scores
+// are made (the range note is said once above the cards), the income, the reasons, the evidence, the benefits and the regions. Folded, not deleted.
+import { useState, type ReactNode } from 'react';
 import { t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { moneyAvailable as moneyOn } from '../../app/providers';
-import { ScoreBar, SourcedNumber, StateBoundary } from '../../ui-kit';
+import { SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName } from '../shared/cropName';
 import { IncomeSection } from './IncomeSection';
-import { TermText } from './TermText';
+import { ScoreRow } from './ScoreRow';
 
 export function ordinal(n: number): string {
   const tens = n % 100;
@@ -27,7 +27,7 @@ export function rotationTitle(rotation: RotationOption): string {
 function Section({ title, empty, children }: { title: string; empty?: boolean; children: ReactNode }) {
   return (
     <section className="grid gap-1.5">
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
       <StateBoundary state={empty ? 'no-data' : 'ready'} reason={t('steps.rotations.sectionEmpty')}>
         {children}
       </StateBoundary>
@@ -35,17 +35,17 @@ function Section({ title, empty, children }: { title: string; empty?: boolean; c
   );
 }
 
-/** A folded part of the card: closed by default, opened by its title. Native <details>, so it works without script. */
+/** One folded row of the card's detail list: closed by default, opened by its title. Native <details>. */
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="group rounded-xl border border-slate-200 bg-white">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-3 py-2 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden">
-        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-        <span aria-hidden="true" className="text-slate-700 transition-transform group-open:rotate-180">
+    <details className="group border-t border-slate-200 first:border-t-0">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 sm:px-6 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden">
+        <h3 className="text-sm font-medium text-slate-900">{title}</h3>
+        <span aria-hidden="true" className="text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none">
           ▾
         </span>
       </summary>
-      <div className="grid gap-1.5 px-3 pb-3">{children}</div>
+      <div className="grid gap-2 px-5 pb-5 sm:px-6">{children}</div>
     </details>
   );
 }
@@ -54,6 +54,33 @@ function Fold({ title, children }: { title: string; children: ReactNode }) {
 const keyOf = (m: Message, i: number) => `${m.code}:${JSON.stringify(m.params ?? {})}:${i}`;
 
 const Para = ({ m }: { m: Message }) => <p className="text-base leading-snug text-slate-800">{t(m)}</p>;
+
+/** Gaps and local risks show their first lines on the tile; the rest open with one button, so no list buries the card. */
+const SHORT_LIST = 2;
+
+function ShortList({ label, items }: { label: string; items: Message[] }) {
+  const [all, setAll] = useState(false);
+  const rest = items.length - SHORT_LIST;
+  return (
+    <>
+      <ul aria-label={label} className="list-disc space-y-1 pl-5 text-sm leading-snug text-slate-800">
+        {(all ? items : items.slice(0, SHORT_LIST)).map((m, i) => (
+          <li key={keyOf(m, i)}>{t(m)}</li>
+        ))}
+      </ul>
+      {rest > 0 ? (
+        <button
+          type="button"
+          aria-expanded={all}
+          onClick={() => setAll(!all)}
+          className="min-h-9 w-fit rounded text-left text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+        >
+          {all ? t('steps.rotations.listLess') : t('steps.rotations.listMore', { count: rest })}
+        </button>
+      ) : null}
+    </>
+  );
+}
 
 export function RotationCard(props: {
   rotation: RotationOption;
@@ -74,69 +101,93 @@ export function RotationCard(props: {
   return (
     <article
       data-testid={`card-${r.id}`}
-      className={`grid gap-4 rounded-2xl border-2 bg-white p-4 shadow-sm ${r.isCurrent ? 'border-slate-700' : 'border-slate-200'}`}
+      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
     >
-      <header className="grid gap-1">
-        <span
-          className={`w-fit rounded-full px-2.5 py-0.5 text-sm font-semibold ${
-            r.isCurrent ? 'bg-slate-800 text-white' : 'bg-emerald-100 text-emerald-900'
-          }`}
-        >
-          {r.isCurrent ? t('steps.rotations.current') : t('steps.rotations.option', { n: rank })}
-        </span>
-        <h2 className="text-xl font-semibold leading-tight text-slate-900">{rotationTitle(r)}</h2>
-        {goal !== 'keepSoil' && keepRank !== undefined ? (
-          <p className="text-sm text-slate-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
-        ) : null}
-      </header>
+      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="grid content-start gap-5">
+        <header className="grid gap-1.5">
+          <span
+            className={`w-fit text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-slate-500' : 'text-emerald-700'}`}
+          >
+            {r.isCurrent ? t('steps.rotations.current') : t('steps.rotations.option', { n: rank })}
+          </span>
+          <h2 className="text-xl font-semibold leading-snug tracking-tight text-slate-900">{rotationTitle(r)}</h2>
+          {r.why[0] ? <p className="text-sm leading-snug text-slate-600">{t(r.why[0])}</p> : null}
+          {goal !== 'keepSoil' && keepRank !== undefined ? (
+            <p className="text-sm text-slate-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
+          ) : null}
+        </header>
 
-      <div className="grid gap-4">
-        <ScoreBar label={t('steps.rotations.soilHealth')} score={r.soilHealth} basisText={t(r.soilHealth.basis)} />
-        <ScoreBar label={t('steps.rotations.climate')} score={r.climateResilience} basisText={t(r.climateResilience.basis)} />
-        {goal !== 'keepSoil' ? (
-          total.status === 'ready' ? (
-            <ScoreBar label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} basisText={t(total.data.basis)} />
-          ) : (
-            <div className="grid gap-1">
-              <p className="text-sm font-medium text-slate-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
-              <StateBoundary
-                state={total.status === 'error' ? 'error' : 'no-data'}
-                source={total.status === 'error' ? total.source : t('steps.rotations.goalTotalSource')}
-                reason={total.status === 'not-loaded' ? t('steps.rotations.goalTotalNotLoaded') : t(total.reason)}
-              >
-                {null}
-              </StateBoundary>
-            </div>
-          )
-        ) : null}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <ScoreRow label={t('steps.rotations.soilHealth')} score={r.soilHealth} />
+          <ScoreRow label={t('steps.rotations.climate')} score={r.climateResilience} />
+          {goal !== 'keepSoil' ? (
+            total.status === 'ready' ? (
+              <ScoreRow label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} />
+            ) : (
+              <div className="grid gap-1">
+                <p className="text-sm font-medium text-slate-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
+                <StateBoundary
+                  state={total.status === 'error' ? 'error' : 'no-data'}
+                  source={total.status === 'error' ? total.source : t('steps.rotations.goalTotalSource')}
+                  reason={total.status === 'not-loaded' ? t('steps.rotations.goalTotalNotLoaded') : t(total.reason)}
+                >
+                  {null}
+                </StateBoundary>
+              </div>
+            )
+          ) : null}
+        </div>
+
+        {calendar}
+        </div>
+
+        <div className="grid content-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />
+            {t('steps.rotations.checkTitle')}
+          </p>
+          <Section title={t('steps.rotations.gaps')} empty={r.gaps.length === 0}>
+            <ShortList label={t('steps.rotations.gaps')} items={r.gaps} />
+          </Section>
+          <Section title={t('steps.rotations.risks')} empty={r.localReviewRisks.length === 0}>
+            <ShortList label={t('steps.rotations.risks')} items={r.localReviewRisks} />
+          </Section>
+        </div>
       </div>
 
-      <Fold title={t('steps.rotations.rangeNoteTitle')}>
-        <p className="text-sm leading-relaxed text-slate-700">
-          <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
-        </p>
-      </Fold>
-
-      {calendar}
-
-      {moneyAvailable ? (
-        <Fold title={t('steps.rotations.income.title')}>
-          <IncomeSection money={r.money} datasets={datasets} headingHidden />
+      <div className="mt-auto border-t border-slate-200">
+        <Fold title={t('steps.rotations.scoresHow')}>
+          <p className="text-sm leading-snug text-slate-700">
+            <span className="font-semibold text-slate-900">{t('steps.rotations.soilHealth')}: </span>
+            {t(r.soilHealth.basis)}
+          </p>
+          <p className="text-sm leading-snug text-slate-700">
+            <span className="font-semibold text-slate-900">{t('steps.rotations.climate')}: </span>
+            {t(r.climateResilience.basis)}
+          </p>
+          {goal !== 'keepSoil' && total.status === 'ready' ? (
+            <p className="text-sm leading-snug text-slate-700">
+              <span className="font-semibold text-slate-900">{t('steps.rotations.goalTotal', { goal: goalName })}: </span>
+              {t(total.data.basis)}
+            </p>
+          ) : null}
         </Fold>
-      ) : null}
 
-      <Section title={t('steps.rotations.why')} empty={r.why.length === 0}>
-        {r.why[0] ? <Para m={r.why[0]} /> : null}
-        {r.why.length > 1 ? (
-          <Fold title={t('steps.rotations.whyMore', { count: r.why.length - 1 })}>
-            {r.why.slice(1).map((m, i) => (
-              <Para key={keyOf(m, i)} m={m} />
-            ))}
+        {moneyAvailable ? (
+          <Fold title={t('steps.rotations.income.title')}>
+            <IncomeSection money={r.money} datasets={datasets} headingHidden />
           </Fold>
         ) : null}
-      </Section>
 
-      <div className="grid gap-2">
+        <Fold title={t('steps.rotations.why')}>
+          <StateBoundary state={r.why.length === 0 ? 'no-data' : 'ready'} reason={t('steps.rotations.sectionEmpty')}>
+            {r.why.map((m, i) => (
+              <Para key={keyOf(m, i)} m={m} />
+            ))}
+          </StateBoundary>
+        </Fold>
+
         <Fold title={t('steps.rotations.evidence')}>
           <StateBoundary state={r.evidence.length === 0 ? 'no-data' : 'ready'} reason={t('steps.rotations.sectionEmpty')}>
             {r.evidence.map((e, i) => (
@@ -227,23 +278,7 @@ export function RotationCard(props: {
         </Fold>
       </div>
 
-      <Section title={t('steps.rotations.gaps')} empty={r.gaps.length === 0}>
-        <ul aria-label={t('steps.rotations.gaps')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
-          {r.gaps.map((m, i) => (
-            <li key={keyOf(m, i)}>{t(m)}</li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section title={t('steps.rotations.risks')} empty={r.localReviewRisks.length === 0}>
-        <ul aria-label={t('steps.rotations.risks')} className="list-disc space-y-1 pl-5 text-base leading-snug text-slate-800">
-          {r.localReviewRisks.map((m, i) => (
-            <li key={keyOf(m, i)}>{t(m)}</li>
-          ))}
-        </ul>
-      </Section>
-
-      <p className="rounded-lg bg-slate-100 px-3 py-2 text-base leading-snug text-slate-800">{t('app.support')}</p>
+      <p className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-sm leading-snug text-slate-600 sm:px-6">{t('app.support')}</p>
     </article>
   );
 }

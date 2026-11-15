@@ -76,7 +76,8 @@ describe('step 5 offline', () => {
       setNavigatorOnline(false);
       window.dispatchEvent(new Event('offline'));
     });
-    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
     expect(screen.queryByText('No connection')).not.toBeInTheDocument();
   });
 });

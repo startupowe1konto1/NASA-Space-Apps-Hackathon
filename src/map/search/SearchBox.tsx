@@ -25,7 +25,6 @@ type Search =
 export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (place: Place) => void; throttle?: Throttle }) {
   const online = useOnline();
   const inputId = useId();
-  const hintId = useId();
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState<Search>({ kind: 'idle' });
   const [fromNominatim, setFromNominatim] = useState(false);
@@ -78,7 +77,6 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
           <input
             id={inputId}
             type="search"
-            aria-describedby={hintId}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
@@ -90,9 +88,6 @@ export function SearchBox({ onPick, throttle = nominatimThrottle }: { onPick: (p
           {t('search.button')}
         </button>
       </form>
-      <p id={hintId} className="text-sm text-slate-600">
-        {t('search.hint')}
-      </p>
 
       {!online ? <StateBoundary state="offline">{null}</StateBoundary> : null}
       {search.kind === 'loading' ? (

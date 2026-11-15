@@ -58,29 +58,82 @@ function droughtLabel(analysis: Analysis): string {
 
 function Row({ label, value, datasets, decimals }: { label: string; value: Sourced; datasets: Dataset[]; decimals?: number }) {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-slate-200 py-2 last:border-0">
-      <dt className="text-base text-slate-700">{label}</dt>
-      <dd className="text-base font-medium text-slate-900">
+    <div className="grid content-start gap-1 py-1">
+      <dt className="text-sm text-slate-600">{label}</dt>
+      <dd className="text-lg font-semibold tabular-nums text-slate-900">
         <SourcedNumber value={value} datasets={datasets} decimals={decimals} />
       </dd>
     </div>
   );
 }
 
+/**
+ * One stripe per growing season, wetter seasons darker, drought years in amber (D42). A picture of the same NASA POWER
+ * record the rows below count from; the rows carry the numbers and their sources.
+ */
+function SeasonStripes({ analysis }: { analysis: Analysis }) {
+  const rows = analysis.profile.yearly.filter((y) => y.growingSeasonWetness.value !== null);
+  if (rows.length === 0) return null;
+  const values = rows.map((y) => y.growingSeasonWetness.value!);
+  const lo = Math.min(...values);
+  const span = Math.max(...values) - lo || 1;
+  const drought = new Set(analysis.profile.droughtYears);
+  const first = rows[0]!.year;
+  const last = rows[rows.length - 1]!.year;
+  return (
+    <figure className="grid gap-1.5">
+      <div
+        role="img"
+        aria-label={t('steps.rotations.summary.stripes.label', { n: rows.length, from: first, to: last, drought: analysis.profile.droughtYears.length })}
+        className="flex h-8 items-stretch gap-[2px]"
+      >
+        {rows.map((y) => {
+          const share = (y.growingSeasonWetness.value! - lo) / span;
+          return (
+            <span
+              key={y.year}
+              title={`${y.year}${drought.has(y.year) ? ` · ${t('steps.rotations.summary.stripes.drought')}` : ''}`}
+              className={`flex-1 rounded-[2px] ${drought.has(y.year) ? 'bg-amber-600' : 'bg-sky-700'}`}
+              style={drought.has(y.year) ? undefined : { opacity: 0.25 + share * 0.75 }}
+            />
+          );
+        })}
+      </div>
+      <figcaption className="flex flex-wrap justify-between gap-x-3 text-xs text-slate-600">
+        <span className="tabular-nums">{first}</span>
+        <span>{t('steps.rotations.summary.stripes.caption')}</span>
+        <span className="tabular-nums">{last}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
 export function FieldSummary({ analysis }: { analysis: Analysis }) {
   const { profile, datasets, field } = analysis;
   return (
-    <section aria-labelledby="field-summary-title" className="grid gap-2 rounded-2xl border-2 border-slate-200 bg-white p-4">
-      <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
-        {t('steps.rotations.summary.title')}: {field.name}
-      </h2>
-      <p className="text-sm leading-relaxed text-slate-700">
-        <TermText
-          code="steps.rotations.summary.droughtNote"
-          terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
-        />
-      </p>
-      <dl>
+    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="field-summary-title" className="text-base font-semibold text-slate-900">
+          {t('steps.rotations.summary.title')}: {field.name}
+        </h2>
+        <span className="text-xs text-slate-500">{t('steps.rotations.summary.stripes.title')}</span>
+      </div>
+      <SeasonStripes analysis={analysis} />
+      <details className="group">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
+          {t('steps.rotations.summary.droughtWhat')}
+          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+            ▾
+          </span>
+        </summary>
+        <p className="pb-3 text-sm leading-relaxed text-slate-700">
+          <TermText
+            code="steps.rotations.summary.droughtNote"
+            terms={{ rootZone: 'root-zone', wetness: 'soil-wetness-index', model: 'model-estimate' }}
+          />
+        </p>
+      </details>
+      <dl className="grid gap-x-6 gap-y-2 border-y border-slate-100 py-3 sm:grid-cols-3">
         <Row label={droughtLabel(analysis)} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);
@@ -94,7 +147,7 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
               );
             }
             return (
-              <div key={hazard} className="border-b border-slate-200 py-2 text-base text-slate-700 last:border-0">
+              <div key={hazard} className="py-1 text-sm text-slate-700">
                 {t('steps.rotations.summary.peak.none', { hazard: name })}
               </div>
             );
@@ -111,10 +164,10 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
         })}
       </dl>
       {/* Soil and slope fold away so the cards start on the first screen of a phone. */}
-      <details className="group rounded-lg border border-slate-200 px-3">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
+      <details className="group">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
           {t('steps.rotations.summary.soilAndSlope')}
-          <span aria-hidden="true" className="text-slate-600 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>

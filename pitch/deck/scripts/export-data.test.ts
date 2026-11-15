@@ -74,6 +74,11 @@ it('exports the pitch data', async () => {
   const real = datasets.filter((d) => d.id !== 'fixture');
   // What this field's answer was actually computed from, as opposed to everything the app has registered.
   const usedIds = datasetIdsIn([analysis, twins]);
+  // The field's outline comes from GUGiK ULDK through the map, not through the analysis, so no value carries its id.
+  // It is a dataset of this field all the same: it is in the registry, and the outline above was read from it.
+  const uldk = real.find((d) => d.id === 'gugik-uldk');
+  if (!uldk) throw new Error('The dataset registry has no "gugik-uldk" entry, but the field outline comes from GUGiK ULDK');
+  usedIds.add(uldk.id);
   const used = real.filter((d) => usedIds.has(d.id));
 
   const out = {
