@@ -1,7 +1,6 @@
 {
   "search.title": "Znajdź adres lub miejsce",
   "search.label": "Adres lub miejsce",
-  "search.hint": "Polskich adresów szukamy w GUGiK, pozostałych w OpenStreetMap. Pole w tym miejscu zaznaczymy na mapie.",
   "search.button": "Szukaj",
   "search.results": "Znalezione miejsca",
   "search.none": "Nie znaleziono miejsca dla tego tekstu. Dopisz miejscowość lub kod pocztowy albo sprawdź pisownię.",

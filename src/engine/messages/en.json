@@ -60,6 +60,7 @@
   "gap.humus-medium-class": "Organic matter uses the coefficients for medium soil. Your soil class may differ.",
   "gap.erosion-rye-row": "For the cereal rye cover, erosion uses the soil loss rate for maize sown without tillage into a rye cover.",
   "gap.leaching-not-counted": "Nitrogen does not count nitrate lost to leaching in bare months. No sourced leaching rule yet.",
+  "gap.erosion-annual-c": "Erosion for {crop} uses one yearly soil cover value from the Polish USLE model (IUNG-PIB), not values by crop stage, so its months are less exact.",
   "gap.erosion-no-row": "Erosion is not scored for this rotation: no sourced soil cover value (C factor) for {crop}.",
   "gap.humus-not-adjusted": "Organic matter is not adjusted for {adjustments}. No sourced rule yet.",
   "gap.unknown-crop": "Your crop history has {crop}, which is not in our crop list. Those years were left out of your current rotation.",

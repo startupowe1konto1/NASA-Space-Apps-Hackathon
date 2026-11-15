@@ -75,6 +75,15 @@
   "steps.rotations.twinsSimilarity": "Podobieństwo",
   "steps.rotations.twinsYield": "Plon",
   "steps.rotations.loadingNote": "Dane o glebie pobieramy na żywo z SoilGrids, a to może potrwać do dwóch minut. Zostaw tę stronę otwartą.",
-  "steps.rotations.whyMore": "Więcej powodów ({count})",
-  "steps.rotations.rangeNoteTitle": "Jak czytać zakresy"
+  "steps.rotations.rangeNoteTitle": "Jak czytać zakresy",
+  "steps.rotations.summary.stripes.title": "Sezony wegetacyjne na tym polu, NASA POWER, szacunek modelowy",
+  "steps.rotations.summary.stripes.caption": "Ciemniejszy niebieski: wilgotniejszy sezon. Bursztyn: rok suszy.",
+  "steps.rotations.summary.stripes.drought": "rok suszy",
+  "steps.rotations.summary.stripes.label": "{n} sezonów wegetacyjnych od {from} do {to}, w tym {drought} lat suszy.",
+  "steps.rotations.summary.droughtWhat": "Co liczymy jako rok suszy",
+  "steps.rotations.listMore": "Pokaż jeszcze {count}",
+  "steps.rotations.listLess": "Pokaż mniej",
+  "steps.rotations.scoresHow": "Jak powstają te wyniki",
+  "steps.rotations.pick": "Płodozmiany do porównania",
+  "steps.rotations.checkTitle": "Zanim zdecydujesz"
 }

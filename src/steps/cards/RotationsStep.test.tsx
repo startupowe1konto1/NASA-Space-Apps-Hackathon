@@ -7,7 +7,7 @@ import { cropName } from '../shared/cropName';
 import { term } from '../glossary/useTerm';
 import type { Analysis, RotationOption } from '../../contracts';
 import { iowaAnalysis, poznanAnalysis } from '../../fixtures';
-import { RotationCard } from './RotationCard';
+import { RotationCard, rotationTitle } from './RotationCard';
 import { RotationsStep } from './RotationsStep';
 
 const SUPPORT = /This is decision support\./;
@@ -23,7 +23,9 @@ function readyWith(analysis: Analysis, goal: 'keepSoil' | 'improveSoil' | 'incom
 }
 
 const current = (a: Analysis) => a.rotations.find((r) => r.isCurrent)!;
-const cardTitles = () => screen.getAllByRole('article').map((a) => within(a).getByRole('heading', { level: 2 }).textContent);
+const pickerOf = () => screen.getByRole('radiogroup', { name: t('steps.rotations.pick') });
+/** The shown rotations, in order, as the picker names them ("Option 1: …", "Your rotation: …"). */
+const optionTitles = () => within(pickerOf()).getAllByRole('radio').map((b) => b.getAttribute('aria-label')!.replace(/^[^:]+: /, ''));
 
 beforeEach(() => {
   useAppStore.getState().reset();
@@ -82,25 +84,34 @@ describe('RotationCard', () => {
     expect(text.indexOf(t('steps.rotations.soilHealth'))).toBeGreaterThan(text.indexOf(within(card).getByRole('heading', { level: 2 }).textContent!));
   });
 
-  it('folds the reasons after the first, the evidence, the benefits, the regions, the income and the range note; gaps and risks stay open', async () => {
+  it('shows the title, the first reason, the scores, the calendar and the first gaps and risks; the rest is folded', async () => {
     const user = userEvent.setup();
     const r = iowaAnalysis.rotations.find((x) => x.why.length > 1 && x.evidence.length > 0)!;
     render(<RotationCard rotation={r} rank={1} goal="keepSoil" datasets={iowaAnalysis.datasets} moneyAvailable />);
     const card = screen.getByRole('article');
 
-    expect(within(card).getByText(t(r.why[0]!))).toBeVisible();
+    // The first reason sits under the title; every reason, the evidence, the score basis and the income open from the
+    // card's fold list.
+    expect(within(card).getAllByText(t(r.why[0]!))[0]).toBeVisible();
     expect(within(card).getByText(t(r.why[1]!))).not.toBeVisible();
     expect(within(card).getByText(t(r.evidence[0]!.message))).not.toBeVisible();
-    expect(within(card).getByText(/where a source gives a single value/)).not.toBeVisible();
+    expect(within(card).getByText(t(r.soilHealth.basis))).not.toBeVisible();
     expect(within(card).getByText(t('steps.rotations.income.notForecast'))).not.toBeVisible();
 
-    for (const m of r.gaps) expect(within(card).getByText(t(m))).toBeVisible();
-    for (const m of r.localReviewRisks) expect(within(card).getByText(t(m))).toBeVisible();
+    // Gaps and local risks: the first two of each are open, the rest open with one button per list.
+    for (const m of [...r.gaps.slice(0, 2), ...r.localReviewRisks.slice(0, 2)]) expect(within(card).getByText(t(m))).toBeVisible();
+    for (const [items, name] of [[r.gaps, 'steps.rotations.gaps'], [r.localReviewRisks, 'steps.rotations.risks']] as const) {
+      if (items.length <= 2) continue;
+      expect(within(card).queryByText(t(items[2]!))).toBeNull();
+      const list = within(card).getByRole('list', { name: t(name) });
+      await user.click(within(list.parentElement!).getByRole('button', { name: t('steps.rotations.listMore', { count: items.length - 2 }) }));
+      for (const m of items) expect(within(card).getByText(t(m))).toBeVisible();
+    }
     expect(within(card).getByText(SUPPORT)).toBeVisible();
 
     await user.click(within(card).getByText(t('steps.rotations.evidence')));
     expect(within(card).getByText(t(r.evidence[0]!.message))).toBeVisible();
-    await user.click(within(card).getByText(t('steps.rotations.whyMore', { count: r.why.length - 1 })));
+    await user.click(within(card).getByText(t('steps.rotations.why')));
     expect(within(card).getByText(t(r.why[1]!))).toBeVisible();
   });
 
@@ -174,12 +185,22 @@ describe('RotationsStep', () => {
     expect(screen.queryByText(t('steps.rotations.loadingNote'))).not.toBeInTheDocument();
   });
 
-  it('renders four cards for both demo fields, the current one marked', async () => {
+  it('offers the four rotations as picks and opens one card at a time, the best other one first', async () => {
+    const user = userEvent.setup();
     for (const analysis of [iowaAnalysis, poznanAnalysis]) {
       readyWith(analysis);
       const { unmount } = render(<RotationsStep />);
-      expect(await screen.findAllByRole('article')).toHaveLength(4);
-      expect(screen.getByText('Your rotation')).toBeInTheDocument();
+      expect(await screen.findAllByRole('article')).toHaveLength(1);
+      const picks = within(pickerOf()).getAllByRole('radio');
+      expect(picks).toHaveLength(analysis.shownByGoal.keepSoil!.length);
+      expect(within(pickerOf()).getByText('Your rotation')).toBeInTheDocument();
+      const firstOther = analysis.shownByGoal.keepSoil!.find((id) => !analysis.rotations.find((r) => r.id === id)!.isCurrent)!;
+      expect(screen.getByTestId(`card-${firstOther}`)).toBeInTheDocument();
+      // Picking the farmer's own rotation swaps the card.
+      const current = analysis.rotations.find((r) => r.isCurrent)!;
+      await user.click(within(pickerOf()).getByRole('radio', { name: /^Your rotation/ }));
+      expect(screen.getByTestId(`card-${current.id}`)).toBeInTheDocument();
+      expect(screen.getAllByRole('article')).toHaveLength(1);
       unmount();
     }
   });
@@ -188,9 +209,11 @@ describe('RotationsStep', () => {
     readyWith(iowaAnalysis, 'improveSoil');
     render(<RotationsStep />);
     await screen.findAllByRole('article');
-    const titleOf = (id: string) => screen.getByTestId(`card-${id}`).querySelector('h2')!.textContent;
-    expect(cardTitles()).toEqual(iowaAnalysis.shownByGoal.improveSoil!.map(titleOf));
-    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+    const titleOf = (id: string) => rotationTitle(iowaAnalysis.rotations.find((r) => r.id === id)!);
+    expect(optionTitles()).toEqual(iowaAnalysis.shownByGoal.improveSoil!.map(titleOf));
+    // The only radios on the step are the rotation picks: no goal switch.
+    expect(screen.getAllByRole('radio')).toHaveLength(within(pickerOf()).getAllByRole('radio').length);
+    expect(screen.queryByRole('radio', { name: /Improve my soil|Keep my soil|Income/ })).toBeNull();
     expect(screen.getByText(t('steps.rotations.intro'))).toBeVisible();
     expect(t('steps.rotations.intro')).not.toMatch(/Tap a goal/);
   });
@@ -199,7 +222,7 @@ describe('RotationsStep', () => {
     readyWith(iowaAnalysis, 'income');
     render(<RotationsStep />);
     expect(await screen.findByText(/ranked on keeping the soil/)).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(4);
+    expect(within(pickerOf()).getAllByRole('radio')).toHaveLength(iowaAnalysis.shownByGoal.keepSoil!.length);
   });
 
   it('shows the field summary with sourced values', async () => {
@@ -228,8 +251,8 @@ describe('RotationsStep', () => {
   it('the range note does not call the soil-health range a range of past years (#76)', async () => {
     readyWith(iowaAnalysis);
     render(<RotationsStep />);
-    const [card] = await screen.findAllByRole('article');
-    const note = within(card!).getByText(/where a source gives a single value/);
+    await screen.findAllByRole('article');
+    const note = screen.getByText(/where a source gives a single value/);
     expect(note.textContent).toMatch(/climate resilience/);
     expect(note.textContent).toMatch(/soil health/);
   });
@@ -275,7 +298,7 @@ describe('RotationsStep', () => {
     readyWith(iowaAnalysis);
     render(<RotationsStep />);
     await screen.findAllByRole('article');
-    for (const n of [1, 2, 3]) expect(screen.getByText(`Option ${n}`)).toBeInTheDocument();
+    for (const n of [1, 2, 3]) expect(within(pickerOf()).getByText(`Option ${n}`)).toBeInTheDocument();
     expect(screen.queryByText('Option 4')).not.toBeInTheDocument();
   });
 
@@ -313,9 +336,8 @@ describe('RotationsStep', () => {
     for (const id of ['root-zone', 'soil-wetness-index', 'model-estimate'] as const) {
       expect(within(summary).getByRole('button', { name: about(id) })).toBeInTheDocument();
     }
-    for (const card of screen.getAllByRole('article')) {
-      expect(within(card).getByRole('button', { name: about('percentile-range') })).toBeInTheDocument();
-    }
+    // The range note is said once above the cards, not on every card.
+    expect(screen.getAllByRole('button', { name: about('percentile-range') })).toHaveLength(1);
   });
 });
 

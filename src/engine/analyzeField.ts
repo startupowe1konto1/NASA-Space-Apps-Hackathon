@@ -320,6 +320,7 @@ export function createAnalyzeField(options: AnalyzeOptions = {}): AnalyzeField {
         }));
         markNotAdjusted(soilOut, soilRules.rules);
         soilOut.erosionNoRow = soilRules.erosionNoRow;
+        soilOut.erosionAnnual = soilRules.erosionAnnual;
         const priorityScores: Scored['priorityScores'] = {};
         if (on.includes('forage')) priorityScores.forage = forageScore(years, crops);
         // water needs the sourced need rows; without them, or without data, it stays unscored and the card names it
