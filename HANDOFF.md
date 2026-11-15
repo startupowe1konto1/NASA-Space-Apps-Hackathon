@@ -22,7 +22,9 @@ Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 23:30 by the
 - #152: `src/ui-kit/messages/pl.json` (28 strings: "Słabe dowody", "Źródło: szacunek modelowy", "Spróbuj ponownie", the term button "Co znaczy „…”?").
 - #153: the hourly e2e went red (5 of 6) after #145, because Vite's dependency scan crawled `pitch/farm-stills/render-src/scene.html`, which imports `three`, and React then broke in the dev server. `vite.config.ts` now sets `optimizeDeps: { entries: ['index.html'] }`. CI did not catch it: it runs `vite build` and no e2e.
 
-## Open: red e2e on step 6 (hourly run, Sun 10:17, main `01a1611`)
+## Fixed: red e2e on step 6 (hourly run, Sun 10:17, main `01a1611`)
+
+Fixed Sun 11:30 in O1-F18: the step 6 test now checks the "Switch or stay?" table (#194), opens "Bad and good years, payments and sources" before reading the chart, and finds the current row by the exact "Your rotation" badge. `npx playwright test` on main `7731e33` plus the fix: 9 of 9 green. The notes below are the original diagnosis.
 
 The user asked to note it and check it later. The hourly e2e had 2 of 9 failing, both the new step 6 check in `e2e/demo-fields.spec.ts:20` ("step 6 shows a money row for every rotation of step 5, in the same order"), on the Iowa and the Poznań demo:
 - `getByRole('figure').getByRole('group').filter({ hasText: 'Your rotation' })` expected 1, received 4.
