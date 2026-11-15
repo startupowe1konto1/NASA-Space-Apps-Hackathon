@@ -109,4 +109,27 @@ describe('MarginChart', () => {
     for (const tick of scale.ticks)
       expect(screen.getByText(fmt(tick), { selector: '[data-part="tick"]' })).toBeInTheDocument();
   });
+
+  // O1-F13 tiles: each row says in words how it compares with the farmer's rotation and what a bad and a good year gave.
+  it('says on every other rotation how much more or less it earns than the current one', async () => {
+    const { rows } = draw();
+    await screen.findByRole('group', { name: rows[0]!.title });
+    const current = rows.find((r) => r.isCurrent)!;
+    for (const row of rows.filter((r) => !r.isCurrent)) {
+      const diff = row.mean! - current.mean!;
+      const key = diff > 0 ? 'steps.money.diffMore' : diff < 0 ? 'steps.money.diffLess' : 'steps.money.diffSame';
+      const text = t(key, { diff: fmt(Math.abs(diff)), unit: 'PLN' });
+      expect(within(screen.getByRole('group', { name: row.title })).getByText(text)).toBeInTheDocument();
+    }
+    expect(within(screen.getByRole('group', { name: current.title })).queryByText(/than your rotation/)).toBeNull();
+  });
+
+  it('writes the bad and the good year under each number', async () => {
+    const { rows } = draw();
+    await screen.findByRole('group', { name: rows[0]!.title });
+    for (const row of rows) {
+      const text = t('steps.money.range', { low: fmt(row.low!), high: fmt(row.high!), unit: 'PLN' });
+      expect(within(screen.getByRole('group', { name: row.title })).getByText(text)).toBeInTheDocument();
+    }
+  });
 });

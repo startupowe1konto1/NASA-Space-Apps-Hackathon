@@ -87,6 +87,19 @@ function Reason({ row }: { row: MoneyRow }) {
   return <p className="text-sm leading-snug text-zinc-700">{text}</p>;
 }
 
+/** More or less than the farmer's rotation, said with an arrow and a word, so the colour is never the only sign. */
+function Difference({ diff, unit }: { diff: number; unit: string }) {
+  const rounded = Math.round(diff);
+  const key = rounded > 0 ? 'steps.money.diffMore' : rounded < 0 ? 'steps.money.diffLess' : 'steps.money.diffSame';
+  const arrow = rounded > 0 ? '▲' : rounded < 0 ? '▼' : '=';
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${rounded > 0 ? 'text-emerald-800' : 'text-zinc-800'}`}>
+      <span aria-hidden="true">{arrow}</span>
+      {t(key, { diff: fmt(Math.abs(rounded)), unit })}
+    </span>
+  );
+}
+
 /** Tick labels near an end align to that end, so they never spill out of the chart. */
 function tickClass(pct: number): string {
   if (pct < 6) return '';
@@ -115,9 +128,12 @@ export function MarginChart({ rows, scale, datasets }: { rows: MoneyRow[]; scale
             key={row.id}
             role="group"
             aria-label={row.title}
-            className="grid gap-x-4 gap-y-1 border-b border-zinc-200 py-2 last:border-b-0 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] sm:items-center"
+            className={`grid gap-x-6 gap-y-2 border-b border-zinc-200 px-3 py-4 last:border-b-0 sm:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] sm:items-center ${
+              row.isCurrent ? 'rounded-2xl bg-zinc-50' : ''
+            }`}
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 sm:flex-col sm:items-start sm:justify-start">
+            {/* The tile reads top to bottom: name, the average-year number, how it compares, then the bad and good year. */}
+            <div className="grid gap-1">
               <span className="min-w-0 text-base font-medium leading-snug text-zinc-900">
                 <span>{row.title}</span>
                 {row.isCurrent ? (
@@ -127,9 +143,15 @@ export function MarginChart({ rows, scale, datasets }: { rows: MoneyRow[]; scale
                 ) : null}
               </span>
               {row.status === 'ready' ? (
-                <span className="shrink-0 text-base font-semibold text-zinc-900">
-                  <SourcedNumber value={average(row)} datasets={datasets} decimals={0} />
-                </span>
+                <>
+                  <span className="text-2xl font-bold tracking-tight text-zinc-950">
+                    <SourcedNumber value={average(row)} datasets={datasets} decimals={0} />
+                  </span>
+                  {!row.isCurrent && reference !== undefined ? <Difference diff={row.mean! - reference} unit={currency} /> : null}
+                  <span className="text-sm text-zinc-700">
+                    {t('steps.money.range', { low: fmt(row.low!), high: fmt(row.high!), unit: currency })}
+                  </span>
+                </>
               ) : null}
             </div>
 
