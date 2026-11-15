@@ -20,8 +20,10 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
     test('step 6 shows a money row for every rotation of step 5, in the same order', async ({ page }) => {
       await walkToPriorities(page, demo);
       await next(page);
-      const cards = await expectFourCards(page);
-      const titles = (await cards.getByRole('heading', { level: 2 }).allTextContents()).map((s) => s.trim());
+      // Step 5 shows one card at a time (#184), so the names come from its four picks, in the order step 5 shows them.
+      const picks = await expectFourCards(page);
+      const titles = await picks.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''));
+      expect(titles).toHaveLength(4);
       await next(page);
 
       await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 6 of 6');
@@ -29,7 +31,7 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       const rows = page.getByRole('figure').getByRole('group');
       await expect(rows).toHaveCount(titles.length);
       const names = await rows.evaluateAll((els) => els.map((el) => el.getAttribute('aria-label') ?? ''));
-      // The card heading may carry "Your rotation" or "Option n" next to the crops; the row name is the crops alone.
+      // A pick's name is "Your rotation: …" or "Option n: …" before the crops; the row name is the crops alone.
       names.forEach((name, i) => expect(titles[i]).toContain(name));
 
       // The current rotation has its average-year margin on the chart (both demo fields have money for it).
