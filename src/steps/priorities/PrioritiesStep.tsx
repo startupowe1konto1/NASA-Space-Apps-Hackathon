@@ -56,7 +56,7 @@ export function PrioritiesStep() {
             // squeezed into a narrow column between the icon and the switch.
             <label
               key={id}
-              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
+              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-2xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
                 on ? 'border-zinc-900 bg-lime-100' : 'border-zinc-300 bg-white hover:border-zinc-500'
               }`}
             >

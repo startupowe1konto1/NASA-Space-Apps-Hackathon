@@ -3,6 +3,7 @@
   "steps.rotations.goalNoData": "Ceny nie są jeszcze wczytane, więc płodozmiany są ułożone pod kątem ochrony gleby.",
   "steps.rotations.current": "Twój płodozmian",
   "steps.rotations.option": "Wariant {n}",
+  "steps.rotations.bestFor": "Najlepszy dla celu: {goal}",
   "steps.rotations.soilHealth": "Zdrowie gleby",
   "steps.rotations.climate": "Odporność na pogodę i klimat",
   "steps.rotations.goalTotal": "Wynik dla celu „{goal}”",

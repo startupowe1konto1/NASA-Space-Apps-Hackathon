@@ -101,11 +101,19 @@ export function RotationCard(props: {
   return (
     <article
       data-testid={`card-${r.id}`}
-      className="flex flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
+      className="flex flex-col overflow-hidden rounded-[20px] border border-zinc-200 bg-white"
     >
       <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
         <div className="grid content-start gap-5">
         <header className="grid gap-1.5">
+          {!r.isCurrent && rank === 1 ? (
+            <span className="mb-1 inline-flex w-fit items-center gap-2 rounded-xl bg-lime-300 px-3 py-1.5 text-sm font-bold text-zinc-950">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12 5 5 9-10" />
+              </svg>
+              {t('steps.rotations.bestFor', { goal: goalName })}
+            </span>
+          ) : null}
           <span
             className={`w-fit text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-zinc-500' : 'text-emerald-700'}`}
           >
@@ -142,7 +150,7 @@ export function RotationCard(props: {
         {calendar}
         </div>
 
-        <div className="grid content-start gap-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+        <div className="grid content-start gap-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
             <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />
             {t('steps.rotations.checkTitle')}

@@ -33,7 +33,7 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
   const best = options.reduce((a, b) => (b.mean! > a.mean! ? b : a));
   if (best.mean! <= current.mean!) {
     return (
-      <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base leading-snug text-zinc-800">
+      <p className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base leading-snug text-zinc-800">
         {t('steps.money.headlineNone')}
       </p>
     );
@@ -48,7 +48,7 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
   return (
     <p
       data-testid="money-headline"
-      className="rounded-xl border border-lime-300 bg-lime-100 px-4 py-3 text-base leading-relaxed text-zinc-950"
+      className="rounded-2xl border border-lime-300 bg-lime-100 px-4 py-3 text-base leading-relaxed text-zinc-950"
     >
       <Template
         code="steps.money.headline"
@@ -151,7 +151,7 @@ export function MoneyStep() {
     <div className="grid gap-5">
       <section
         aria-labelledby="money-title"
-        className="grid gap-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5"
+        className="grid gap-5 rounded-[20px] border border-zinc-200 bg-white p-4 sm:p-5"
       >
         <div className="grid gap-1.5">
           <h2 id="money-title" className="text-lg font-semibold text-zinc-900">
@@ -168,7 +168,7 @@ export function MoneyStep() {
         ) : (
           <p
             role="status"
-            className="rounded-xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-base text-amber-900"
+            className="rounded-2xl border border-amber-200 bg-amber-50/60 px-4 py-3 text-base text-amber-900"
           >
             {t('steps.money.noneReady')}
           </p>
@@ -177,7 +177,7 @@ export function MoneyStep() {
         <MarginChart rows={rows} scale={scale} datasets={data.datasets} />
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-[20px] border border-zinc-200 bg-white">
         {rows.map((row) => (
           <Details key={row.id} row={row} datasets={data.datasets} />
         ))}

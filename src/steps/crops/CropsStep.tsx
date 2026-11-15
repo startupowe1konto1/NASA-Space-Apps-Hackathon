@@ -125,7 +125,7 @@ function Confirm(props: {
       <h2 className="text-lg font-semibold text-zinc-900">{t('steps.crops.proposed')}</h2>
       <ul aria-label={t('steps.crops.listLabel')} className="grid gap-2">
         {[...visible].reverse().map((y) => (
-          <li key={y.year} className="grid gap-2 rounded-xl border-2 border-zinc-200 bg-white px-3 py-2">
+          <li key={y.year} className="grid gap-2 rounded-2xl border-2 border-zinc-200 bg-white px-3 py-2">
             <div className="flex min-h-11 items-center gap-3">
               <span className="w-12 shrink-0 text-base font-semibold tabular-nums text-zinc-700">{y.year}</span>
               <span className="shrink-0 text-zinc-900">
@@ -169,7 +169,7 @@ function Confirm(props: {
       <button
         type="button"
         onClick={() => onSave(shown)}
-        className="min-h-12 cursor-pointer rounded-xl bg-zinc-900 px-4 text-lg font-semibold text-white hover:bg-zinc-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40"
+        className="min-h-12 cursor-pointer rounded-2xl bg-zinc-900 px-4 text-lg font-semibold text-white hover:bg-zinc-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40"
       >
         {t('steps.crops.confirm')}
       </button>
