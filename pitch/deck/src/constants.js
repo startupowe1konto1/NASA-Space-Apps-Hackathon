@@ -23,7 +23,8 @@ export const LOCAL_EVENT = 'Poznań';
 export const SHOW_ENGINE_SLIDE = false;
 
 // The app's public URL. null until it is hosted; slide 7 then prints no link and no QR code.
-export const APP_URL = null;
+// The QR code image (assets/img/qr-app.png) encodes exactly this URL; change both together.
+export const APP_URL = 'https://cropshifter-demo.vercel.app/?lang=pl';
 
 // The PDF lives in the repo (pitch/out/deck.pdf) and becomes public with the repo.
 export const PDF_PATH = 'pitch/out/deck.pdf';

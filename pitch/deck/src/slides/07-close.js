@@ -18,6 +18,11 @@ const CSS = `
 .slide[data-name="close"] .ds b { display: block; font-weight: 500; font-size: 20px; line-height: 1.28; }
 .slide[data-name="close"] .ds i { display: block; font-style: normal; font-size: 16px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
 .slide[data-name="close"] .ds.nasa b { color: var(--text); }
+.slide[data-name="close"] .qr { position: absolute; left: calc(var(--margin) - 16px); bottom: 48px; display: flex; align-items: center; gap: 22px; z-index: 1;
+  padding: 16px 28px 16px 16px; border-radius: 10px; background: rgba(5, 7, 13, .9); }
+.slide[data-name="close"] .qr img { width: 168px; height: 168px; display: block; background: #fff; padding: 10px; border-radius: 6px; image-rendering: pixelated; }
+.slide[data-name="close"] .qr b { display: block; font-size: 26px; font-weight: 600; line-height: 1.25; }
+.slide[data-name="close"] .qr span { display: block; margin-top: 6px; font-size: 18px; color: var(--muted); }
 .slide[data-name="close"] .credits { margin-top: 4px; font-size: 16px; line-height: 1.45; color: #b4bdc9; }
 `;
 
@@ -62,7 +67,9 @@ export default {
     if (!document.getElementById('slide7-css')) {
       const st = document.createElement('style'); st.id = 'slide7-css'; st.textContent = CSS; document.head.append(st);
     }
-    const link = APP_URL ? `<small>App</small><div>${esc(APP_URL)}</div>` : '';
+    // The QR code sits bottom-left with the owner's Polish invitation (Sun 15 Nov 2026); the URL is printed under it.
+    const qr = APP_URL ? `<div class="qr"><img src="assets/img/qr-app.png" alt="QR code: ${esc(APP_URL)}">
+      <div><b>Zapraszamy do skorzystania</b><span>${esc(APP_URL.replace(/^https:\/\//, ''))}</span></div></div>` : '';
     const nasaHtml = nasa.map((d) => `<div class="ds nasa" data-id="${d.id}"><b>${esc(short(d.name))}</b></div>`).join('');
     const otherHtml = [...providers].map(([p, list]) =>
       `<div class="ds" data-id="${list.map((d) => d.id).join(' ')}"><i style="margin:0 0 3px">${esc(p)}</i>${
@@ -75,10 +82,10 @@ export default {
           <div class="two"><div><small>Team</small><div>${esc(TEAM)}</div></div>
           <div><small>Members</small>${MEMBERS.map((m) => `<div>${esc(m)}</div>`).join('')}</div></div>
           <small>Challenge</small><div>${esc(EVENT)}</div><div>${esc(CHALLENGE)}</div>
-          ${link}
           <div class="ai">Built with AI assistance; details on the project page.</div>
         </div>
       </div>
+      ${qr}
       <div class="scrim"></div>
       <div class="panel">
         <div class="grp"><h3>NASA</h3>${nasaHtml}</div>
