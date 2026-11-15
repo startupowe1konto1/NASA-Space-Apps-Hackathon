@@ -18,8 +18,11 @@ import close from './slides/07-close.js';
 //                 for the same step, and from any earlier state: the stage calls it with ctx.instant = true to finish
 //                 a step early, to go back, and to open the deck at a URL such as #4.2.
 //  final(ctx)     the final state of the whole slide (print mode, reduced motion).
-//  stepMs         optional: how long a step's own animation takes (default 700). In a played sequence the next step
-//                 starts when this time and the camera move are both over.
+//  stepMs         optional: how long a step's own animation takes (default 700), one number for every step or a list
+//                 with one entry per step (index = step). In a played sequence the next step starts when this time and
+//                 the camera move are both over.
+// Animation order, the same on every slide: step 0 moves the camera and shows no text; then the left text column
+// appears block by block from the top (eyebrow and title first), then the right-hand panel, then the footnote.
 // ctx: { scene, el, data, constants, stage, index, instant, setWash(left, right) }.
 // Slide numbers (#n.step, data-slide, assets/stills/0n.png) follow this list, so they shift when a slide is left out.
 // Scripts find a slide by its name (data-name) and read the count from #stage[data-count].
@@ -102,8 +105,14 @@ function show(slide, step, { instant = false, final = false } = {}) {
     // Transitions come back after two frames, once the final state has been painted.
     instantTimer = requestAnimationFrame(() => { instantTimer = requestAnimationFrame(() => stageEl.classList.remove('instant')); });
   } else {
-    busyUntil = performance.now() + Math.max(scene.eta() * 1000, mod.stepMs ?? 700);
+    busyUntil = performance.now() + Math.max(scene.eta() * 1000, stepMsOf(mod, step));
   }
+}
+
+/** A step's own animation time: `stepMs` is one number for every step or a list indexed by step. */
+function stepMsOf(mod, step) {
+  const ms = Array.isArray(mod.stepMs) ? mod.stepMs[step] : mod.stepMs;
+  return ms ?? 700;
 }
 
 // For the export, recording and walk scripts: true while a slide's sequence or its last animation is still running.
@@ -112,7 +121,7 @@ window.deckBusy = () => playing || performance.now() < busyUntil;
 function stopPlay() { clearTimeout(playTimer); playTimer = 0; playing = false; }
 
 /** Wait until the current step's own animation and the camera have finished. */
-function stepWaitMs(mod) { return Math.max(scene.eta() * 1000 + 150, mod.stepMs ?? 700); }
+function stepWaitMs(mod) { return Math.max(scene.eta() * 1000 + 150, stepMsOf(mod, pos.step)); }
 
 /** Plays a slide from its first step to its last, one after another, on a single key press. */
 function play(slide) {

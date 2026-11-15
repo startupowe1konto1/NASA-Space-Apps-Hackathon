@@ -7,4 +7,7 @@ class H(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
     def log_message(self, *a): pass
 port, root = int(sys.argv[1]), sys.argv[2]
+# The deck asks for about 30 files at once. With the default backlog of 5, Windows refuses the rest when two browsers
+# load it together, a module fails and the page stays black.
+http.server.ThreadingHTTPServer.request_queue_size = 128
 http.server.ThreadingHTTPServer(('127.0.0.1', port), functools.partial(H, directory=root)).serve_forever()

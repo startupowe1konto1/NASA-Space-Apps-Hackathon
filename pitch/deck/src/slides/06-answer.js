@@ -31,7 +31,8 @@ const CSS = `
 
 function toolSlide({ title, shots, rule, foot, top, viewH }) {
   return {
-    steps: 2,          // 1: left screenshot, 2: right screenshot (and the closing sentence on tool-2)
+    // 0: the camera, 1: title, 2: left screenshot, 3: right screenshot, 4 (tool-2 only): the closing sentence.
+    steps: rule ? 4 : 3,
     stepMs: 900,
     mount(ctx) {
       if (!document.getElementById('s-tool-css')) {
@@ -40,12 +41,12 @@ function toolSlide({ title, shots, rule, foot, top, viewH }) {
       ctx.el.classList.add('s-tool');
       ctx.el.innerHTML = `
         <div class="copy">
-          <div class="eyebrow">The tool</div>
-          <div class="title">${title}</div>
+          <div class="eyebrow" data-from="1">The tool</div>
+          <div class="title" data-from="1">${title}</div>
         </div>
         <div class="pair"></div>
         ${rule ? `<div class="rule">${rule}</div>` : ''}
-        ${foot ? `<div class="foot">${foot}</div>` : ''}`;
+        ${foot ? `<div class="foot" data-from="4">${foot}</div>` : ''}`;
       const pair = ctx.el.querySelector('.pair');
       pair.style.top = `${top}px`;
       this.aspects = shots.map(() => 1.6);
@@ -87,9 +88,9 @@ function toolSlide({ title, shots, rule, foot, top, viewH }) {
     },
     enter(step, ctx) {
       ctx.scene.goTo('field', { instant: ctx.instant });
-      ctx.setWash(1, 0.6);
-      this.boxes.forEach((b, i) => b.classList.toggle('on', step >= i + 1));
-      this.rule?.classList.toggle('on', step >= 2);
+      ctx.setWash(step >= 1 ? 1 : 0, step >= 2 ? 0.6 : 0);
+      this.boxes.forEach((b, i) => b.classList.toggle('on', step >= i + 2));
+      this.rule?.classList.toggle('on', step >= 4);
     },
     final(ctx) { this.enter(this.steps, ctx); },
   };

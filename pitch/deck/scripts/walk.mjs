@@ -31,7 +31,7 @@ async function settle(label) {
 await settle('start');
 // Press until the last slide is reached; the manual slide (answer) takes one press per step.
 const count = Number(await page.evaluate(() => document.getElementById('stage').dataset.count));
-for (let i = 0; i < 40 && (await state()) !== `${count}.0`; i++) {
+for (let i = 0; i < 40 && (await state()).split('.')[0] !== String(count); i++) {
   await page.keyboard.press('ArrowRight');
   await settle(`press${String(i + 1).padStart(2, '0')}`);
 }

@@ -26,5 +26,9 @@ export const SHOW_ENGINE_SLIDE = false;
 // The QR code image (assets/img/qr-app.png) encodes exactly this URL; change both together.
 export const APP_URL = 'https://cropshifter-demo.vercel.app/?lang=pl';
 
+// The scale line on slide 2. Source: FAO newsroom, 14 April 2021, "Small family farmers produce a third of the world's
+// food", https://www.fao.org/newsroom/detail/small-family-farmers-produce-a-third-of-the-world-s-food/en
+export const FARMS_WORLD = { lead: 'Over 608 million', rest: 'family farms worldwide decide like Jan.', source: 'FAO, 2021' };
+
 // The PDF lives in the repo (pitch/out/deck.pdf) and becomes public with the repo.
 export const PDF_PATH = 'pitch/out/deck.pdf';
