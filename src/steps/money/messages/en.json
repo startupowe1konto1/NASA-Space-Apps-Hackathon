@@ -34,8 +34,11 @@
   "steps.money.v.noMoney": "no income data yet",
   "steps.money.deltaMore": "{n} more than your rotation",
   "steps.money.deltaLess": "{n} less than your rotation",
-  "steps.money.payments": "Confirmed payments for {name}",
-  "steps.money.paymentsNone": "No confirmed payments found for {name}.",
+  "steps.money.payments": "Possible {payments}",
+  "steps.money.paymentsNone": "None of the farm payments we checked apply to {name}.",
   "steps.money.more": "Bad and good years, payments and sources",
-  "steps.money.switchTitle": "Switch or stay?"
+  "steps.money.switchTitle": "Switch or stay?",
+  "steps.money.paymentsHow.US": "Paid by NRCS (USDA) each year, on top of the income above, if you apply, meet the conditions and are selected.",
+  "steps.money.paymentsHow.PL": "Paid by ARiMR each year, on top of the income above, if you apply and meet the conditions.",
+  "steps.money.perYear": "a year"
 }

@@ -6,6 +6,7 @@ import { Fragment, useState, type ReactNode } from 'react';
 import { t } from '../../app/i18n';
 import type { Analysis, GoalId, RotationOption, Sourced } from '../../contracts';
 import { SourcedNumber } from '../../ui-kit';
+import { TermText } from '../cards/TermText';
 import type { MoneyRow } from './moneyRows';
 
 const fmt = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n);
@@ -48,15 +49,19 @@ function Delta({ n }: { n: number }) {
 
 const average = (row: MoneyRow): Sourced => ({ ...row.margin!, range: undefined });
 
-function confirmedSum(row: MoneyRow): Sourced | null {
+/** Confirmed payments only: the engine adds just these to the income, and so does this bar. */
+function confirmedSum(row: MoneyRow): { sum: Sourced; names: string[] } | null {
   const paid = (row.money?.payments ?? []).filter((p) => p.confirmed && p.amountPerHa.value !== null);
   if (paid.length === 0) return null;
   return {
-    value: paid.reduce((sum, p) => sum + p.amountPerHa.value!, 0),
-    unit: paid[0]!.amountPerHa.unit,
-    datasetIds: [...new Set(paid.flatMap((p) => p.amountPerHa.datasetIds))],
-    kind: 'derived',
-    retrievedAt: paid[0]!.amountPerHa.retrievedAt,
+    sum: {
+      value: paid.reduce((sum, p) => sum + p.amountPerHa.value!, 0),
+      unit: paid[0]!.amountPerHa.unit,
+      datasetIds: [...new Set(paid.flatMap((p) => p.amountPerHa.datasetIds))],
+      kind: 'derived',
+      retrievedAt: paid[0]!.amountPerHa.retrievedAt,
+    },
+    names: [...new Set(paid.map((p) => p.programme))],
   };
 }
 
@@ -220,21 +225,33 @@ export function SwitchOrStay({ rows, analysis, goal }: { rows: MoneyRow[]; analy
       </div>
 
       {picked.status === 'ready' ? (
-        <p
-          data-testid="money-payments"
-          className="flex min-h-16 flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-[20px] border border-zinc-200 bg-white px-5 py-3 text-[15px] text-zinc-800"
-        >
+        <div data-testid="money-payments" className="grid min-h-16 gap-1.5 rounded-[20px] border border-zinc-200 bg-white px-5 py-4 text-[15px] text-zinc-800">
           {paid ? (
             <>
-              <span>{t('steps.money.payments', { name: optionName })}</span>
-              <span className="text-lg font-bold text-zinc-950">
-                + <SourcedNumber value={paid} datasets={analysis.datasets} decimals={0} />
-              </span>
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                <span className="font-semibold text-zinc-950">
+                  <TermText code="steps.money.payments" terms={{ payments: 'farm-payment' }} />
+                </span>
+                <span className="text-lg font-bold text-zinc-950">
+                  + <SourcedNumber value={paid.sum} datasets={analysis.datasets} decimals={0} />
+                </span>
+              </div>
+              <p className="text-sm leading-snug text-zinc-700">
+                {t(picked.money!.currency === 'USD' ? 'steps.money.paymentsHow.US' : 'steps.money.paymentsHow.PL')}
+              </p>
+              <ul className="grid gap-0.5 text-sm text-zinc-700">
+                {paid.names.map((name) => (
+                  <li key={name} className="flex gap-2">
+                    <span aria-hidden="true">·</span>
+                    {name}
+                  </li>
+                ))}
+              </ul>
             </>
           ) : (
-            <span>{t('steps.money.paymentsNone', { name: optionName })}</span>
+            <p>{t('steps.money.paymentsNone', { name: optionName })}</p>
           )}
-        </p>
+        </div>
       ) : null}
     </section>
   );

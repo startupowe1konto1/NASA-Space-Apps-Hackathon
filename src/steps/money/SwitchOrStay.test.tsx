@@ -6,6 +6,7 @@ import { t } from '../../app/i18n';
 import type { MoneyEstimate, RotationOption } from '../../contracts';
 import { iowaAnalysis } from '../../fixtures';
 import { moneyRows } from './moneyRows';
+import { term } from '../glossary/useTerm';
 import { SwitchOrStay } from './SwitchOrStay';
 import { estimate, withMoney } from './testMoney';
 
@@ -84,5 +85,15 @@ describe('SwitchOrStay', () => {
     const bar = await screen.findByTestId('money-payments');
     expect(bar).toHaveTextContent('49');
     expect(bar).not.toHaveTextContent('79');
+  });
+
+  // O1-F15: the bar says what a payment is, who pays it and that it comes on top of the income, and names the programmes.
+  it('explains the payments and names only the confirmed programmes', async () => {
+    draw();
+    const bar = await screen.findByTestId('money-payments');
+    expect(within(bar).getByRole('button', { name: new RegExp(term('farm-payment').label, 'i') })).toBeInTheDocument();
+    expect(bar).toHaveTextContent(t('steps.money.paymentsHow.US'));
+    expect(bar).toHaveTextContent('Confirmed programme');
+    expect(bar).not.toHaveTextContent('Unconfirmed programme');
   });
 });
