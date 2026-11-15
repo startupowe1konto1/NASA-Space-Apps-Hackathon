@@ -8,7 +8,7 @@ import { areaHa } from '../area';
 import { toWgs84 } from './reproject';
 
 export const ULDK_SOURCE = 'GUGiK ULDK';
-const ULDK_URL = 'https://uldk.gugik.gov.pl/';
+export const ULDK_URL = 'https://uldk.gugik.gov.pl/';
 const TIMEOUT_MS = 15_000;
 
 export interface UldkParcel {
