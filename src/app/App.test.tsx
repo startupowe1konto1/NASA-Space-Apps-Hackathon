@@ -150,12 +150,16 @@ describe('step shell on fixtures', () => {
     await user.click(screen.getByRole('button', { name: 'Next' }));
 
     await screen.findByText('Your rotation', undefined, { timeout: 3000 });
-    const cards = screen.getAllByRole('article');
-    expect(cards).toHaveLength(4);
-    for (const card of cards) {
-      expect(card).toHaveTextContent('What we do not know');
-      expect(card).toHaveTextContent('Check locally');
-      expect(card).toHaveTextContent('This is decision support.');
+    // Step 5 offers the shown rotations as picks and opens one card at a time (O4-S5v).
+    const picks = within(screen.getByRole('radiogroup', { name: 'Rotations to compare' })).getAllByRole('radio');
+    expect(picks).toHaveLength(4);
+    for (const pick of picks) {
+      await user.click(pick);
+      const cards = screen.getAllByRole('article');
+      expect(cards).toHaveLength(1);
+      expect(cards[0]).toHaveTextContent('What we do not know');
+      expect(cards[0]).toHaveTextContent('Check locally');
+      expect(cards[0]).toHaveTextContent('This is decision support.');
     }
 
     const state = useAppStore.getState();
@@ -181,7 +185,10 @@ describe('step shell on fixtures', () => {
 
     const analysis = useAppStore.getState().analysis;
     if (analysis.status !== 'ready') throw new Error('analysis should be ready');
-    const order = () => screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    const order = () =>
+      within(screen.getByRole('radiogroup', { name: 'Rotations to compare' }))
+        .getAllByRole('radio')
+        .map((b) => b.getAttribute('aria-label'));
     const before = order();
 
     useAppStore.getState().setGoal('improveSoil');

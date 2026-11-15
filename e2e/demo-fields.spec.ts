@@ -21,8 +21,10 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
     test('each card has a calendar strip and at least one source chip behind its evidence', async ({ page }) => {
       await walkToPriorities(page, demo);
       await next(page);
-      const cards = await expectFourCards(page);
-      for (const card of await cards.all()) {
+      const picks = await expectFourCards(page);
+      for (const pick of await picks.all()) {
+        await pick.click();
+        const card = page.getByRole('article');
         await expect(card.getByRole('table', { name: /calendar/i })).toHaveCount(1);
         await card.locator('summary', { hasText: 'Evidence' }).click();
         await expect(card.getByRole('button', { name: /source/i }).first()).toBeVisible();
