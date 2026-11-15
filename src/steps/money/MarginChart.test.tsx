@@ -106,4 +106,13 @@ describe('MarginChart', () => {
       if (!row.isCurrent) expect(line).toHaveTextContent(fmt(Math.abs(row.mean! - current!.mean!)));
     }
   });
+
+  it('ranks the options best first and marks only the best one, when it earns more', async () => {
+    const { options } = draw();
+    const first = await screen.findByRole('group', { name: options[0]!.title });
+    expect(first).toHaveTextContent(t('steps.money.best'));
+    for (const option of options.slice(1)) {
+      expect(screen.getByRole('group', { name: option.title })).not.toHaveTextContent(t('steps.money.best'));
+    }
+  });
 });

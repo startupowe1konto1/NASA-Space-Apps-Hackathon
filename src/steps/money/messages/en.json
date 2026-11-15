@@ -4,7 +4,7 @@
   "steps.money.current": "Your rotation",
   "steps.money.reference": "Your rotation, the reference",
   "steps.money.average": "average year, per hectare",
-  "steps.money.options": "The other options, compared with your rotation",
+  "steps.money.options": "The other options, from the best to the weakest against your rotation",
   "steps.money.more": "more than your rotation",
   "steps.money.less": "less than your rotation",
   "steps.money.same": "the same as your rotation",
@@ -21,5 +21,6 @@
   "steps.money.col.diff": "Difference from your rotation, average year",
   "steps.money.col.payments": "Confirmed payments per hectare",
   "steps.money.col.none": "none",
-  "steps.money.chart": "Margin per hectare in an average year, each option against your rotation"
+  "steps.money.chart": "Margin per hectare in an average year, each option against your rotation",
+  "steps.money.best": "Best option"
 }

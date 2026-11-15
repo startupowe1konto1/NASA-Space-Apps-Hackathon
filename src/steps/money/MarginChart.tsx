@@ -89,11 +89,11 @@ function DiffBar({ diff, pct, label }: { diff: number; pct: (d: number) => numbe
   const width = Math.abs(end - 50);
   const more = diff >= 0;
   return (
-    <div role="img" aria-label={label} className="relative h-8">
+    <div role="img" aria-label={label} className="relative h-7 rounded-md bg-slate-50">
       <div aria-hidden="true" className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-slate-200" />
       <div
         data-part="bar"
-        className={`absolute top-1/2 h-5 -translate-y-1/2 ${
+        className={`absolute top-1/2 h-4 -translate-y-1/2 ${
           more ? 'rounded-r-md bg-emerald-600' : 'rounded-l-md bg-red-600'
         }`}
         style={{ left: `${left}%`, width: `${width}%` }}
@@ -103,6 +103,109 @@ function DiffBar({ diff, pct, label }: { diff: number; pct: (d: number) => numbe
         aria-hidden="true"
         className="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 bg-slate-800"
       />
+    </div>
+  );
+}
+
+/**
+ * One option as a card, ranked best first: its place, how much more or less it earns than your rotation in large
+ * type, a word for the direction, and the bar from the centre line. The colour repeats what the words say.
+ */
+function OptionCard(props: {
+  row: MoneyRow & { diff?: number };
+  rank?: number;
+  best: boolean;
+  reference?: MoneyRow;
+  pct: (d: number) => number;
+  currency: string;
+  datasets: Dataset[];
+}) {
+  const { row, rank, best, reference, pct, currency, datasets } = props;
+  const diff = row.diff;
+  const tone = diff === undefined ? 'none' : Math.round(diff) > 0 ? 'more' : Math.round(diff) < 0 ? 'less' : 'same';
+  const accent = {
+    more: 'border-l-emerald-600',
+    less: 'border-l-red-500',
+    same: 'border-l-slate-400',
+    none: 'border-l-slate-300',
+  }[tone];
+  const badge = {
+    more: 'bg-emerald-600 text-white',
+    less: 'bg-red-50 text-red-800 ring-1 ring-red-200',
+    same: 'bg-slate-200 text-slate-800',
+    none: 'bg-slate-100 text-slate-500',
+  }[tone];
+  const sign = tone === 'more' ? '+' : tone === 'less' ? '−' : '';
+
+  return (
+    <div
+      role="group"
+      aria-label={row.title}
+      className={`grid gap-3 rounded-xl border border-l-4 border-slate-200 bg-white p-4 shadow-sm ${accent}`}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          aria-hidden="true"
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-base font-bold tabular-nums ${badge}`}
+        >
+          {rank ?? '–'}
+        </span>
+        <div className="grid min-w-0 flex-1 gap-1">
+          {best ? (
+            <span className="w-fit rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-emerald-900">
+              {t('steps.money.best')}
+            </span>
+          ) : null}
+          <span className="text-base font-semibold leading-snug text-slate-900">{row.title}</span>
+        </div>
+      </div>
+
+      {diff !== undefined && reference ? (
+        <>
+          <div className="grid gap-0.5">
+            <div className="flex items-baseline gap-x-1.5 text-xl sm:text-2xl">
+              <span
+                aria-hidden="true"
+                className={`font-bold ${tone === 'more' ? 'text-emerald-700' : tone === 'less' ? 'text-red-700' : 'text-slate-700'}`}
+              >
+                {sign}
+              </span>
+              <SourcedNumber value={difference(row, reference, diff)} datasets={datasets} decimals={0} />
+            </div>
+            <span
+              className={`text-sm font-medium ${tone === 'more' ? 'text-emerald-800' : tone === 'less' ? 'text-red-800' : 'text-slate-700'}`}
+            >
+              {direction(diff)}
+            </span>
+          </div>
+          <div className="grid gap-1">
+            <DiffBar
+              diff={diff}
+              pct={pct}
+              label={t('steps.money.barLabel', {
+                name: row.title,
+                diff: fmt(Math.abs(diff)),
+                unit: currency,
+                direction: direction(diff),
+              })}
+            />
+            <div aria-hidden="true" className="grid grid-cols-3 text-xs text-slate-500">
+              <span>{t('steps.money.axisLess')}</span>
+              <span className="text-center font-medium text-slate-700">{t('steps.money.current')}</span>
+              <span className="text-right">{t('steps.money.axisMore')}</span>
+            </div>
+          </div>
+        </>
+      ) : row.status === 'ready' ? (
+        <span className="text-lg">
+          <SourcedNumber value={average(row)} datasets={datasets} decimals={0} />
+        </span>
+      ) : (
+        <div className="grid gap-1">
+          <div aria-hidden="true" className="h-5 rounded-md border border-dashed border-slate-300" />
+          <Reason row={row} />
+        </div>
+      )}
     </div>
   );
 }
@@ -121,67 +224,22 @@ export function MarginChart({ rows, datasets }: { rows: MoneyRow[]; datasets: Da
 
       {current ? <Reference row={current} datasets={datasets} /> : null}
 
-      <div className="grid gap-1">
-        <h3 className="text-sm font-semibold text-slate-900">{t('steps.money.options')}</h3>
+      <div className="grid gap-3">
+        <h3 className="text-base font-semibold text-slate-900">{t('steps.money.options')}</h3>
         {reference ? null : <p className="text-sm text-slate-700">{t('steps.money.noReference')}</p>}
 
-        {reference && options.some((o) => o.diff !== undefined) ? (
-          <div
-            aria-hidden="true"
-            className="grid grid-cols-2 pt-1 text-xs font-medium uppercase tracking-wide text-slate-600 md:ml-[calc(22rem+1.5rem)]"
-          >
-            <span className="pr-2 text-right">← {t('steps.money.axisLess')}</span>
-            <span className="pl-2">{t('steps.money.axisMore')} →</span>
-          </div>
-        ) : null}
-
-        <div className="grid">
-          {options.map((row) => (
-            <div
+        <div className="grid gap-3 lg:grid-cols-2">
+          {options.map((row, i) => (
+            <OptionCard
               key={row.id}
-              role="group"
-              aria-label={row.title}
-              className="grid gap-x-6 gap-y-1.5 border-b border-slate-200 py-3 last:border-b-0 md:grid-cols-[22rem_minmax(0,1fr)] md:items-center"
-            >
-              <div className="grid gap-0.5">
-                <span className="text-base font-medium leading-snug text-slate-900">{row.title}</span>
-                {row.status === 'ready' && row.diff === undefined ? (
-                  <span className="text-sm text-slate-700">
-                    <SourcedNumber value={average(row)} datasets={datasets} decimals={0} />
-                  </span>
-                ) : null}
-              </div>
-
-              {row.diff !== undefined && reference ? (
-                <div className="grid gap-1">
-                  <DiffBar
-                    diff={row.diff}
-                    pct={pct}
-                    label={t('steps.money.barLabel', {
-                      name: row.title,
-                      diff: fmt(Math.abs(row.diff)),
-                      unit: currency,
-                      direction: direction(row.diff),
-                    })}
-                  />
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-800">
-                    <span
-                      className={`text-base font-semibold ${row.diff >= 0 ? 'text-emerald-800' : 'text-red-800'}`}
-                      aria-hidden="true"
-                    >
-                      {Math.round(row.diff) > 0 ? '+' : Math.round(row.diff) < 0 ? '−' : ''}
-                    </span>
-                    <SourcedNumber value={difference(row, reference, row.diff)} datasets={datasets} decimals={0} />
-                    <span>{direction(row.diff)}</span>
-                  </div>
-                </div>
-              ) : row.status === 'ready' ? null : (
-                <div className="grid gap-1">
-                  <div aria-hidden="true" className="h-5 rounded-md border border-dashed border-slate-300" />
-                  <Reason row={row} />
-                </div>
-              )}
-            </div>
+              row={row}
+              rank={row.diff !== undefined ? i + 1 : undefined}
+              best={i === 0 && (row.diff ?? 0) > 0}
+              reference={reference}
+              pct={pct}
+              currency={currency}
+              datasets={datasets}
+            />
           ))}
         </div>
       </div>

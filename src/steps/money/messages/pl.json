@@ -4,7 +4,7 @@
   "steps.money.current": "Twój płodozmian",
   "steps.money.reference": "Twój płodozmian, punkt odniesienia",
   "steps.money.average": "przeciętny rok, na hektar",
-  "steps.money.options": "Pozostałe opcje w porównaniu z twoim płodozmianem",
+  "steps.money.options": "Pozostałe opcje, od najlepszej do najsłabszej względem twojego płodozmianu",
   "steps.money.more": "więcej niż twój płodozmian",
   "steps.money.less": "mniej niż twój płodozmian",
   "steps.money.same": "tyle samo co twój płodozmian",
@@ -21,5 +21,6 @@
   "steps.money.col.diff": "Różnica względem twojego płodozmianu, przeciętny rok",
   "steps.money.col.payments": "Potwierdzone dopłaty na hektar",
   "steps.money.col.none": "brak",
-  "steps.money.chart": "Nadwyżka na hektar w przeciętnym roku, każda opcja względem twojego płodozmianu"
+  "steps.money.chart": "Nadwyżka na hektar w przeciętnym roku, każda opcja względem twojego płodozmianu",
+  "steps.money.best": "Najlepsza opcja"
 }
