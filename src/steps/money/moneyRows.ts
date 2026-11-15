@@ -54,52 +54,28 @@ export function moneyRows(analysis: Analysis, goal: GoalId): MoneyRow[] {
   );
 }
 
-export interface MoneyScale {
-  domain: [number, number];
-  ticks: number[];
-  /** Position of a value on the axis, 0–100, for CSS left and width. */
-  pct(value: number): number;
-}
-
-const STEPS = [1, 2, 5];
-
-/** The ticks of a 1, 2 or 5 × 10ⁿ step that fall inside lo..hi. */
-function ticksFor(lo: number, hi: number, step: number): number[] {
-  const out: number[] = [];
-  for (let i = Math.ceil(lo / step - 1e-9); i * step <= hi + 1e-9; i++) out.push(Number((i * step).toPrecision(12)));
-  return out;
-}
-
-/** The finest 1, 2 or 5 × 10ⁿ step that gives 3 to 5 ticks inside lo..hi. */
-function niceTicks(lo: number, hi: number): number[] {
-  let exp = Math.floor(Math.log10((hi - lo) / 5)) - 1;
-  for (let guard = 0; guard < 8; guard++, exp++) {
-    for (const s of STEPS) {
-      const ticks = ticksFor(lo, hi, s * 10 ** exp);
-      if (ticks.length <= 5) return ticks.length >= 3 ? ticks : ticksFor(lo, hi, (s * 10 ** exp) / 2);
-    }
-  }
-  return [lo, hi];
+export interface Comparison {
+  /** The farmer's rotation, the reference every option is measured against. */
+  current?: MoneyRow;
+  /** The other rotations: those with money first, by how much more they earn than the reference, then the rest. */
+  options: (MoneyRow & { diff?: number })[];
+  /** Position of a difference on a bar centred on the reference, 0–100 with the reference at 50. */
+  pct(diff: number): number;
 }
 
 /**
- * One axis for every row: from the lowest bad year (or 0) to the highest good year (or 0), widened by 5% each side.
- * Zero is always inside, so a negative margin reads as a loss against a visible zero. The ticks are the 1, 2 or 5 step
- * values inside that range, so the bars use the width instead of an axis rounded out to empty space.
+ * The options against the farmer's rotation in an average year. A difference needs both average years, so with no
+ * reference the options keep their own numbers and no difference.
  */
-export function moneyScale(rows: MoneyRow[]): MoneyScale {
-  const ready = rows.filter((r) => r.status === 'ready');
-  let lo = Math.min(0, ...ready.map((r) => r.low!));
-  let hi = Math.max(0, ...ready.map((r) => r.high!));
-  if (hi - lo === 0) hi = 1;
-  const pad = (hi - lo) * 0.05;
-  if (lo < 0) lo -= pad;
-  hi += pad;
-  const domain: [number, number] = [lo, hi];
-
-  const pct = (value: number) => {
-    const p = ((value - domain[0]) / (domain[1] - domain[0])) * 100;
-    return Math.min(100, Math.max(0, p));
-  };
-  return { domain, ticks: ready.length ? niceTicks(lo, hi) : [], pct };
+export function compareRows(rows: MoneyRow[]): Comparison {
+  const current = rows.find((r) => r.isCurrent);
+  const ref = current?.status === 'ready' ? current.mean! : undefined;
+  const options = rows
+    .filter((r) => !r.isCurrent)
+    .map((r) => ({ ...r, diff: ref !== undefined && r.status === 'ready' ? r.mean! - ref : undefined }));
+  const withMoney = options.filter((o) => o.diff !== undefined).sort((a, b) => b.diff! - a.diff!);
+  const without = options.filter((o) => o.diff === undefined);
+  const maxAbs = Math.max(0, ...withMoney.map((o) => Math.abs(o.diff!)));
+  const pct = (diff: number) => (maxAbs === 0 ? 50 : 50 + (diff / maxAbs) * 50);
+  return { current, options: [...withMoney, ...without], pct };
 }

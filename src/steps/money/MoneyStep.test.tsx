@@ -8,7 +8,7 @@ import type { Analysis, RotationOption } from '../../contracts';
 import { iowaAnalysis } from '../../fixtures';
 import { term } from '../glossary/useTerm';
 import { MoneyStep } from './MoneyStep';
-import { moneyRows } from './moneyRows';
+import { compareRows, moneyRows } from './moneyRows';
 import { estimate, withMoney } from './testMoney';
 
 const ids = iowaAnalysis.shownByGoal.keepSoil ?? [];
@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describe('MoneyStep', () => {
-  it('shows the title, the margin term and one row per rotation in step 5 order', async () => {
+  it('shows the title, the margin term, your rotation first and every other rotation of step 5', async () => {
     const analysis = withMoney(iowaAnalysis, money());
     ready(analysis);
     render(<MoneyStep />);
@@ -61,7 +61,9 @@ describe('MoneyStep', () => {
     const names = within(chart)
       .getAllByRole('group')
       .map((g) => g.getAttribute('aria-label'));
-    expect(names).toEqual(moneyRows(analysis, 'keepSoil').map((r) => r.title));
+    const { current, options } = compareRows(moneyRows(analysis, 'keepSoil'));
+    expect(names).toEqual([`${t('steps.money.reference')}: ${current!.title}`, ...options.map((o) => o.title)]);
+    expect(new Set(options.map((o) => o.id))).toEqual(new Set(ids.filter((id) => !isCurrent(id))));
     expect(screen.getByText(t('steps.rotations.income.notForecast'))).toBeInTheDocument();
     expect(screen.getByText(t('app.support'))).toBeInTheDocument();
   });
@@ -94,9 +96,12 @@ describe('MoneyStep', () => {
     const details = await screen.findAllByTestId('money-details');
     expect(details).toHaveLength(rows.length);
     const user = userEvent.setup();
-    await user.click(within(details[0]!).getByText(rows[0]!.title));
+    // The disclosures follow the chart, so the first one is the farmer's rotation.
+    const first = compareRows(rows).current!;
+    expect(details[0]!).toHaveTextContent(first.title);
+    await user.click(details[0]!.querySelector('summary')!);
     expect(details[0]!).toHaveTextContent(t('steps.rotations.income.bad'));
-    expect(details[0]!).toHaveTextContent(fmt(rows[0]!.high!));
+    expect(details[0]!).toHaveTextContent(fmt(first.high!));
     expect(details[0]!).toHaveTextContent(t('steps.rotations.income.payments'));
     expect(details[0]!).toHaveTextContent(t('steps.rotations.income.campaign', { campaign: 'test campaign 2026' }));
   });
@@ -157,5 +162,63 @@ describe('MoneyStep', () => {
     act(() => setLang('pl'));
     render(<MoneyStep />);
     expect(await screen.findByRole('heading', { name: t('steps.money.title') })).toHaveTextContent('Ile zarobiłby');
+  });
+
+  it('shows the payment names, the campaign and the source details in Polish under Polish', async () => {
+    const payments = [
+      {
+        programme: 'Eco-scheme carbon farming: straw mixed into the soil',
+        amountPerHa: {
+          value: 62,
+          unit: 'PLN/ha per year',
+          datasetIds: ['pl-eco-scheme-2026'],
+          kind: 'observation' as const,
+          retrievedAt: '2026-11-14',
+        },
+        condition: { code: 'money.condition.pl-straw' },
+        confirmed: false,
+      },
+    ];
+    const m: RotationOption['money'][] = ids.map((id) => ({
+      status: 'ready',
+      data: {
+        ...estimate(isCurrent(id) ? 650 : 900, 100, 1200, 'PLN', payments),
+        campaign:
+          'campaign 2026: grain and rapeseed prices of 2-8 Nov 2026, other prices 2025 or Sep 2026, WODR costs Feb 2026; eco-scheme rates are 2026 estimates, check ARiMR',
+      },
+    }));
+    const analysis = withMoney(iowaAnalysis, m);
+    ready({
+      ...analysis,
+      datasets: [
+        ...analysis.datasets,
+        {
+          id: 'pl-eco-scheme-2026',
+          name: 'Estimated 2026 eco-scheme rates',
+          provider: 'Polish Ministry of Agriculture and ARiMR',
+          url: 'https://www.gov.pl/',
+          nasa: false,
+          resolution: 'Poland',
+          period: '2026 estimates for advance payments (19 Aug 2026)',
+          kind: 'observation',
+        },
+      ],
+    });
+    act(() => setLang('pl'));
+    render(<MoneyStep />);
+    const details = (await screen.findAllByTestId('money-details'))[0]!;
+    const user = userEvent.setup();
+    await user.click(details.querySelector('summary')!);
+    expect(details).toHaveTextContent('Ekoschemat „Rolnictwo węglowe”: wymieszanie słomy z glebą');
+    expect(details).toHaveTextContent('PLN/ha rocznie');
+    expect(details).toHaveTextContent(t('money.condition.pl-straw'));
+    expect(t('money.condition.pl-straw')).toMatch(/słom/);
+    expect(details).toHaveTextContent('kampania 2026');
+    await user.click(
+      within(details)
+        .getAllByRole('button', { name: /Źródło/ })
+        .at(-1)!,
+    );
+    expect(details).toHaveTextContent('szacunki na 2026 r. do wypłaty zaliczek');
   });
 });

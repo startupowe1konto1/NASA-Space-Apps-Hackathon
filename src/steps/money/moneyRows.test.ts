@@ -1,9 +1,9 @@
 // Step 6 rows and the shared axis. The fixtures carry money "not-loaded", so each test attaches a MoneyEstimate of its
 // own to the shown rotations and reads every expected value back from it, never from the fixture data.
-import type { MoneyEstimate } from '../../contracts';
+import type { MoneyEstimate, RotationOption } from '../../contracts';
 import { iowaAnalysis } from '../../fixtures';
 import { rotationTitle } from '../cards/RotationCard';
-import { moneyRows, moneyScale } from './moneyRows';
+import { compareRows, moneyRows } from './moneyRows';
 import { estimate, withMoney } from './testMoney';
 
 const shownIds = iowaAnalysis.shownByGoal.keepSoil ?? [];
@@ -65,67 +65,58 @@ describe('moneyRows', () => {
   });
 });
 
-describe('moneyScale', () => {
-  const rowsOf = (values: [number, number, number][]) =>
-    moneyRows(
-      withMoney(
-        iowaAnalysis,
-        values.map(([v, lo, hi]) => ({ status: 'ready', data: estimate(v, lo, hi) })),
-      ),
-      'keepSoil',
+describe('compareRows', () => {
+  const currentIndex = shownIds.findIndex((id) => iowaAnalysis.rotations.find((r) => r.id === id)!.isCurrent);
+  // The reference earns 650; the options earn 100, 900, 2000 … so one loses, the others gain.
+  const means = shownIds.map((_, i) => (i === currentIndex ? 650 : [100, 900, 2000, 3000][i]!));
+  const rowsOf = (
+    money: RotationOption['money'][] = means.map((m) => ({
+      status: 'ready' as const,
+      data: estimate(m, m / 2, m * 1.5),
+    })),
+  ) => moneyRows(withMoney(iowaAnalysis, money), 'keepSoil');
+
+  it('puts the current rotation aside as the reference and orders the options by how much more they earn', () => {
+    const rows = rowsOf();
+    const { current, options } = compareRows(rows);
+    expect(current?.isCurrent).toBe(true);
+    expect(options.some((o) => o.isCurrent)).toBe(false);
+    expect(options).toHaveLength(rows.length - 1);
+    options.forEach((o) => expect(o.diff).toBe(o.mean! - current!.mean!));
+    const diffs = options.map((o) => o.diff!);
+    expect(diffs).toEqual([...diffs].sort((a, b) => b - a));
+  });
+
+  it('centres the bar on the reference and puts the largest difference at an end', () => {
+    const { options, pct } = compareRows(rowsOf());
+    expect(pct(0)).toBe(50);
+    const maxAbs = Math.max(...options.map((o) => Math.abs(o.diff!)));
+    const ends = options.map((o) => pct(o.diff!));
+    expect(ends.some((e) => e === 0 || e === 100)).toBe(true);
+    ends.forEach((e) => expect(e).toBeGreaterThanOrEqual(0));
+    ends.forEach((e) => expect(e).toBeLessThanOrEqual(100));
+    expect(pct(maxAbs)).toBe(100);
+  });
+
+  it('keeps options without money last, without a difference', () => {
+    const money: RotationOption['money'][] = means.map((m, i) =>
+      i !== currentIndex && i === (currentIndex === 0 ? 1 : 0)
+        ? { status: 'no-data', reason: { code: 'income.no-yield-response' } }
+        : { status: 'ready', data: estimate(m, m / 2, m * 1.5) },
     );
-
-  it('includes zero when a bad year is negative, and puts the ends at 0 and 100', () => {
-    const rows = rowsOf([
-      [650, -10, 1119],
-      [5263, 3710, 6323],
-    ]);
-    const scale = moneyScale(rows);
-    const [lo, hi] = scale.domain;
-    expect(lo).toBeLessThan(-10);
-    expect(lo).toBeLessThanOrEqual(0);
-    expect(hi).toBeGreaterThanOrEqual(6323);
-    expect(scale.pct(lo)).toBe(0);
-    expect(scale.pct(hi)).toBe(100);
-    expect(scale.ticks).toContain(0);
+    const { options } = compareRows(rowsOf(money));
+    const last = options[options.length - 1]!;
+    expect(last.status).toBe('no-data');
+    expect(last.diff).toBeUndefined();
   });
 
-  it('always starts at zero or below, even when every value is positive', () => {
-    const scale = moneyScale(
-      rowsOf([
-        [223, 119, 292],
-        [913, 383, 1317],
-      ]),
+  it('gives no differences when the current rotation has no money', () => {
+    const money: RotationOption['money'][] = means.map((m, i) =>
+      i === currentIndex
+        ? { status: 'no-data', reason: { code: 'income.no-yield-response' } }
+        : { status: 'ready', data: estimate(m, m / 2, m * 1.5) },
     );
-    expect(scale.domain[0]).toBeLessThanOrEqual(0);
-    expect(scale.domain[1]).toBeGreaterThanOrEqual(1317);
-  });
-
-  it('gives 3 to 5 ticks on a 1, 2 or 5 step', () => {
-    for (const values of [
-      [
-        [223, 119, 292],
-        [913, 383, 1317],
-      ],
-      [
-        [650, -10, 1119],
-        [5263, 3710, 6323],
-        [-73, -467, 187],
-      ],
-      [[1, 0.2, 3]],
-    ] as [number, number, number][][]) {
-      const { ticks } = moneyScale(rowsOf(values));
-      expect(ticks.length).toBeGreaterThanOrEqual(3);
-      expect(ticks.length).toBeLessThanOrEqual(5);
-      const step = ticks[1]! - ticks[0]!;
-      const mantissa = step / 10 ** Math.floor(Math.log10(step));
-      expect([1, 2, 5]).toContain(Math.round(mantissa));
-    }
-  });
-
-  it('has a usable axis when no row has money', () => {
-    const scale = moneyScale(moneyRows(iowaAnalysis, 'keepSoil'));
-    expect(scale.pct(scale.domain[0])).toBe(0);
-    expect(Number.isFinite(scale.pct(0))).toBe(true);
+    const { options } = compareRows(rowsOf(money));
+    options.forEach((o) => expect(o.diff).toBeUndefined());
   });
 });
