@@ -44,12 +44,12 @@ export function IntroPage(props: { onStart: () => void }) {
         <button
           type="button"
           onClick={props.onStart}
-          className="mt-2 min-h-14 rounded-2xl bg-zinc-900 px-12 text-lg font-semibold text-white shadow-md transition duration-200 ease-out hover:bg-zinc-700 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40 motion-reduce:transition-none"
+          className="mt-2 min-h-14 rounded-[20px] bg-zinc-900 px-12 text-lg font-semibold text-white shadow-md transition duration-200 ease-out hover:bg-zinc-700 active:scale-[0.98] focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40 motion-reduce:transition-none"
         >
           {t('app.intro.start')}
         </button>
       </div>
-      <div className="relative aspect-[6/5] w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+      <div className="relative aspect-[6/5] w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white">
         <FieldDrawing />
       </div>
     </section>

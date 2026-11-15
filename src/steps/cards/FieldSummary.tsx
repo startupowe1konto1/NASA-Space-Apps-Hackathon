@@ -111,7 +111,7 @@ function SeasonStripes({ analysis }: { analysis: Analysis }) {
 export function FieldSummary({ analysis }: { analysis: Analysis }) {
   const { profile, datasets, field } = analysis;
   return (
-    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-[20px] border border-zinc-200 bg-white p-5 sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 id="field-summary-title" className="text-base font-semibold text-zinc-900">
           {t('steps.rotations.summary.title')}: {field.name}

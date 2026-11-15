@@ -6,9 +6,9 @@ import type { Dataset } from '../../contracts';
 export function SourcesPanel({ datasets }: { datasets: Dataset[] }) {
   const sorted = [...datasets].sort((a, b) => Number(b.nasa) - Number(a.nasa) || a.name.localeCompare(b.name));
   return (
-    <section aria-labelledby="sources-title" className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <section aria-labelledby="sources-title" className="rounded-[20px] border border-zinc-200 bg-white">
       <details className="group">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-5 py-4 hover:bg-zinc-50 sm:px-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 [&::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-[20px] px-5 py-4 hover:bg-zinc-50 sm:px-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 [&::-webkit-details-marker]:hidden">
           <h2 id="sources-title" className="text-base font-semibold text-zinc-900">
             {t('steps.rotations.sources.title')}
           </h2>

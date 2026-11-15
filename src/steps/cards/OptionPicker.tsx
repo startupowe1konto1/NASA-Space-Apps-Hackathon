@@ -40,7 +40,7 @@ export function OptionPicker(props: {
             aria-checked={on}
             aria-label={`${label}: ${rotationTitle(r)}`}
             onClick={() => onSelect(r.id)}
-            className={`grid content-start gap-3 rounded-xl border bg-white p-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 motion-reduce:transition-none ${
+            className={`grid content-start gap-3 rounded-2xl border bg-white p-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 motion-reduce:transition-none ${
               on ? 'border-zinc-900 ring-1 ring-zinc-900' : 'border-zinc-200 hover:border-zinc-400'
             }`}
           >

@@ -57,7 +57,7 @@ export function App() {
       <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-lg bg-zinc-900 text-white shadow-sm">
+            <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-lg bg-zinc-900 text-white">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
                 <path d="M4 19c5-1 8-5 10-9s4-5 6-6" />
                 <path d="M4 12c3-.5 5-2 6-4" />
@@ -111,7 +111,7 @@ export function App() {
             <div role="group" aria-label={t('app.language')} className="relative grid h-9 grid-cols-2 rounded-full bg-zinc-100 p-1">
               <span
                 aria-hidden="true"
-                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-zinc-900 shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none ${
+                className={`absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-zinc-900 transition-transform duration-200 ease-out motion-reduce:transition-none ${
                   lang === LANGS[1] ? 'translate-x-full' : 'translate-x-0'
                 }`}
               />
@@ -165,7 +165,7 @@ export function App() {
           <div className={`mx-auto flex justify-between gap-3 px-4 py-3 sm:px-6 ${width}`}>
             <button
               type="button"
-              className="min-h-11 rounded-xl border border-zinc-300 bg-white px-5 font-medium text-zinc-800 hover:bg-zinc-50 disabled:opacity-40"
+              className="min-h-12 rounded-2xl border border-zinc-300 bg-white px-5 font-semibold text-zinc-800 hover:bg-zinc-50 disabled:opacity-40"
               onClick={() => state.goToStep(state.step - 1)}
             >
               {t('app.back')}
@@ -174,7 +174,7 @@ export function App() {
             {state.step < STEP_COUNT ? (
               <button
                 type="button"
-                className="min-h-11 rounded-xl bg-zinc-900 px-6 font-semibold text-white shadow-sm hover:bg-zinc-700 disabled:opacity-40"
+                className="min-h-12 flex-1 rounded-2xl bg-zinc-900 px-8 text-base font-bold text-white hover:bg-zinc-700 disabled:opacity-40 sm:flex-none"
                 disabled={!canContinue(state)}
                 onClick={() => state.goToStep(state.step + 1)}
               >
