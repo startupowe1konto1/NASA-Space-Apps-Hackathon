@@ -21,9 +21,15 @@ import close from './slides/07-close.js';
 //  stepMs         optional: how long a step's own animation takes (default 700). In a played sequence the next step
 //                 starts when this time and the camera move are both over.
 // ctx: { scene, el, data, constants, stage, index, instant, setWash(left, right) }.
-const SLIDES = [orbit, mariusz, dataSlide, engine, regions, answer, close];
+// Slide numbers (#n.step, data-slide, assets/stills/0n.png) follow this list, so they shift when a slide is left out.
+// Scripts find a slide by its name (data-name) and read the count from #stage[data-count].
+const NAMED = [['orbit', orbit], ['mariusz', mariusz], ['data', dataSlide], ['engine', engine],
+  ['regions', regions], ['answer', answer], ['close', close]]
+  .filter(([name]) => name !== 'engine' || constants.SHOW_ENGINE_SLIDE);
+const SLIDES = NAMED.map(([, slide]) => slide);
 
 const stageEl = document.getElementById('stage');
+stageEl.dataset.count = String(SLIDES.length);
 const params = new URLSearchParams(location.search);
 const print = params.get('print') === '1';
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -53,7 +59,7 @@ if (print) stageEl.classList.add('print');
 
 const ctxs = SLIDES.map((slide, index) => {
   const el = document.createElement('section');
-  el.className = 'slide'; el.dataset.slide = String(index + 1);
+  el.className = 'slide'; el.dataset.slide = String(index + 1); el.dataset.name = NAMED[index][0];
   slidesEl.append(el);
   const ctx = {
     scene, el, data: scene.data, constants, stage: stageEl, index, instant: false,
@@ -99,6 +105,9 @@ function show(slide, step, { instant = false, final = false } = {}) {
     busyUntil = performance.now() + Math.max(scene.eta() * 1000, mod.stepMs ?? 700);
   }
 }
+
+// For the export, recording and walk scripts: true while a slide's sequence or its last animation is still running.
+window.deckBusy = () => playing || performance.now() < busyUntil;
 
 function stopPlay() { clearTimeout(playTimer); playTimer = 0; playing = false; }
 

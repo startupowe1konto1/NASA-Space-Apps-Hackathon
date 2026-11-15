@@ -10,23 +10,23 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const shortName = (r) => r.split('(')[0].trim();
 
 const CSS = `
-.slide[data-slide="5"] .map { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-.slide[data-slide="5"] .mark { opacity: 0; transition: opacity .5s ease; }
-.slide[data-slide="5"] .mark.on { opacity: 1; }
-.slide[data-slide="5"] .mark line { stroke: var(--twin); stroke-width: 1.5; stroke-opacity: .7; }
-.slide[data-slide="5"] .mark circle { fill: var(--twin); }
-.slide[data-slide="5"] .mark text { fill: var(--twin); font-size: 17px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
-.slide[data-slide="5"] .home circle.dot { fill: var(--field); }
-.slide[data-slide="5"] .home circle.ring { fill: none; stroke: var(--field); stroke-width: 2; transform-box: fill-box; transform-origin: center; }
-.slide[data-slide="5"] .home.loop circle.ring { animation: regions-ring 3.2s ease-out infinite; }
+.slide[data-name="regions"] .map { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.slide[data-name="regions"] .mark { opacity: 0; transition: opacity .5s ease; }
+.slide[data-name="regions"] .mark.on { opacity: 1; }
+.slide[data-name="regions"] .mark line { stroke: var(--twin); stroke-width: 1.5; stroke-opacity: .7; }
+.slide[data-name="regions"] .mark circle { fill: var(--twin); }
+.slide[data-name="regions"] .mark text { fill: var(--twin); font-size: 17px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.slide[data-name="regions"] .home circle.dot { fill: var(--field); }
+.slide[data-name="regions"] .home circle.ring { fill: none; stroke: var(--field); stroke-width: 2; transform-box: fill-box; transform-origin: center; }
+.slide[data-name="regions"] .home.loop circle.ring { animation: regions-ring 3.2s ease-out infinite; }
 @keyframes regions-ring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
-.slide[data-slide="5"] .foot { color: #b4bcc7; }
-.slide[data-slide="5"] .lede { margin-top: 24px; }
-.slide[data-slide="5"] .twins { position: absolute; right: var(--margin); top: 196px; width: 572px; }
-.slide[data-slide="5"] .twins .row { display: grid; grid-template-columns: 36px 1fr 100px 160px; column-gap: 8px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--hairline); font-size: 23px; line-height: 1.2; }
-.slide[data-slide="5"] .twins .row.head { border-top: 0; padding: 0 0 12px; font-size: 16px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); align-items: end; }
-.slide[data-slide="5"] .twins .num { text-align: right; }
-.slide[data-slide="5"] .twins .idx { color: var(--twin); font-weight: 600; text-align: left; }
+.slide[data-name="regions"] .foot { color: #b4bcc7; }
+.slide[data-name="regions"] .lede { margin-top: 24px; }
+.slide[data-name="regions"] .twins { position: absolute; right: var(--margin); top: 196px; width: 572px; }
+.slide[data-name="regions"] .twins .row { display: grid; grid-template-columns: 36px 1fr 100px 160px; column-gap: 8px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--hairline); font-size: 23px; line-height: 1.2; }
+.slide[data-name="regions"] .twins .row.head { border-top: 0; padding: 0 0 12px; font-size: 16px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); align-items: end; }
+.slide[data-name="regions"] .twins .num { text-align: right; }
+.slide[data-name="regions"] .twins .idx { color: var(--twin); font-weight: 600; text-align: left; }
 `;
 
 function check(cases) {

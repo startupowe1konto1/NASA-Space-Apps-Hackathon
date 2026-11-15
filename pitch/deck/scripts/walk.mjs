@@ -1,7 +1,7 @@
-// Walks the deck as the presenter does: one key press per slide (slide 6: one per step), then logs how the slide's
+// Walks the deck as the presenter does: one key press per slide (the answer slide: one per step), then logs how the slide's
 // step advances over time and screenshots it once it stops changing. Run from pitch/deck:
 //   node scripts/walk.mjs <outDir> [baseUrl=http://127.0.0.1:8767/]
-// Prints, per press, the hash every 500 ms until it is stable for 15 s (or 60 s pass), then "<slide>.<step> settled after N ms".
+// Prints, per press, the slide.step reached once the deck reports it is no longer playing (window.deckBusy).
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,25 +21,19 @@ await page.waitForTimeout(5000);
 const state = () => page.evaluate(() => location.hash.slice(1));
 async function settle(label) {
   const t0 = Date.now();
-  let last = await state(), since = Date.now();
-  const seen = [last];
-  while (Date.now() - t0 < 60000) {
-    await page.waitForTimeout(500);
-    const s = await state();
-    if (s !== last) { last = s; since = Date.now(); seen.push(`${s}@${Date.now() - t0}`); }
-    else if (Date.now() - since > 15000) break;
-  }
-  console.log(`${label}: ${seen.join(' -> ')} | settled at ${last} after ${since - t0} ms`);
+  await page.waitForTimeout(300);
+  await page.waitForFunction(() => !window.deckBusy(), null, { timeout: 60000, polling: 200 });
+  await page.waitForTimeout(800);
+  console.log(`${label}: ${await state()} after ${Date.now() - t0} ms`);
   await page.screenshot({ path: path.join(outDir, `${label}.png`) });
-  return last;
 }
 
 await settle('start');
-// Six presses take slides 1 -> 7, plus four extra presses for slide 6's manual steps.
-const presses = ['to2', 'to3', 'to4', 'to5', 'to6', 's6-1', 's6-2', 's6-3', 's6-4', 's6-5', 'to7'];
-for (const label of presses) {
+// Press until the last slide is reached; the manual slide (answer) takes one press per step.
+const count = Number(await page.evaluate(() => document.getElementById('stage').dataset.count));
+for (let i = 0; i < 40 && (await state()) !== `${count}.0`; i++) {
   await page.keyboard.press('ArrowRight');
-  await settle(label);
+  await settle(`press${String(i + 1).padStart(2, '0')}`);
 }
 console.log(`errors: ${errors}`);
 await browser.close();

@@ -1,24 +1,24 @@
 // Slide 7: back to orbit. Built on open data: who we are on the left, every dataset used for this field on the right.
 // NASA-ness comes from the `nasa` flag of datasets.list, never from a name list. Every id appears exactly once.
 const CSS = `
-.slide[data-slide="7"] .who { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 22px; line-height: 1.4; }
-.slide[data-slide="7"] .who small { display: block; margin: 14px 0 4px; font-size: var(--fs-label); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.slide[data-slide="7"] .who .two { display: grid; grid-template-columns: 200px 1fr; column-gap: 24px; }
-.slide[data-slide="7"] .who .two small { margin-top: 0; }
-.slide[data-slide="7"] .scrim { position: absolute; right: 0; top: 0; bottom: 0; width: 960px; pointer-events: none;
+.slide[data-name="close"] .who { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 22px; line-height: 1.4; }
+.slide[data-name="close"] .who small { display: block; margin: 14px 0 4px; font-size: var(--fs-label); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.slide[data-name="close"] .who .two { display: grid; grid-template-columns: 200px 1fr; column-gap: 24px; }
+.slide[data-name="close"] .who .two small { margin-top: 0; }
+.slide[data-name="close"] .scrim { position: absolute; right: 0; top: 0; bottom: 0; width: 960px; pointer-events: none;
   background: linear-gradient(270deg, rgba(5, 7, 13, .92) 0%, rgba(5, 7, 13, .9) 66%, rgba(5, 7, 13, 0) 100%); }
-.slide[data-slide="7"] .panel { z-index: 1; }
-.slide[data-slide="7"] .who div { white-space: nowrap; }
-.slide[data-slide="7"] .who .ai { margin-top: 16px; font-size: 20px; color: #d5dbe3; white-space: normal; }
-.slide[data-slide="7"] .panel { top: 104px; }
-.slide[data-slide="7"] .grp { margin: 0 0 14px; }
-.slide[data-slide="7"] .grp h3 { margin: 0 0 6px; font-size: 18px; }
-.slide[data-slide="7"] .ds { padding: 5px 0; border-top: 1px solid var(--hairline); }
-.slide[data-slide="7"] .ds:last-child { border-bottom: 1px solid var(--hairline); }
-.slide[data-slide="7"] .ds b { display: block; font-weight: 500; font-size: 20px; line-height: 1.28; }
-.slide[data-slide="7"] .ds i { display: block; font-style: normal; font-size: 16px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
-.slide[data-slide="7"] .ds.nasa b { color: var(--text); }
-.slide[data-slide="7"] .credits { margin-top: 4px; font-size: 16px; line-height: 1.45; color: #b4bdc9; }
+.slide[data-name="close"] .panel { z-index: 1; }
+.slide[data-name="close"] .who div { white-space: nowrap; }
+.slide[data-name="close"] .who .ai { margin-top: 16px; font-size: 20px; color: #d5dbe3; white-space: normal; }
+.slide[data-name="close"] .panel { top: 104px; }
+.slide[data-name="close"] .grp { margin: 0 0 14px; }
+.slide[data-name="close"] .grp h3 { margin: 0 0 6px; font-size: 18px; }
+.slide[data-name="close"] .ds { padding: 5px 0; border-top: 1px solid var(--hairline); }
+.slide[data-name="close"] .ds:last-child { border-bottom: 1px solid var(--hairline); }
+.slide[data-name="close"] .ds b { display: block; font-weight: 500; font-size: 20px; line-height: 1.28; }
+.slide[data-name="close"] .ds i { display: block; font-style: normal; font-size: 16px; line-height: 1.3; color: var(--muted); margin-top: 2px; }
+.slide[data-name="close"] .ds.nasa b { color: var(--text); }
+.slide[data-name="close"] .credits { margin-top: 4px; font-size: 16px; line-height: 1.45; color: #b4bdc9; }
 `;
 
 // Short display forms, derived from the data text: drop a trailing parenthesis or clause.

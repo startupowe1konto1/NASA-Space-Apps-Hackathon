@@ -20,18 +20,18 @@ const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
 
 const CSS = `
-.slide[data-slide="3"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-50%); }
-.slide[data-slide="3"] .lbl .n { display: inline-block; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
-.slide[data-slide="3"] .lbl b { font-size: 27px; font-weight: 500; }
-.slide[data-slide="3"] .lbl i { display: block; margin-left: 40px; font-style: normal; font-size: 20px; color: var(--muted); margin-top: 2px; }
-.slide[data-slide="3"] .lbls { opacity: 0; transition: opacity .5s ease; }
-.slide[data-slide="3"] .lbls.on { opacity: 1; }
-.slide[data-slide="3"] .facts span { padding: 0 20px; }
-.slide[data-slide="3"] .facts span:first-child { padding-left: 0; }
-.slide[data-slide="3"] .facts small { white-space: normal; max-width: 170px; min-height: 2.6em; line-height: 1.3; }
-.slide[data-slide="3"] .facts b { font-weight: 600; font-size: 40px; letter-spacing: -0.02em; line-height: 1; }
-.slide[data-slide="3"] .facts b em { font-style: normal; font-weight: 400; font-size: 22px; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
-.slide[data-slide="3"] svg.leaders { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s ease .2s; }
+.slide[data-name="data"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-50%); }
+.slide[data-name="data"] .lbl .n { display: inline-block; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
+.slide[data-name="data"] .lbl b { font-size: 27px; font-weight: 500; }
+.slide[data-name="data"] .lbl i { display: block; margin-left: 40px; font-style: normal; font-size: 20px; color: var(--muted); margin-top: 2px; }
+.slide[data-name="data"] .lbls { opacity: 0; transition: opacity .5s ease; }
+.slide[data-name="data"] .lbls.on { opacity: 1; }
+.slide[data-name="data"] .facts span { padding: 0 20px; }
+.slide[data-name="data"] .facts span:first-child { padding-left: 0; }
+.slide[data-name="data"] .facts small { white-space: normal; max-width: 170px; min-height: 2.6em; line-height: 1.3; }
+.slide[data-name="data"] .facts b { font-weight: 600; font-size: 40px; letter-spacing: -0.02em; line-height: 1; }
+.slide[data-name="data"] .facts b em { font-style: normal; font-weight: 400; font-size: 22px; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
+.slide[data-name="data"] svg.leaders { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s ease .2s; }
 `;
 
 function checkIds(data) {

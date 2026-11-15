@@ -18,6 +18,10 @@ export const EVENT = 'NASA Space Apps Challenge 2026';
 export const CHALLENGE = 'Field Shift: Adapting Farms with NASA Data';
 export const LOCAL_EVENT = 'Poznań';
 
+// The engine slide (src/slides/04-engine.js, "replay on the field") is parked: the pitch owner took it out on
+// Sun 15 Nov 2026. true puts it back between the data slide and the regions slide; nothing else needs to change.
+export const SHOW_ENGINE_SLIDE = false;
+
 // The app's public URL. null until it is hosted; slide 7 then prints no link and no QR code.
 export const APP_URL = null;
 

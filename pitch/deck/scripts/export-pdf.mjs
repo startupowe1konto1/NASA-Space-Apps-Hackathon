@@ -11,7 +11,6 @@ const DECK = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.resolve(DECK, '..', 'out');
 const STILLS = path.join(DECK, 'assets', 'stills');
 const PDF_PATH = path.join(OUT, 'deck.pdf');
-const SLIDES = 7;
 // JPEG quality for the pages inside the PDF. The PNG stills stay lossless.
 const PDF_JPEG_QUALITY = 0.93;
 const allowMissing = process.argv.includes('--allow-missing');
@@ -86,9 +85,9 @@ async function captureSlide(context, base, n, failures, warnings) {
     await page.waitForTimeout(2500);
     const fonts = await page.evaluate(() => document.fonts.status);
     if (fonts !== 'loaded') errors.push(`fonts status is "${fonts}", expected "loaded"`);
-    if (n === 6) {
+    if (await page.evaluate((k) => document.querySelector(`.slide[data-slide="${k}"]`)?.dataset.name === 'answer', n)) {
       const missing = await page.evaluate(() =>
-        Number(document.querySelector('.slide[data-slide="6"]')?.dataset.missing ?? 0));
+        Number(document.querySelector('.slide[data-name="answer"]')?.dataset.missing ?? 0));
       if (missing > 0) {
         const msg = `${missing} app screenshots missing (run P8 first)`;
         if (allowMissing) warnings.push(`slide 6: ${msg} (allowed by --allow-missing)`);
@@ -147,6 +146,12 @@ async function main() {
   try {
     const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: 1 });
 
+    // The slide count comes from the deck (constants.SHOW_ENGINE_SLIDE changes it).
+    const probe = await context.newPage();
+    await probe.goto(`${base}?print=1#1.0`, { waitUntil: 'load' });
+    await probe.waitForSelector('#stage[data-count]', { timeout: 60000 });
+    const SLIDES = Number(await probe.evaluate(() => document.getElementById('stage').dataset.count));
+    await probe.close();
     for (let n = 1; n <= SLIDES; n++) await captureSlide(context, base, n, failures, warnings);
     const stills = Array.from({ length: SLIDES }, (_, i) => path.join(STILLS, `0${i + 1}.png`));
     if (failures.length) return finish(failures, warnings);
@@ -176,7 +181,7 @@ html, body { margin: 0; padding: 0; background: #000 }
     });
     fs.writeFileSync(PDF_PATH, pdf);
 
-    // Verify: exactly seven page objects, and no blank still.
+    // Verify: one page object per slide, and no blank still.
     const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) || []).length;
     if (pages !== SLIDES) failures.push(`PDF has ${pages} pages, expected ${SLIDES}`);
     for (const p of stills) {

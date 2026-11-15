@@ -11,7 +11,6 @@ import { chromium } from 'playwright';
 const DECK = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.resolve(DECK, '..', 'out');
 const DEST = path.join(OUT, 'deck.webm');
-const LAST = '#7.0';
 const VIEWPORT = { width: 1920, height: 1080 };
 const LAUNCH = { channel: 'chrome', args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] };
 
@@ -68,12 +67,10 @@ function parse(hash) {
   return m ? { slide: Number(m[1]), step: Number(m[2]) } : { slide: 0, step: 0 };
 }
 
-/** How long to hold after a key press, by what the press did (ms). */
+/** How long to hold after a press has finished playing, so the viewer can read the result (ms). */
 function holdAfter(before, after) {
-  if (before.slide === 1 && after.slide === 2) return 6500;   // the descent from the orbit takes 5.2 s
-  if (after.slide !== before.slide) return 3000;               // a slide change
-  if (after.slide === 4 && after.step === 3) return 3500;      // slide 4 step 3: the playhead sweep
-  return 2500;                                                 // a step within a slide
+  if (after.slide !== before.slide) return 3000;   // a whole slide
+  return 2500;                                     // one app screenshot on the slide with manual steps
 }
 
 function videoSeconds(file) {
@@ -109,6 +106,7 @@ async function main() {
     await page.waitForSelector('#stage[data-ready="1"]', { timeout: 60000 });
     await page.waitForTimeout(2000);
 
+    const LAST = `#${await page.evaluate(() => document.getElementById('stage').dataset.count)}.0`;
     const started = Date.now();
     let hash = await page.evaluate(() => location.hash);
     for (let i = 0; hash !== LAST; i++) {
@@ -117,8 +115,11 @@ async function main() {
       await page.keyboard.press('ArrowRight');
       hash = await page.evaluate(() => location.hash);
       const after = parse(hash);
+      // One press plays a whole slide: wait until it has finished, then hold so the viewer can read it.
+      await page.waitForTimeout(300);
+      await page.waitForFunction(() => !window.deckBusy(), null, { timeout: 60000, polling: 200 });
       const hold = holdAfter(before, after);
-      console.log(`${before.slide}.${before.step} -> ${after.slide}.${after.step}  hold ${hold} ms`);
+      console.log(`${before.slide}.${before.step} -> ${after.slide}.${after.step}  hold ${hold} ms after the slide finished`);
       await page.waitForTimeout(hold);
       hash = await page.evaluate(() => location.hash);
     }
@@ -135,7 +136,7 @@ async function main() {
     const mb = (fs.statSync(DEST).size / 1048576).toFixed(2);
     const probed = videoSeconds(DEST);
     console.log(`video: ${path.relative(DECK, DEST)}`);
-    console.log(`scripted playback: ${elapsed.toFixed(1)} s, slide 1 to the end of slide 7`);
+    console.log(`scripted playback: ${elapsed.toFixed(1)} s, slide 1 to the last slide`);
     console.log(`file duration: ${probed ? probed + ' s (ffprobe)' : 'not measured (ffprobe not found)'}, including load time before slide 1`);
     console.log(`size: ${mb} MB`);
   } finally {
