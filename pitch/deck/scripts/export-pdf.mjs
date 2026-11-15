@@ -12,6 +12,8 @@ const OUT = path.resolve(DECK, '..', 'out');
 const STILLS = path.join(DECK, 'assets', 'stills');
 const PDF_PATH = path.join(OUT, 'deck.pdf');
 const SLIDES = 7;
+// JPEG quality for the pages inside the PDF. The PNG stills stay lossless.
+const PDF_JPEG_QUALITY = 0.93;
 const allowMissing = process.argv.includes('--allow-missing');
 
 const TYPES = {
@@ -103,6 +105,18 @@ async function captureSlide(context, base, n, failures, warnings) {
   for (const e of errors) failures.push(`slide ${n}: ${e}`);
 }
 
+// Runs in the page: re-encodes a PNG data URL as a JPEG data URL (same pixels as the still, far smaller in the PDF).
+async function toJpegDataUrl({ dataUrl, quality }) {
+  const img = new Image();
+  img.src = dataUrl;
+  await img.decode();
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  c.getContext('2d').drawImage(img, 0, 0);
+  return c.toDataURL('image/jpeg', quality);
+}
+
 // Runs in the page: decodes a PNG and counts distinct colours at 400 random points.
 async function sampleStill(dataUrl) {
   const img = new Image();
@@ -137,8 +151,13 @@ async function main() {
     const stills = Array.from({ length: SLIDES }, (_, i) => path.join(STILLS, `0${i + 1}.png`));
     if (failures.length) return finish(failures, warnings);
 
-    // Build the PDF: one 1920 x 1080 page per still.
-    const dataUrls = stills.map((p) => 'data:image/png;base64,' + fs.readFileSync(p).toString('base64'));
+    // Build the PDF: one 1920 x 1080 page per still, each embedded as a JPEG to keep the file small.
+    const work = await context.newPage();
+    const dataUrls = [];
+    for (const p of stills) {
+      const dataUrl = 'data:image/png;base64,' + fs.readFileSync(p).toString('base64');
+      dataUrls.push(await work.evaluate(toJpegDataUrl, { dataUrl, quality: PDF_JPEG_QUALITY }));
+    }
     const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 @page { size: 1920px 1080px; margin: 0 }
 html, body { margin: 0; padding: 0; background: #000 }
@@ -146,7 +165,6 @@ html, body { margin: 0; padding: 0; background: #000 }
 .page:last-child { break-after: auto; page-break-after: auto }
 .page img { display: block; width: 1920px; height: 1080px }
 </style></head><body>${dataUrls.map((u) => `<div class="page"><img alt="" src="${u}"></div>`).join('')}</body></html>`;
-    const work = await context.newPage();
     await work.setContent(html, { waitUntil: 'load' });
     await work.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0));
     const pdf = await work.pdf({
