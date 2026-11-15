@@ -53,6 +53,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
 
   const api = {
     data, FIELD, THREE, available: webgl, view: 'orbit', still: false, fieldFill: 0.16,
+    fieldTint: null,       // a CSS colour for the field's fill instead of the field colour (slide 4: drought years)
     toKm: null, project: null, ground: null, camera: null, scene: null,
     fieldRing: null,       // the parcel outline in ground units (km, x east, z south), closed: last point = first
     neighbourRings: null,  // the neighbouring parcels' outlines, same units
@@ -310,6 +311,7 @@ export async function createScene({ stage, cloud, noWebGL = false }) {
       edgeMat.opacity = near * fade;
       nbMat.opacity = 0.28 * near * fade;
       fill.material.opacity = near * api.fieldFill * fade;
+      fill.material.color.set(api.fieldTint || C.field);
     }
     cloud.style.opacity = String(flash);
     for (const fn of frameHooks) fn({ t: tm, dt, dtReal, now, dive, onGround, cur, camera });
