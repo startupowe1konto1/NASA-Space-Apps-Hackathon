@@ -34,8 +34,11 @@
   "steps.money.v.noMoney": "brak danych o dochodzie",
   "steps.money.deltaMore": "o {n} więcej niż twój płodozmian",
   "steps.money.deltaLess": "o {n} mniej niż twój płodozmian",
-  "steps.money.payments": "Potwierdzone dopłaty: {name}",
-  "steps.money.paymentsNone": "Brak potwierdzonych dopłat: {name}.",
+  "steps.money.payments": "Możliwe {payments}",
+  "steps.money.paymentsNone": "Żaden ze sprawdzonych programów wsparcia nie dotyczy: {name}.",
   "steps.money.more": "Zły i dobry rok, dopłaty i źródła",
-  "steps.money.switchTitle": "Zmienić czy zostać?"
+  "steps.money.switchTitle": "Zmienić czy zostać?",
+  "steps.money.paymentsHow.US": "Płaci NRCS (USDA) co roku, ponad dochód z tabeli, jeśli złożysz wniosek, spełnisz warunki i zostaniesz wybrany.",
+  "steps.money.paymentsHow.PL": "Płaci ARiMR co roku, ponad dochód z tabeli, jeśli złożysz wniosek i spełnisz warunki.",
+  "steps.money.perYear": "rocznie"
 }
