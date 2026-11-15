@@ -1,15 +1,15 @@
 // One rotation as a tile. Open on the tile: the title with the first "why" line, soil health and climate resilience
 // first whatever the goal (D9), the calendar strip, the first gaps and local risks, and the support sentence at the
 // bottom (SPEC section 11). Everything else sits in one list of folded rows (HANDOFF-frontend step 5): how the scores
-// are made, the income, the reasons, the evidence, the benefits and the regions. Folded, not deleted.
+// are made (the range note is said once above the cards), the income, the reasons, the evidence, the benefits and the regions. Folded, not deleted.
 import { useState, type ReactNode } from 'react';
 import { t } from '../../app/i18n';
 import type { Dataset, GoalId, Message, RotationOption } from '../../contracts';
 import { moneyAvailable as moneyOn } from '../../app/providers';
-import { ScoreBar, SourcedNumber, StateBoundary } from '../../ui-kit';
+import { SourcedNumber, StateBoundary } from '../../ui-kit';
 import { cropName } from '../shared/cropName';
 import { IncomeSection } from './IncomeSection';
-import { TermText } from './TermText';
+import { ScoreRow } from './ScoreRow';
 
 export function ordinal(n: number): string {
   const tens = n % 100;
@@ -39,13 +39,13 @@ function Section({ title, empty, children }: { title: string; empty?: boolean; c
 function Fold({ title, children }: { title: string; children: ReactNode }) {
   return (
     <details className="group border-t border-slate-200 first:border-t-0">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden">
-        <h3 className="text-base font-medium text-slate-900">{title}</h3>
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 sm:px-6 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 [&::-webkit-details-marker]:hidden">
+        <h3 className="text-sm font-medium text-slate-900">{title}</h3>
         <span aria-hidden="true" className="text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none">
           ▾
         </span>
       </summary>
-      <div className="grid gap-2 px-4 pb-4">{children}</div>
+      <div className="grid gap-2 px-5 pb-5 sm:px-6">{children}</div>
     </details>
   );
 }
@@ -101,32 +101,29 @@ export function RotationCard(props: {
   return (
     <article
       data-testid={`card-${r.id}`}
-      className={`flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ${
-        r.isCurrent ? 'border-slate-400 ring-1 ring-slate-300' : 'border-slate-200'
-      }`}
+      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
     >
-      <div className="grid gap-4 p-4 sm:p-5">
+      <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-8">
+        <div className="grid content-start gap-5">
         <header className="grid gap-1.5">
           <span
-            className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${
-              r.isCurrent ? 'bg-slate-800 text-white' : 'bg-emerald-100 text-emerald-900'
-            }`}
+            className={`w-fit text-xs font-semibold uppercase tracking-wide ${r.isCurrent ? 'text-slate-500' : 'text-emerald-700'}`}
           >
             {r.isCurrent ? t('steps.rotations.current') : t('steps.rotations.option', { n: rank })}
           </span>
-          <h2 className="text-lg font-semibold leading-snug text-slate-900">{rotationTitle(r)}</h2>
+          <h2 className="text-xl font-semibold leading-snug tracking-tight text-slate-900">{rotationTitle(r)}</h2>
           {r.why[0] ? <p className="text-sm leading-snug text-slate-600">{t(r.why[0])}</p> : null}
           {goal !== 'keepSoil' && keepRank !== undefined ? (
             <p className="text-sm text-slate-700">{t('steps.rotations.rankOnKeep', { nth: ordinal(keepRank) })}</p>
           ) : null}
         </header>
 
-        <div className="grid gap-3">
-          <ScoreBar label={t('steps.rotations.soilHealth')} score={r.soilHealth} />
-          <ScoreBar label={t('steps.rotations.climate')} score={r.climateResilience} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <ScoreRow label={t('steps.rotations.soilHealth')} score={r.soilHealth} />
+          <ScoreRow label={t('steps.rotations.climate')} score={r.climateResilience} />
           {goal !== 'keepSoil' ? (
             total.status === 'ready' ? (
-              <ScoreBar label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} />
+              <ScoreRow label={t('steps.rotations.goalTotal', { goal: goalName })} score={total.data} />
             ) : (
               <div className="grid gap-1">
                 <p className="text-sm font-medium text-slate-800">{t('steps.rotations.goalTotalMissing', { goal: goalName })}</p>
@@ -143,8 +140,13 @@ export function RotationCard(props: {
         </div>
 
         {calendar}
+        </div>
 
-        <div className="grid gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+        <div className="grid content-start gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-800">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-amber-500" />
+            {t('steps.rotations.checkTitle')}
+          </p>
           <Section title={t('steps.rotations.gaps')} empty={r.gaps.length === 0}>
             <ShortList label={t('steps.rotations.gaps')} items={r.gaps} />
           </Section>
@@ -170,9 +172,6 @@ export function RotationCard(props: {
               {t(total.data.basis)}
             </p>
           ) : null}
-          <p className="text-sm leading-relaxed text-slate-700">
-            <TermText code="steps.rotations.rangeNote" terms={{ range: 'percentile-range' }} />
-          </p>
         </Fold>
 
         {moneyAvailable ? (
@@ -279,7 +278,7 @@ export function RotationCard(props: {
         </Fold>
       </div>
 
-      <p className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-snug text-slate-700 sm:px-5">{t('app.support')}</p>
+      <p className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-sm leading-snug text-slate-600 sm:px-6">{t('app.support')}</p>
     </article>
   );
 }

@@ -58,9 +58,9 @@ function droughtLabel(analysis: Analysis): string {
 
 function Row({ label, value, datasets, decimals }: { label: string; value: Sourced; datasets: Dataset[]; decimals?: number }) {
   return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-b border-slate-200 py-2 last:border-0">
-      <dt className="text-base text-slate-700">{label}</dt>
-      <dd className="text-base font-medium text-slate-900">
+    <div className="grid content-start gap-1 py-1">
+      <dt className="text-sm text-slate-600">{label}</dt>
+      <dd className="text-lg font-semibold tabular-nums text-slate-900">
         <SourcedNumber value={value} datasets={datasets} decimals={decimals} />
       </dd>
     </div>
@@ -85,7 +85,7 @@ function SeasonStripes({ analysis }: { analysis: Analysis }) {
       <div
         role="img"
         aria-label={t('steps.rotations.summary.stripes.label', { n: rows.length, from: first, to: last, drought: analysis.profile.droughtYears.length })}
-        className="flex h-10 items-stretch gap-[2px]"
+        className="flex h-8 items-stretch gap-[2px]"
       >
         {rows.map((y) => {
           const share = (y.growingSeasonWetness.value! - lo) / span;
@@ -111,18 +111,18 @@ function SeasonStripes({ analysis }: { analysis: Analysis }) {
 export function FieldSummary({ analysis }: { analysis: Analysis }) {
   const { profile, datasets, field } = analysis;
   return (
-    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section aria-labelledby="field-summary-title" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="field-summary-title" className="text-lg font-semibold text-slate-900">
+        <h2 id="field-summary-title" className="text-base font-semibold text-slate-900">
           {t('steps.rotations.summary.title')}: {field.name}
         </h2>
-        <span className="text-sm text-slate-600">{t('steps.rotations.summary.stripes.title')}</span>
+        <span className="text-xs text-slate-500">{t('steps.rotations.summary.stripes.title')}</span>
       </div>
       <SeasonStripes analysis={analysis} />
-      <details className="group rounded-lg border border-slate-200 px-3">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
+      <details className="group">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
           {t('steps.rotations.summary.droughtWhat')}
-          <span aria-hidden="true" className="text-slate-600 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>
@@ -133,7 +133,7 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
           />
         </p>
       </details>
-      <dl className="grid gap-x-6 sm:grid-cols-3">
+      <dl className="grid gap-x-6 gap-y-2 border-y border-slate-100 py-3 sm:grid-cols-3">
         <Row label={droughtLabel(analysis)} value={droughtYears(analysis)} datasets={datasets} decimals={0} />
         {hazards.map((hazard) => {
           const top = peak(analysis, hazard);
@@ -147,7 +147,7 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
               );
             }
             return (
-              <div key={hazard} className="border-b border-slate-200 py-2 text-base text-slate-700 last:border-0">
+              <div key={hazard} className="py-1 text-sm text-slate-700">
                 {t('steps.rotations.summary.peak.none', { hazard: name })}
               </div>
             );
@@ -164,10 +164,10 @@ export function FieldSummary({ analysis }: { analysis: Analysis }) {
         })}
       </dl>
       {/* Soil and slope fold away so the cards start on the first screen of a phone. */}
-      <details className="group rounded-lg border border-slate-200 px-3">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
+      <details className="group">
+        <summary className="inline-flex min-h-9 cursor-pointer list-none items-center gap-1.5 rounded text-sm font-medium text-emerald-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 [&::-webkit-details-marker]:hidden">
           {t('steps.rotations.summary.soilAndSlope')}
-          <span aria-hidden="true" className="text-slate-600 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
+          <span aria-hidden="true" className="text-emerald-800 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none">
             ▾
           </span>
         </summary>

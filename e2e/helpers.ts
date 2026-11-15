@@ -77,12 +77,19 @@ export async function next(page: Page) {
   await page.getByRole('button', { name: 'Next', exact: true }).click();
 }
 
-/** Step 5 checks shared by both demo fields (SPEC section 14). */
+/**
+ * Step 5 checks shared by both demo fields (SPEC section 14). Step 5 offers the four shown rotations as picks and
+ * opens one card at a time (O4-S5v), so each pick is opened and its card checked. Returns the picks.
+ */
 export async function expectFourCards(page: Page) {
-  await expect(page.getByText('Your rotation', { exact: true })).toBeVisible();
-  const cards = page.getByRole('article');
-  await expect(cards).toHaveCount(4);
-  for (const card of await cards.all()) {
+  const picker = page.getByRole('radiogroup', { name: 'Rotations to compare' });
+  await expect(picker.getByText('Your rotation', { exact: true })).toBeVisible();
+  const picks = picker.getByRole('radio');
+  await expect(picks).toHaveCount(4);
+  for (const pick of await picks.all()) {
+    await pick.click();
+    const card = page.getByRole('article');
+    await expect(card).toHaveCount(1);
     await expect(card).toContainText('What we do not know');
     await expect(card).toContainText('Check locally');
     await expect(card).toContainText(SUPPORT_SENTENCE);
@@ -90,5 +97,5 @@ export async function expectFourCards(page: Page) {
     await expect(card.getByRole('list').nth(0).getByRole('listitem').first()).toBeVisible();
     await expect(card.getByRole('list').nth(1).getByRole('listitem').first()).toBeVisible();
   }
-  return cards;
+  return picks;
 }
