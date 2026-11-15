@@ -27,6 +27,18 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       await next(page);
 
       await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 6 of 6');
+      // The top of step 6 (O1-F14) puts the first option next to the current rotation.
+      await expect(page.getByRole('heading', { name: 'Switch or stay?' })).toBeVisible();
+      const compare = page.getByRole('table', { name: 'The option next to your rotation' });
+      await expect(compare).toBeVisible();
+      const currentTitle = titles.find((title) => title.startsWith('Your rotation'))!;
+      const firstOption = titles.find((title) => title.startsWith('Option 1'))!;
+      for (const title of [currentTitle, firstOption]) {
+        await expect(compare.getByRole('columnheader').filter({ hasText: title.split(': ')[1]! })).toHaveCount(1);
+      }
+
+      // Every rotation, in step 5 order, sits in the chart under the details disclosure.
+      await page.getByText('Bad and good years, payments and sources').click();
       await expect(page.getByRole('heading', { name: 'What each rotation would have earned' })).toBeVisible();
       const rows = page.getByRole('figure').getByRole('group');
       await expect(rows).toHaveCount(titles.length);
@@ -34,8 +46,9 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       // A pick's name is "Your rotation: …" or "Option n: …" before the crops; the row name is the crops alone.
       names.forEach((name, i) => expect(titles[i]).toContain(name));
 
-      // The current rotation has its average-year margin on the chart (both demo fields have money for it).
-      const current = rows.filter({ hasText: 'Your rotation' });
+      // The current rotation has its average-year margin on the chart (both demo fields have money for it). The exact
+      // badge text, since every other row says "… than your rotation".
+      const current = rows.filter({ has: page.getByText('Your rotation', { exact: true }) });
       await expect(current).toHaveCount(1);
       await expect(current.getByRole('img')).toHaveAccessibleName(/average year -?[\d,]+ (USD|PLN) per hectare/);
       await expect(page.getByText("Past years replayed at today's prices, not a forecast.")).toBeVisible();
