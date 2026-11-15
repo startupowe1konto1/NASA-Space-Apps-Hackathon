@@ -1,0 +1,17 @@
+{
+  "steps.money.title": "What each rotation would have earned",
+  "steps.money.intro": "Your {margin} per hectare on this field. The dot is an average year; the bar runs from a bad year to a good year (1 year in 10 was worse, 1 in 10 better).",
+  "steps.money.current": "Your rotation",
+  "steps.money.reference": "your rotation, average year",
+  "steps.money.axis": "{currency} per hectare",
+  "steps.money.headline": "In an average year, {name} earns {diff} more per hectare than your rotation.",
+  "steps.money.headlineNone": "None of the options earns more than your rotation in an average year.",
+  "steps.money.noneReady": "We have no income data for these rotations yet. The reasons are below each one.",
+  "steps.money.details": "Bad and good year, payments",
+  "steps.money.table": "Margins per rotation",
+  "steps.money.barLabel": "{name}: average year {mean} {unit} per hectare, bad year {low}, good year {high}",
+  "steps.money.col.rotation": "Rotation",
+  "steps.money.col.payments": "Confirmed payments per hectare",
+  "steps.money.col.none": "none",
+  "steps.money.chart": "Margin per hectare for each rotation"
+}
