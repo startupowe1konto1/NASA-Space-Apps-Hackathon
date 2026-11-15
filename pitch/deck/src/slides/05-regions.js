@@ -54,7 +54,7 @@ export default {
       <svg class="map" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
       <div class="copy">
         <div class="eyebrow">Similar regions</div>
-        <div class="title">Fields like Jan's in ${word.toLowerCase()} European regions, and their past yields</div>
+        <div class="title lines">Fields like Jan's<br>across the globe<br>and their past yields</div>
       </div>
       <div class="twins" data-from="3">
         <div class="row head"><span>#</span><span>Region</span><span class="num">Similarity</span><span class="num">Winter rapeseed, t/ha</span></div>${rows}

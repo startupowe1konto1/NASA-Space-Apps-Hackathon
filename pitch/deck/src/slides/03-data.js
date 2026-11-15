@@ -21,6 +21,8 @@ const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
 
 const CSS = `
 /* The first line (number and name) is centred on the leader line; the source sits below it. */
+/* The third title line is long; at the deck size it runs into the top data sheet. */
+.slide[data-name="data"] .title { font-size: 62px; }
 .slide[data-name="data"] .lbl { position: absolute; left: ${1340}px; width: 470px; transform: translateY(-18px); }
 .slide[data-name="data"] .lbl .top { display: flex; align-items: center; height: 36px; }
 .slide[data-name="data"] .lbl .n { flex: none; width: 40px; font-size: 19px; color: var(--muted); font-feature-settings: "tnum" 1; }
@@ -81,7 +83,7 @@ export default {
     ctx.el.innerHTML = `
       <div class="copy">
         <div class="eyebrow">The data</div>
-        <div class="title">Several datasets,<br>cross-analyzed for the best recommendation</div>
+        <div class="title lines">Several datasets,<br>cross-analyzed for<br>the best recommendation</div>
         <div class="lede">Open data, read for this exact place.</div>
         <div class="facts" data-from="3">${facts.map((f) => `<span><small>${f.label}</small><b></b></span>`).join('')}</div>
       </div>
