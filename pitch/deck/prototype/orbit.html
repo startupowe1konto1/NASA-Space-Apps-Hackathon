@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Prototype v2: from orbit to one field</title>
+<style>
+  @font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: block;
+    src: url("../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2-variations"); }
+  :root {
+    --bg: #05070d; --text: #f5f7fa; --muted: #9aa4b2; --line: rgba(255, 255, 255, .16);
+    --field: #3ddc97;   /* our field and the product */
+    --twin: #f5b84a;    /* similar regions */
+    --data: #8ec5ff;    /* data layers */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body, button { font-family: "Inter", system-ui, sans-serif; font-feature-settings: "tnum" 1, "cv11" 1; }
+  .fit { position: absolute; inset: 0 0 52px 0; overflow: hidden; }
+  .stage { position: absolute; left: 50%; top: 50%; margin: -540px 0 0 -960px; width: 1920px; height: 1080px; transform-origin: center; overflow: hidden; background: var(--bg); color: var(--text); }
+  .stage canvas, .stage svg.over { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .stage svg.over { pointer-events: none; }
+  .ctl { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; display: flex; gap: 16px; align-items: center; justify-content: center; color: #cbd5e1; font-size: 15px; }
+  .ctl a { color: #93c5fd; margin-right: 24px; }
+  .ctl button { font-size: 15px; color: #0f172a; background: #e2e8f0; border: 0; border-radius: 8px; padding: 8px 16px; cursor: pointer; }
+
+  /* Legibility: a soft dark wash behind the text column and the table column, no boxes. */
+  .wash { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(5, 7, 13, .78) 0%, rgba(5, 7, 13, .42) 30%, rgba(5, 7, 13, 0) 52%),
+                linear-gradient(270deg, rgba(5, 7, 13, .86) 0%, rgba(5, 7, 13, .6) 26%, rgba(5, 7, 13, 0) 46%);
+    opacity: 0; transition: opacity .8s ease; }
+  [data-step="0"] .wash { opacity: .55; }
+  .landed .wash { opacity: 1; }
+
+  /* One text block, top left, the same structure on every step. */
+  .copy { position: absolute; left: 112px; top: 104px; width: 640px; opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+  .eyebrow { font-size: 21px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .title { margin-top: 22px; font-size: 88px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.02; }
+  .lede { margin-top: 24px; font-size: 34px; font-weight: 400; line-height: 1.3; color: #d5dbe3; }
+  .facts { margin-top: 34px; padding-top: 22px; border-top: 1px solid var(--line); display: flex; gap: 0; font-size: 24px; color: var(--text); }
+  .facts span { padding: 0 26px; border-left: 1px solid var(--line); white-space: nowrap; }
+  .facts span:first-child { padding-left: 0; border-left: 0; }
+  .facts small { display: block; font-size: 16px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  [data-step="0"] .c0, .landed[data-step="1"] .c1, [data-step="2"] .c2, [data-step="3"] .c3, [data-step="4"] .c4 { opacity: 1; transform: none; transition-delay: .2s; }
+  .c4 .title em { font-style: normal; color: var(--field); }
+
+  /* Tables on the right: plain rows, hairlines, numbers aligned. */
+  .panel { position: absolute; right: 112px; top: 250px; width: 560px; opacity: 0; transition: opacity .5s ease; }
+  .panel h3 { margin: 0 0 14px; font-size: 18px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+  .row { display: grid; align-items: baseline; column-gap: 20px; padding: 15px 0; border-top: 1px solid var(--line); font-size: 25px; }
+  .row:last-child { border-bottom: 1px solid var(--line); }
+  .row .n { color: var(--muted); font-size: 19px; }
+  .row .src { color: var(--muted); font-size: 21px; text-align: right; white-space: nowrap; }
+  .layers .row { grid-template-columns: 38px 1fr auto; }
+  .twins { top: 196px; width: 620px; }
+  .twins .row { grid-template-columns: 38px 1fr 120px 140px; padding: 10px 0; font-size: 23px; }
+  .twins .row .num { text-align: right; }
+  .twins .row.head { border-top: 0; padding: 0 0 12px; font-size: 16px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .note { margin-top: 16px; font-size: 17px; line-height: 1.45; color: var(--muted); }
+  [data-step="2"] .layers { opacity: 1; transition-delay: 1.2s; }
+  [data-step="3"] .twins { opacity: 1; transition-delay: 1.1s; }
+
+  .tag { position: absolute; font-size: 17px; font-weight: 600; transform: translate(-50%, -50%); opacity: 0; transition: opacity .4s ease; pointer-events: none; }
+  .tag.twin { color: #1b1304; font-size: 18px; }
+  .tag.home { color: var(--field); font-size: 19px; transform: translate(-50%, -210%); white-space: nowrap; text-shadow: 0 0 10px #05070d, 0 0 4px #05070d; }
+  .cloud { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, #ffffff 0%, #e6eefb 40%, rgba(170, 200, 240, .9) 72%, rgba(90, 140, 210, .75) 100%); }
+  .foot { position: absolute; left: 112px; right: 112px; bottom: 56px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 16px; color: #7c8794; line-height: 1.5; }
+  .foot div:last-child { text-align: right; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+</style>
+<body>
+<div class="fit">
+  <div class="stage" id="stage" data-step="0" data-last="4">
+    <div class="loading" id="loading">Loading</div>
+    <div class="wash"></div>
+    <svg class="over" id="leaders" viewBox="0 0 1920 1080"></svg>
+    <div id="tags"></div>
+    <div class="cloud" id="cloud"></div>
+
+    <div class="copy c0">
+      <div class="eyebrow">NASA Space Apps Challenge 2026</div>
+      <div class="title">Field Shift tool</div>
+      <div class="lede">From orbit to one field.</div>
+    </div>
+    <div class="copy c1">
+      <div class="eyebrow">The field</div>
+      <div class="title">One field in Iowa.</div>
+      <div class="facts">
+        <span><small>Location</small>Story County</span>
+        <span><small>Coordinates</small>42.0305° N, 93.4970° W</span>
+        <span><small>Area</small>24 ha</span>
+      </div>
+    </div>
+    <div class="copy c2">
+      <div class="eyebrow">The data</div>
+      <div class="title">Five layers describe it.</div>
+      <div class="lede">Each one is open data, read for this exact place.</div>
+    </div>
+    <div class="copy c3">
+      <div class="eyebrow">Similar regions</div>
+      <div class="title">Ten similar regions.</div>
+      <div class="lede">Same climate. What they grow, and how it yields, is evidence for this field.</div>
+    </div>
+    <div class="copy c4">
+      <div class="eyebrow">The result</div>
+      <div class="title">One answer <em>for this field.</em></div>
+      <div class="facts">
+        <span><small>Datasets</small>23</span>
+        <span><small>From NASA</small>5</span>
+        <span><small>Weather record</small>45 years</span>
+      </div>
+    </div>
+
+    <div class="panel layers" id="layerPanel">
+      <h3><span>Layer</span><span>Source</span></h3>
+      <div class="row"><span class="n">01</span><span>Weather, 1981–2025</span><span class="src">NASA POWER</span></div>
+      <div class="row"><span class="n">02</span><span>Root-zone soil moisture</span><span class="src">NASA SMAP</span></div>
+      <div class="row"><span class="n">03</span><span>Crop history, 2008–2025</span><span class="src">USDA CropScape</span></div>
+      <div class="row"><span class="n">04</span><span>Slope</span><span class="src">NASADEM</span></div>
+      <div class="row"><span class="n">05</span><span>Soil</span><span class="src">USDA SSURGO</span></div>
+    </div>
+    <div class="panel twins" id="twinPanel">
+      <div class="row head"><span></span><span>Region</span><span class="num">Similarity</span><span class="num">Maize, t/ha</span></div>
+      <div id="twinRows"></div>
+      <div class="note">Similarity is our calculation on five NASA POWER climate features. Yields: USDA NASS, county means 2019–2023. Evidence, not a forecast.</div>
+    </div>
+
+    <div class="foot">
+      <div>Prototype v2</div>
+      <div>Imagery: NASA GIBS (Blue Marble; MODIS Terra and HLS, 8 Aug 2025) · Spacecraft model: Landsat 8, NASA 3D Resources</div>
+    </div>
+  </div>
+</div>
+<nav class="ctl">
+  <button id="prev">◀ back</button>
+  <span id="count">step 1 of 5</span>
+  <button id="next">next ▶</button>
+</nav>
+
+<script type="importmap">
+{ "imports": { "three": "../node_modules/three/build/three.module.js", "three/addons/": "../node_modules/three/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const stage = document.getElementById('stage');
+const cloud = document.getElementById('cloud');
+const leaders = document.getElementById('leaders');
+const tags = document.getElementById('tags');
+const W = 1920, H = 1080;
+const css = getComputedStyle(document.documentElement);
+const C = { field: css.getPropertyValue('--field').trim(), twin: css.getPropertyValue('--twin').trim(), data: css.getPropertyValue('--data').trim() };
+
+// The Iowa demo field (src/fixtures/fields.ts) and its ten twins, computed with the app's own providers on 14 Nov 2026:
+// NASA POWER profile of the field, then the twins provider on data/twins/cases.json, rotation maize and soybean.
+const FIELD = { lat: 42.0305, lon: -93.497, widthKm: 0.6, heightKm: 0.4 };
+const TWINS = [
+  ['Greene County', 98, 12.32, 42.0425, -94.3887], ['Carroll County', 97, 12.32, 42.0395, -94.8676],
+  ['Calhoun County', 96, 12.59, 42.3861, -94.6436], ['Audubon County', 96, 12.47, 41.6792, -94.9043],
+  ['Boone County', 96, 12.46, 42.0386, -93.9386], ['Humboldt County', 95, 12.27, 42.7822, -94.2028],
+  ['Buena Vista County', 95, 12.63, 42.7415, -95.1414], ['Emmet County', 93, 12.38, 43.378, -94.6694],
+  ['Dallas County', 93, 11.64, 41.6853, -94.0407], ['Adams County', 93, 11.75, 41.0217, -94.6969],
+].map(([name, similarity, yieldT, lat, lon]) => ({ name, similarity, yieldT, lat, lon }));
+const KM_LAT = 111.32, KM_LON = 111.32 * Math.cos(THREE.MathUtils.degToRad(FIELD.lat));
+const toKm = (lat, lon) => new THREE.Vector3((lon - FIELD.lon) * KM_LON, 0, -(lat - FIELD.lat) * KM_LAT); // x east, z south
+
+document.getElementById('twinRows').innerHTML = TWINS.map((t, i) =>
+  `<div class="row"><span class="n">${String(i + 1).padStart(2, '0')}</span><span>${t.name}</span><span class="num">${t.similarity}%</span><span class="num">${t.yieldT.toFixed(2)}</span></div>`).join('');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(W, H, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#05070d');
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; // soft reflections for the spacecraft
+const camera = new THREE.PerspectiveCamera(32, W / H, 0.02, 4000);
+const textures = new THREE.TextureLoader();
+const load = (url) => textures.loadAsync(url).then((t) => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; });
+const [earthMap, regionMap, localMap, wideMap, craft] = await Promise.all([
+  load('../assets/img/earth.jpg'), load('../assets/img/iowa-region.jpg'), load('../assets/img/iowa-local-native.png'), load('../assets/img/iowa-wide.jpg'), new GLTFLoader().setDRACOLoader(new DRACOLoader().setDecoderPath('../node_modules/three/examples/jsm/libs/draco/gltf/')).loadAsync('../assets/glb/landsat8.glb'),
+]);
+
+// ---------- orbit ----------
+const R = 10;
+const orbit = new THREE.Group();
+scene.add(orbit);
+function onGlobe(lat, lon, r = R) {
+  const phi = THREE.MathUtils.degToRad(lon + 180), theta = THREE.MathUtils.degToRad(90 - lat);
+  return new THREE.Vector3(-r * Math.cos(phi) * Math.sin(theta), r * Math.cos(theta), r * Math.sin(phi) * Math.sin(theta));
+}
+const n = onGlobe(FIELD.lat, FIELD.lon, 1);
+const east = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), n).normalize();
+const north = new THREE.Vector3().crossVectors(n, east).normalize();
+
+const earth = new THREE.Mesh(new THREE.SphereGeometry(R, 160, 120), new THREE.MeshStandardMaterial({ map: earthMap, roughness: 1, metalness: 0, envMapIntensity: 0 }));
+orbit.add(earth);
+orbit.add(new THREE.Mesh(new THREE.SphereGeometry(R * 1.03, 96, 64), new THREE.ShaderMaterial({
+  side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  vertexShader: 'varying vec3 vN; void main(){ vN = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'varying vec3 vN; void main(){ float i = pow(0.76 - dot(vN, vec3(0.0, 0.0, 1.0)), 2.8); gl_FragColor = vec4(0.32, 0.6, 1.0, 1.0) * i; }',
+})));
+const sun = new THREE.DirectionalLight('#fff6e8', 3.2);
+sun.position.copy(n.clone().addScaledVector(east, -0.75).addScaledVector(north, 0.45).multiplyScalar(100));
+orbit.add(sun, new THREE.AmbientLight('#9db4ff', 0.06));
+
+const starPos = new Float32Array(3500 * 3);
+for (let i = 0; i < 3500; i++) { const v = new THREE.Vector3().randomDirection().multiplyScalar(900 + Math.random() * 600); starPos.set([v.x, v.y, v.z], i * 3); }
+const starGeo = new THREE.BufferGeometry(); starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+orbit.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: '#e8eefc', size: 1.4, sizeAttenuation: false, transparent: true, opacity: 0.8 })));
+
+const C0 = n.clone().addScaledVector(east, 0.62).addScaledVector(north, 0.18).normalize().multiplyScalar(R * 2.85);
+const T0 = n.clone().multiplyScalar(R * 0.25).addScaledVector(east, -R * 0.95).addScaledVector(north, R * 0.1);
+const fwd = T0.clone().sub(C0).normalize();
+const right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0)).normalize();
+const up = new THREE.Vector3().crossVectors(right, fwd);
+
+const SAT_ROLL = Number(new URLSearchParams(location.search).get('roll') ?? 2.3);
+// Spacecraft: the NASA Landsat 8 model, scaled to the scene and given metal and glass that catch the light.
+const sat = new THREE.Group();
+const model = craft.scene;
+const box = new THREE.Box3().setFromObject(model);
+const size = box.getSize(new THREE.Vector3());
+model.position.sub(box.getCenter(new THREE.Vector3()));
+model.traverse((o) => {
+  if (!o.isMesh) return;
+  for (const m of [o.material].flat()) {
+    const name = m.name.toLowerCase();
+    if (/solarpanel-(face|\d)/.test(name)) { m.color.set('#16234f'); m.metalness = 0.9; m.roughness = 0.18; m.envMapIntensity = 1.7; }       // cells
+    else if (/gold|bronze|mainpanels|mainsections/.test(name)) { m.color.offsetHSL(0, 0.12, -0.06); m.metalness = 0.95; m.roughness = 0.3; m.envMapIntensity = 1.35; } // foil
+    else if (/black|thruster|back/.test(name)) { m.color.set('#1b1e24'); m.metalness = 0.6; m.roughness = 0.5; }
+    else { m.metalness = 0.75; m.roughness = 0.34; m.envMapIntensity = 1.2; }                                                                 // structure
+  }
+});
+const fitted = new THREE.Group(); fitted.add(model); fitted.scale.setScalar(3.6 / Math.max(size.x, size.y, size.z));
+sat.add(fitted);
+const satHome = C0.clone().addScaledVector(fwd, 7.4).addScaledVector(right, -1.5).addScaledVector(up, -0.62);
+sat.position.copy(satHome);
+const sx = right.clone().addScaledVector(fwd, 0.5).addScaledVector(up, 0.18).normalize();
+const sy0 = up.clone().addScaledVector(fwd, -0.35).normalize();
+const sz = new THREE.Vector3().crossVectors(sx, sy0).normalize();
+sat.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(sx, new THREE.Vector3().crossVectors(sz, sx), sz));
+sat.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(fwd, SAT_ROLL)); // turn the solar array up and towards the planet
+const satBase = sat.quaternion.clone();
+const key = new THREE.PointLight('#ffffff', 9, 14); key.position.copy(satHome).addScaledVector(right, -1.6).addScaledVector(up, 2.2).addScaledVector(fwd, -3);
+const rim = new THREE.PointLight('#7fb4ff', 7, 12); rim.position.copy(satHome).addScaledVector(right, 2.4).addScaledVector(up, -0.6).addScaledVector(fwd, 1.5);
+orbit.add(sat, key, rim);
+
+// ---------- ground (1 unit = 1 km) ----------
+const ground = new THREE.Group(); ground.visible = false; scene.add(ground);
+const flat = (map, size, order) => {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshBasicMaterial({ map, transparent: true, depthTest: false, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.renderOrder = order; ground.add(m); return m;
+};
+const wide = flat(wideMap, 1224.5, -1);  // Blue Marble, cloud-free, for the view of the similar regions
+const region = flat(regionMap, 445, 0);
+const local = flat(localMap, 13.3, 1);
+const grid = new THREE.GridHelper(13.3, 133, '#ffffff', '#ffffff');
+grid.material.transparent = true; grid.material.opacity = 0; grid.material.depthTest = false; grid.renderOrder = 2; ground.add(grid);
+
+const { widthKm: FW, heightKm: FH } = FIELD;
+const fill = new THREE.Mesh(new THREE.PlaneGeometry(FW, FH), new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false }));
+fill.rotation.x = -Math.PI / 2; fill.renderOrder = 3; ground.add(fill);
+const edgeMat = new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false });
+for (const [w, d, x, z] of [[FW + 0.01, 0.01, 0, -FH / 2], [FW + 0.01, 0.01, 0, FH / 2], [0.01, FH, -FW / 2, 0], [0.01, FH, FW / 2, 0]]) {
+  const e = new THREE.Mesh(new THREE.BoxGeometry(w, 0.003, d), edgeMat); e.position.set(x, 0.002, z); e.renderOrder = 4; ground.add(e);
+}
+// Five sheets of one colour: the top one is row 01 of the table.
+const layers = [0, 1, 2, 3, 4].map((i) => {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(FW, 0.004, FH), new THREE.MeshBasicMaterial({ color: C.data, transparent: true, opacity: 0, depthWrite: false }));
+  const edge = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0 }));
+  mesh.add(edge); mesh.userData = { rest: 0.5 - i * 0.092, y: 2.2, opacity: 0, edge }; mesh.renderOrder = 10 - i; ground.add(mesh); return mesh;
+});
+
+// Twins: amber discs on the map, a green one for the field, thin lines between.
+const twinGroup = new THREE.Group(); ground.add(twinGroup);
+const disc = (radius, color) => {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(radius, 48), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthTest: false }));
+  m.rotation.x = -Math.PI / 2; m.renderOrder = 20; twinGroup.add(m); return m;
+};
+const home = disc(5.6, C.field);
+const homeRing = new THREE.Mesh(new THREE.RingGeometry(8.4, 9.4, 64), new THREE.MeshBasicMaterial({ color: C.field, transparent: true, opacity: 0, depthTest: false }));
+homeRing.rotation.x = -Math.PI / 2; homeRing.renderOrder = 20; twinGroup.add(homeRing);
+const twinMarks = TWINS.map((t, i) => {
+  const at = toKm(t.lat, t.lon);
+  const dot = disc(7.2, C.twin); dot.position.copy(at);
+  const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), at]), new THREE.LineBasicMaterial({ color: C.twin, transparent: true, opacity: 0, depthTest: false }));
+  line.renderOrder = 19; twinGroup.add(line);
+  const tag = document.createElement('div'); tag.className = 'tag twin'; tag.textContent = String(i + 1); tags.append(tag);
+  return { at, dot, line, tag, shown: 0 };
+});
+const homeTag = document.createElement('div'); homeTag.className = 'tag home'; homeTag.textContent = 'The field'; tags.append(homeTag);
+
+// ---------- timeline ----------
+let step = 0, stepAt = performance.now(), diveAt = null;
+const onStep = (next) => {
+  if (next >= 1 && diveAt === null) diveAt = next === 1 ? performance.now() : -1e9;
+  if (next === 0) { diveAt = null; stage.classList.remove('landed'); }
+  step = next; stepAt = performance.now();
+};
+addEventListener('step', (e) => onStep(e.detail));
+onStep(Number(stage.dataset.step) || 0);
+
+const GLOBE_S = 1.7, GROUND_S = 2.6;
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const easeIn = (x) => Math.pow(clamp01(x), 2.4);
+const easeOut = (x) => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOut = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const HIGH = 400, LOW = 2.3;
+// Resting views. The field sits left of centre so the table has the right-hand side.
+const VIEW = {
+  field: { pos: new THREE.Vector3(1.3, 1.3, 1.62), look: new THREE.Vector3(0.24, 0.36, -0.2), dim: 0.36, grid: 0.13 },
+  twins: { pos: new THREE.Vector3(-66, 780, 92), look: new THREE.Vector3(-66, 0, -48), dim: 1.25, grid: 0 },
+};
+const cur = { pos: VIEW.field.pos.clone(), look: VIEW.field.look.clone(), dim: 1, grid: 0 };
+const look = new THREE.Vector3();
+const v = new THREE.Vector3();
+let wasFlying = false;
+const clock = new THREE.Clock();
+/** Stage pixel position of a point in the ground scene. */
+const project = (p) => { v.copy(p).project(camera); return [(v.x * 0.5 + 0.5) * W, (-v.y * 0.5 + 0.5) * H]; };
+const rowY = (panel, i) => { const r = panel.querySelectorAll('.row')[i]; return panel.offsetTop + r.offsetTop + r.offsetHeight / 2; };
+const layerPanel = document.getElementById('layerPanel');
+
+function frame() {
+  const realDt = Math.min(clock.getDelta(), 1), dt = Math.min(realDt, 0.05), t = clock.elapsedTime;
+  const since = (performance.now() - stepAt) / 1000;
+  const dive = diveAt === null ? -1 : (performance.now() - diveAt) / 1000;
+  const onGround = dive >= GLOBE_S;
+  orbit.visible = !onGround; ground.visible = onGround;
+
+  let flash = 0, lines = '';
+  if (!onGround) {
+    sat.quaternion.copy(satBase).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.sin(t * 0.12) * 0.22));
+    sat.position.copy(satHome).addScaledVector(up, Math.sin(t * 0.4) * 0.06);
+    const p = dive < 0 ? 0 : easeIn(dive / GLOBE_S);
+    const drift = Math.sin(t * 0.2) * 0.45 * (1 - p);
+    camera.position.lerpVectors(C0, n.clone().multiplyScalar(R + 0.62), p).addScaledVector(right, drift).addScaledVector(up, Math.cos(t * 0.16) * 0.22 * (1 - p));
+    look.lerpVectors(T0, n.clone().multiplyScalar(R), easeOut(p * 1.6));
+    camera.fov = 32 + 26 * p; camera.updateProjectionMatrix(); camera.lookAt(look);
+    flash = clamp01((dive - (GLOBE_S - 0.38)) / 0.38);
+    for (const m of twinMarks) m.tag.style.opacity = '0';
+    homeTag.style.opacity = '0';
+  } else {
+    const g = dive - GLOBE_S;
+    const flying = g < GROUND_S * 1.35;
+    if (flying) {
+      // The fall: region, neighbourhood, field, then the tilt into the resting view.
+      const p = easeInOut(g / GROUND_S);
+      const h = HIGH * Math.pow(LOW / HIGH, p);
+      const tilt = easeInOut((g - GROUND_S * 0.78) / (GROUND_S * 0.55));
+      cur.pos.lerpVectors(new THREE.Vector3(0.03 * h, h, 0.16 * h), VIEW.field.pos, tilt);
+      cur.look.lerpVectors(new THREE.Vector3(0, 0, 0), VIEW.field.look, tilt);
+      cur.dim = 1 - (1 - VIEW.field.dim) * tilt; cur.grid = VIEW.field.grid * tilt;
+      camera.fov = 58 - 26 * clamp01(g / (GROUND_S * 0.6));
+      local.material.opacity = clamp01((70 - h) / 50);
+      flash = 1 - clamp01(g / 0.55);
+      if (tilt > 0.6) stage.classList.add('landed');
+    } else {
+      // Rest: ease towards the view this step asks for. The easing uses real elapsed time, so a slow machine that
+      // drops frames still arrives on time; the first rest frame after the fall starts exactly at the field view.
+      if (wasFlying || diveAt < 0) { cur.pos.copy(VIEW.field.pos); cur.look.copy(VIEW.field.look); cur.dim = VIEW.field.dim; cur.grid = VIEW.field.grid; if (diveAt < 0) diveAt = 0; }
+      const target = step === 3 ? VIEW.twins : VIEW.field;
+      const k = 1 - Math.exp(-realDt * 2.4);
+      cur.pos.lerp(target.pos, k); cur.look.lerp(target.look, k);
+      cur.dim += (target.dim - cur.dim) * k; cur.grid += (target.grid - cur.grid) * k;
+      camera.fov = 32; stage.classList.add('landed');
+    }
+    wasFlying = flying;
+    camera.updateProjectionMatrix();
+    camera.position.copy(cur.pos).add(v.set(Math.sin(t * 0.3), 0, Math.cos(t * 0.24)).multiplyScalar(0.012 * cur.pos.y));
+    camera.lookAt(cur.look);
+    region.material.color.setRGB(cur.dim * 0.86, cur.dim * 0.93, cur.dim); local.material.color.copy(region.material.color); wide.material.color.copy(region.material.color);
+    if (!flying) { const high = clamp01((cur.pos.y - 40) / 160); region.material.opacity = 1 - high; local.material.opacity = 1 - high; } else region.material.opacity = 1;
+    grid.material.opacity = cur.grid;
+
+    const near = clamp01(1 - (cur.pos.y - 1.3) / 40);              // 1 at the field, 0 high above it
+    edgeMat.opacity = near * (flying ? clamp01((g - GROUND_S) / 0.5) : 1);
+    fill.material.opacity = near * (step === 4 ? 0.22 + 0.4 * Math.max(0, Math.sin(clamp01(since / 2) * Math.PI)) : step === 2 ? 0.06 : 0.16) * (flying ? clamp01((g - GROUND_S) / 0.5) : 1);
+
+    layers.forEach((mesh, i) => {
+      const u = mesh.userData;
+      let y = 2.2, opacity = 0;
+      if (step === 2) { const q = easeOut((since - 0.3 - (4 - i) * 0.22) / 0.9); y = 2.2 + (u.rest - 2.2) * q; opacity = (0.42 + 0.06 * i) * q; }
+      if (step >= 3) { y = 0.01; opacity = 0; }
+      u.y += (y - u.y) * Math.min(1, dt * 14); u.opacity += (opacity - u.opacity) * Math.min(1, dt * 10);
+      mesh.position.y = u.y; mesh.material.opacity = u.opacity; u.edge.material.opacity = Math.min(1, u.opacity * 2.2); mesh.visible = u.opacity > 0.01;
+      if (step === 2 && u.opacity > 0.05) {
+        // Leader: from the sheet's right corner to its row in the table.
+        const [x, y2] = project(v.set(FW / 2, u.y, -FH / 2));
+        const tx = layerPanel.offsetLeft - 26, ty = rowY(layerPanel, i);
+        lines += `<path d="M${x.toFixed(1)} ${y2.toFixed(1)} L${(tx - 28).toFixed(1)} ${ty.toFixed(1)} L${tx} ${ty.toFixed(1)}" fill="none" stroke="rgba(255,255,255,${(0.5 * clamp01(since - 1.2)).toFixed(2)})" stroke-width="1.5"/>`
+          + `<circle cx="${x.toFixed(1)}" cy="${y2.toFixed(1)}" r="4" fill="#fff" opacity="${clamp01(since - 1.2).toFixed(2)}"/>`;
+      }
+    });
+
+    const far = clamp01((cur.pos.y - 120) / 200) * (step === 3 ? 1 : 0); // twins only once the camera is high
+    home.material.opacity += (far - home.material.opacity) * Math.min(1, dt * 6);
+    homeRing.material.opacity = home.material.opacity * (0.5 + 0.4 * Math.sin(t * 2.4));
+    const [hx, hy] = project(v.set(0, 0, 0));
+    homeTag.style.left = hx + 'px'; homeTag.style.top = hy + 'px'; homeTag.style.opacity = String(home.material.opacity);
+    twinMarks.forEach((m, i) => {
+      const on = far * clamp01((since - 0.9 - i * 0.12) / 0.4);
+      m.shown += ((step === 3 ? on : 0) - m.shown) * Math.min(1, dt * 8);
+      m.dot.material.opacity = m.shown; m.line.material.opacity = m.shown * 0.75;
+      const [x, y] = project(m.at);
+      m.tag.style.left = x + 'px'; m.tag.style.top = y + 'px'; m.tag.style.opacity = String(m.shown);
+    });
+  }
+  leaders.innerHTML = lines;
+  cloud.style.opacity = String(flash);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+document.getElementById('loading').remove();
+frame();
+</script>
+<script src="steps.js"></script>
+</body>
+</html>
