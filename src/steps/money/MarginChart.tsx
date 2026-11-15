@@ -115,13 +115,13 @@ export function MarginChart({ rows, scale, datasets }: { rows: MoneyRow[]; scale
             key={row.id}
             role="group"
             aria-label={row.title}
-            className="grid gap-x-4 gap-y-1 border-b border-slate-200 py-2 last:border-b-0 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] sm:items-center"
+            className="grid gap-x-4 gap-y-1 border-b border-slate-200 py-2 last:border-b-0 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] sm:items-center"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 sm:flex-col sm:items-start sm:justify-start">
               <span className="min-w-0 text-base font-medium leading-snug text-slate-900">
                 <span>{row.title}</span>
                 {row.isCurrent ? (
-                  <span className="ml-2 inline-block rounded-sm bg-slate-200 px-1.5 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-slate-800">
+                  <span className="ml-2 inline-block rounded-full bg-slate-800 px-2 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-white">
                     {t('steps.money.current')}
                   </span>
                 ) : null}
@@ -150,7 +150,7 @@ export function MarginChart({ rows, scale, datasets }: { rows: MoneyRow[]; scale
         ))}
 
         {lastTick ? (
-          <div className="grid gap-x-4 pt-1 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
+          <div className="grid gap-x-4 pt-1 sm:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
             <span className="hidden sm:block" />
             <div className="grid gap-2">
               <div aria-hidden="true" className="relative h-5">
