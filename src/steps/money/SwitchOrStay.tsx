@@ -230,7 +230,7 @@ export function SwitchOrStay({ rows, analysis, goal }: { rows: MoneyRow[]; analy
             <>
               <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <span className="font-semibold text-zinc-950">
-                  <TermText code="steps.money.payments" terms={{ payments: 'farm-payment' }} />
+                  <TermText code="steps.money.payments" terms={{ payments: 'government-support' }} />
                 </span>
                 <span className="text-lg font-bold text-zinc-950">
                   + <SourcedNumber value={paid.sum} datasets={analysis.datasets} decimals={0} />

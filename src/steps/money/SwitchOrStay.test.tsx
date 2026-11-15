@@ -91,7 +91,7 @@ describe('SwitchOrStay', () => {
   it('explains the payments and names only the confirmed programmes', async () => {
     draw();
     const bar = await screen.findByTestId('money-payments');
-    expect(within(bar).getByRole('button', { name: new RegExp(term('farm-payment').label, 'i') })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: new RegExp(term('government-support').label, 'i') })).toBeInTheDocument();
     expect(bar).toHaveTextContent(t('steps.money.paymentsHow.US'));
     expect(bar).toHaveTextContent('Confirmed programme');
     expect(bar).not.toHaveTextContent('Unconfirmed programme');
