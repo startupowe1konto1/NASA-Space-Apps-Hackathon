@@ -7,6 +7,7 @@ import type { Field } from '../contracts';
 import { StateBoundary } from '../ui-kit/StateBoundary';
 import { FieldList } from './draw/FieldList';
 import { drawnField, reshapedField } from './draw/drawnField';
+import { DemoPicker } from './demo/DemoPicker';
 import { createLeafletMap, type MapController } from './leafletMap';
 import { ParcelSearch } from './parcels/ParcelSearch';
 import { cutField } from './parcels/editFields';
@@ -110,6 +111,8 @@ export function MapStep() {
   return (
     <div className="grid gap-4">
       <p className="text-base text-zinc-700">{t('map.intro')}</p>
+
+      <DemoPicker />
 
       <SearchBox
         onPick={(place) => {
