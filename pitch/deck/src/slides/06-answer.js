@@ -81,7 +81,7 @@ function toolSlide({ title, shots, rule }) {
 }
 
 export const toolStart = toolSlide({
-  title: 'Mariusz picks his field and his past crops.',
+  title: 'Jan picks his field and his past crops',
   shots: [
     { file: '01-field.png', n: '1', caption: 'Mark the field on the map' },
     { file: '02-history.png', n: '2', caption: 'Copy the notebook' },
@@ -89,7 +89,7 @@ export const toolStart = toolSlide({
 });
 
 export const toolResult = toolSlide({
-  title: 'Then he picks a farming goal and gets recommendations from the analysis.',
+  title: 'Then he picks a farming goal and gets recommendations from the analysis',
   shots: [
     { file: '03-goal.png', n: '3', caption: 'Pick a goal' },
     { file: '04-rotations.png', n: '4', caption: 'Compare three rotations' },

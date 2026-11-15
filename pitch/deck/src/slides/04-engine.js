@@ -70,14 +70,14 @@ export default {
     ctx.el.classList.add('s4');
     const res = (r, i) => `
       <div class="res r${i + 1}${r.isCurrent ? '' : ' best'}">
-        <small>${r.isCurrent ? 'Mariusz today' : 'Best for the soil goal'}</small>
+        <small>${r.isCurrent ? 'Jan today' : 'Best for the soil goal'}</small>
         <div class="rot">${rotationText(r)}</div>
         <div class="nums"><div><b>${r.soilHealth.value}</b><span>soil health</span></div><div><b>${r.climateResilience.value}</b><span>climate resilience</span></div></div>
       </div>`;
     ctx.el.innerHTML = `
       <div class="copy">
         <div class="eyebrow">The engine</div>
-        <div class="title">Every rotation is tested against ${data.climate.years} years.</div>
+        <div class="title">Every rotation is tested against ${data.climate.years} years</div>
       </div>
       <div class="replay">
         <small class="who"></small>
@@ -107,7 +107,7 @@ export default {
   run(r, done) {
     this.stopRun();
     const t0 = performance.now();
-    this.q('.who').textContent = r.isCurrent ? 'Mariusz today' : 'Best for the soil goal';
+    this.q('.who').textContent = r.isCurrent ? 'Jan today' : 'Best for the soil goal';
     this.q('.year').style.fontSize = '';
     this.scene.fieldFill = 0.34;
     const risk = getComputedStyle(document.documentElement).getPropertyValue('--risk').trim();

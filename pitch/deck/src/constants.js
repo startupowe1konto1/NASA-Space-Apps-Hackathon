@@ -1,8 +1,8 @@
 // Text that is not a number from the analysis. Numbers come only from data/field.json.
 // Shared file: only the lead session edits it (pitch/PLAN.md, "How to run this plan").
 
-// D13 is still open. Change the name here and nowhere else.
-export const PROJECT_NAME = 'Field Shift tool';
+// D13: the owner named the app and the project CropShifter (Sun 15 Nov 2026). Change the name here and in index.html.
+export const PROJECT_NAME = 'CropShifter';
 
 export const TEAM = 'Vibecodersi';
 
