@@ -31,20 +31,20 @@ export function GoalStep() {
               role="radio"
               aria-checked={chosen}
               onClick={() => setGoal(id)}
-              className={`flex min-h-[72px] w-full cursor-pointer items-start gap-4 rounded-xl border-2 px-4 py-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-600/40 ${
-                chosen ? 'border-emerald-700 bg-emerald-50' : 'border-slate-300 bg-white hover:border-slate-500'
+              className={`flex min-h-[72px] w-full cursor-pointer items-start gap-4 rounded-xl border-2 px-4 py-4 text-left transition-colors duration-150 focus:outline-none focus-visible:ring-4 focus-visible:ring-zinc-900/40 ${
+                chosen ? 'border-zinc-900 bg-lime-100' : 'border-zinc-300 bg-white hover:border-zinc-500'
               }`}
             >
               <span
                 className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
-                  chosen ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-800'
+                  chosen ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-800'
                 }`}
               >
                 <Icon size={28} />
               </span>
               <span className="grid gap-1">
-                <span className="text-lg font-semibold text-slate-900">{t(`steps.goal.${id}`)}</span>
-                <span className="text-base leading-snug text-slate-700">{t(`steps.goal.${id}.hint`)}</span>
+                <span className="text-lg font-semibold text-zinc-900">{t(`steps.goal.${id}`)}</span>
+                <span className="text-base leading-snug text-zinc-700">{t(`steps.goal.${id}.hint`)}</span>
                 {showNote ? (
                   <span className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-sm text-amber-900">
                     {t('steps.goal.income.noMoney')}

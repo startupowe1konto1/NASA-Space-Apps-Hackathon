@@ -21,12 +21,12 @@ export function GlossaryPage(props: { onBack?: () => void; backToStep?: number }
   }, [onBack]);
 
   return (
-    <section aria-labelledby={headingId} className="text-base text-slate-900">
+    <section aria-labelledby={headingId} className="text-base text-zinc-900">
       <h2 id={headingId} ref={headingRef} tabIndex={-1} className="text-xl font-semibold focus:outline-none">
         {t('steps.glossary.title')}
       </h2>
-      <p className="mt-2 text-slate-700">{t('steps.glossary.intro')}</p>
-      <dl className="mt-4 divide-y divide-slate-200">
+      <p className="mt-2 text-zinc-700">{t('steps.glossary.intro')}</p>
+      <dl className="mt-4 divide-y divide-zinc-200">
         {entries.map((entry) => (
           <div key={entry.id} id={`term-${entry.id}`} className="py-3">
             <dt className="font-semibold first-letter:uppercase">{entry.label}</dt>
@@ -38,7 +38,7 @@ export function GlossaryPage(props: { onBack?: () => void; backToStep?: number }
         <button
           type="button"
           onClick={onBack}
-          className="mt-4 min-h-11 rounded border border-slate-300 px-4 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          className="mt-4 min-h-11 rounded border border-zinc-300 px-4 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2"
         >
           {backToStep === 0 ? t('steps.glossary.backToStart') : t('steps.glossary.back', { n: backToStep ?? 1 })}
         </button>

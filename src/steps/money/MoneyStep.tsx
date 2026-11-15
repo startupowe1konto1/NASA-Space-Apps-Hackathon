@@ -33,7 +33,7 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
   const best = options.reduce((a, b) => (b.mean! > a.mean! ? b : a));
   if (best.mean! <= current.mean!) {
     return (
-      <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-base leading-snug text-slate-800">
+      <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base leading-snug text-zinc-800">
         {t('steps.money.headlineNone')}
       </p>
     );
@@ -48,7 +48,7 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
   return (
     <p
       data-testid="money-headline"
-      className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base leading-relaxed text-emerald-950"
+      className="rounded-xl border border-lime-300 bg-lime-100 px-4 py-3 text-base leading-relaxed text-zinc-950"
     >
       <Template
         code="steps.money.headline"
@@ -63,22 +63,22 @@ function Headline({ rows, datasets }: { rows: MoneyRow[]; datasets: Dataset[] })
 
 function Details({ row, datasets }: { row: MoneyRow; datasets: Dataset[] }) {
   return (
-    <details data-testid="money-details" className="group border-t border-slate-200 first:border-t-0">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-emerald-700 sm:px-5 [&::-webkit-details-marker]:hidden">
+    <details data-testid="money-details" className="group border-t border-zinc-200 first:border-t-0">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-zinc-900 sm:px-5 [&::-webkit-details-marker]:hidden">
         <span className="grid">
-          <span className="text-base font-medium text-slate-900">
+          <span className="text-base font-medium text-zinc-900">
             {row.title}
             {row.isCurrent ? (
-              <span className="ml-2 inline-block rounded-full bg-slate-800 px-2 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-white">
+              <span className="ml-2 inline-block rounded-full bg-zinc-800 px-2 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-white">
                 {t('steps.money.current')}
               </span>
             ) : null}
           </span>
-          <span className="text-sm text-slate-600">{t('steps.money.details')}</span>
+          <span className="text-sm text-zinc-600">{t('steps.money.details')}</span>
         </span>
         <span
           aria-hidden="true"
-          className="text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none"
+          className="text-zinc-500 transition-transform group-open:rotate-180 motion-reduce:transition-none"
         >
           ▾
         </span>
@@ -151,16 +151,16 @@ export function MoneyStep() {
     <div className="grid gap-5">
       <section
         aria-labelledby="money-title"
-        className="grid gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+        className="grid gap-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <div className="grid gap-1.5">
-          <h2 id="money-title" className="text-lg font-semibold text-slate-900">
+          <h2 id="money-title" className="text-lg font-semibold text-zinc-900">
             {t('steps.money.title')}
           </h2>
-          <p data-testid="money-intro" className="max-w-3xl text-sm leading-relaxed text-slate-700">
+          <p data-testid="money-intro" className="max-w-3xl text-sm leading-relaxed text-zinc-700">
             <TermText code="steps.money.intro" terms={{ margin: 'margin' }} />
           </p>
-          <p className="text-sm font-medium text-slate-800">{t('steps.rotations.income.notForecast')}</p>
+          <p className="text-sm font-medium text-zinc-800">{t('steps.rotations.income.notForecast')}</p>
         </div>
 
         {anyReady ? (
@@ -177,11 +177,11 @@ export function MoneyStep() {
         <MarginChart rows={rows} scale={scale} datasets={data.datasets} />
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
         {rows.map((row) => (
           <Details key={row.id} row={row} datasets={data.datasets} />
         ))}
-        <p className="border-t border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-snug text-slate-700 sm:px-5">
+        <p className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-snug text-zinc-700 sm:px-5">
           {t('app.support')}
         </p>
       </section>

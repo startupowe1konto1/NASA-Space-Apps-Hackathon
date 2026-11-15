@@ -4,8 +4,8 @@ type Confidence = 'strong' | 'moderate' | 'weak';
 
 // Each level differs by icon shape, border weight and text, so it reads without colour.
 const STYLE: Record<Confidence, string> = {
-  strong: 'border border-emerald-700 bg-emerald-50 text-emerald-900',
-  moderate: 'border border-slate-500 bg-slate-50 text-slate-800',
+  strong: 'border border-zinc-900 bg-lime-100 text-zinc-950',
+  moderate: 'border border-zinc-500 bg-zinc-50 text-zinc-800',
   weak: 'border-2 border-amber-700 bg-amber-100 text-amber-950 font-semibold',
 };
 

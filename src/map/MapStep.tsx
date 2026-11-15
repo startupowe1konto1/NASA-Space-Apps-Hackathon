@@ -14,7 +14,7 @@ import { addFieldAt, useParcelTap } from './parcels/tap';
 import { SearchBox } from './search/SearchBox';
 
 const BUTTON =
-  'min-h-11 rounded-lg border border-slate-300 bg-white px-4 text-base font-medium text-slate-900 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 active:bg-slate-100';
+  'min-h-11 rounded-lg border border-zinc-300 bg-white px-4 text-base font-medium text-zinc-900 hover:bg-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 active:bg-zinc-100';
 
 export function MapStep() {
   const fields = useAppStore((s) => s.fields);
@@ -109,7 +109,7 @@ export function MapStep() {
 
   return (
     <div className="grid gap-4">
-      <p className="text-base text-slate-700">{t('map.intro')}</p>
+      <p className="text-base text-zinc-700">{t('map.intro')}</p>
 
       <SearchBox
         onPick={(place) => {
@@ -139,10 +139,10 @@ export function MapStep() {
           ref={containerRef}
           role="application"
           aria-label={t('map.label')}
-          className="h-[55vh] min-h-64 w-full overflow-hidden rounded-lg border border-slate-300 bg-slate-100 md:h-[60vh]"
+          className="h-[55vh] min-h-64 w-full overflow-hidden rounded-lg border border-zinc-300 bg-zinc-100 md:h-[60vh]"
         />
-        <p className="mt-2 text-sm text-slate-600">{t('map.hint')}</p>
-        <p className="mt-1 text-sm text-slate-600">{t('draw.hint')}</p>
+        <p className="mt-2 text-sm text-zinc-600">{t('map.hint')}</p>
+        <p className="mt-1 text-sm text-zinc-600">{t('draw.hint')}</p>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             type="button"
@@ -167,18 +167,18 @@ export function MapStep() {
             </svg>
             {t('edit.undo.button')}
           </button>
-          <label className="flex min-h-11 items-center gap-2 text-base text-slate-900">
+          <label className="flex min-h-11 items-center gap-2 text-base text-zinc-900">
             <input
               type="checkbox"
               checked={parcelsOn}
               onChange={(e) => toggleParcels(e.target.checked)}
-              className="h-6 w-6 shrink-0 accent-emerald-700"
+              className="h-6 w-6 shrink-0 accent-zinc-900"
             />
             {t('edit.layer.label')}
           </label>
         </div>
-        {parcelsOn ? <p className="mt-1 text-sm text-slate-600">{t('edit.layer.hint')}</p> : null}
-        <div role="status" className="mt-2 text-base text-slate-900">
+        {parcelsOn ? <p className="mt-1 text-sm text-zinc-600">{t('edit.layer.hint')}</p> : null}
+        <div role="status" className="mt-2 text-base text-zinc-900">
           {cutting ? t('edit.cut.hint') : editNote?.fields === fields ? editNote.text : null}
         </div>
       </div>

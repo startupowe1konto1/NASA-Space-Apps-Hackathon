@@ -45,8 +45,8 @@ export function PrioritiesStep() {
   return (
     <div className="grid gap-6">
       <fieldset className="grid gap-3">
-        <legend className="mb-1 text-lg font-semibold text-slate-900">{t('steps.priorities.intro')}</legend>
-        <p className="text-base text-slate-700">{t('steps.priorities.soilAlways')}</p>
+        <legend className="mb-1 text-lg font-semibold text-zinc-900">{t('steps.priorities.intro')}</legend>
+        <p className="text-base text-zinc-700">{t('steps.priorities.soilAlways')}</p>
         {switches.map(({ id, Icon }) => {
           const on = priorities.on.includes(id);
           const hintId = `priority-${id}-hint`;
@@ -56,19 +56,19 @@ export function PrioritiesStep() {
             // squeezed into a narrow column between the icon and the switch.
             <label
               key={id}
-              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/40 ${
-                on ? 'border-emerald-700 bg-emerald-50' : 'border-slate-300 bg-white hover:border-slate-500'
+              className={`relative grid min-h-[64px] cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 rounded-xl border-2 px-4 py-3 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
+                on ? 'border-zinc-900 bg-lime-100' : 'border-zinc-300 bg-white hover:border-zinc-500'
               }`}
             >
-              <span className={`col-start-1 row-start-1 ${on ? 'text-emerald-800' : 'text-slate-700'}`}>
+              <span className={`col-start-1 row-start-1 ${on ? 'text-zinc-900' : 'text-zinc-700'}`}>
                 <Icon size={28} />
               </span>
-              <span id={titleId} className="col-start-2 row-start-1 min-w-0 text-lg font-semibold leading-snug text-slate-900">
+              <span id={titleId} className="col-start-2 row-start-1 min-w-0 text-lg font-semibold leading-snug text-zinc-900">
                 {t(`steps.priorities.${id}`)}
               </span>
               <span
                 id={hintId}
-                className="col-span-3 row-start-2 text-base leading-snug text-slate-700 sm:col-span-1 sm:col-start-2"
+                className="col-span-3 row-start-2 text-base leading-snug text-zinc-700 sm:col-span-1 sm:col-start-2"
               >
                 {t(`steps.priorities.${id}.hint`)}
               </span>
@@ -82,7 +82,7 @@ export function PrioritiesStep() {
               />
               <span
                 aria-hidden="true"
-                className={`relative col-start-3 row-start-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-emerald-700' : 'bg-slate-400'}`}
+                className={`relative col-start-3 row-start-1 h-8 w-14 shrink-0 rounded-full transition-colors duration-150 ${on ? 'bg-zinc-900' : 'bg-zinc-400'}`}
               >
                 <span
                   className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform duration-150 motion-reduce:transition-none ${
@@ -179,15 +179,15 @@ function ExcludedCrops(props: {
 
   return (
     <fieldset className="grid gap-3">
-      <legend className="mb-1 text-lg font-semibold text-slate-900">
+      <legend className="mb-1 text-lg font-semibold text-zinc-900">
         {t('steps.priorities.exclude.title')}
         {excluded.length > 0 ? (
-          <span className="ml-2 rounded-full bg-slate-200 px-2 py-0.5 text-sm font-medium text-slate-800">
+          <span className="ml-2 rounded-full bg-zinc-200 px-2 py-0.5 text-sm font-medium text-zinc-800">
             {t('steps.priorities.exclude.count', { n: excluded.length })}
           </span>
         ) : null}
       </legend>
-      <p className="text-base text-slate-700">{t('steps.priorities.exclude.hint')}</p>
+      <p className="text-base text-zinc-700">{t('steps.priorities.exclude.hint')}</p>
       <StateBoundary
         state={boundary}
         source={state.status === 'error' ? state.source : t('steps.priorities.exclude.source')}
@@ -201,15 +201,15 @@ function ExcludedCrops(props: {
               return (
                 <li key={crop.id}>
                   <label
-                    className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border-2 px-3 py-2 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-emerald-600/40 ${
-                      out ? 'border-slate-700 bg-slate-100 text-slate-600' : 'border-slate-300 bg-white text-slate-900 hover:border-slate-500'
+                    className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border-2 px-3 py-2 transition-colors duration-150 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-zinc-900/40 ${
+                      out ? 'border-zinc-700 bg-zinc-100 text-zinc-600' : 'border-zinc-300 bg-white text-zinc-900 hover:border-zinc-500'
                     }`}
                   >
                     <input type="checkbox" className="sr-only" checked={out} onChange={() => onToggle(crop.id)} />
                     <span
                       aria-hidden="true"
                       className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border-2 ${
-                        out ? 'border-slate-700 bg-slate-700 text-white' : 'border-slate-500 bg-white'
+                        out ? 'border-zinc-700 bg-zinc-700 text-white' : 'border-zinc-500 bg-white'
                       }`}
                     >
                       {out ? <IconCheck size={16} strokeWidth={3} /> : null}

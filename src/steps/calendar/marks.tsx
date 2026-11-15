@@ -83,7 +83,7 @@ export function MissingMark(props: { size?: number }) {
       aria-hidden="true"
       data-testid="mark-missing"
       style={{ width: size, height: size, fontSize: size }}
-      className="inline-flex shrink-0 items-center justify-center font-bold leading-none text-slate-900"
+      className="inline-flex shrink-0 items-center justify-center font-bold leading-none text-zinc-900"
     >
       ?
     </span>

@@ -51,7 +51,7 @@ export function Term(props: { label: string; explanation: string }) {
       >
         <span
           aria-hidden="true"
-          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-500 text-xs font-semibold italic text-slate-700 group-hover:bg-slate-100 group-focus-visible:ring-2 group-focus-visible:ring-emerald-600 group-focus-visible:ring-offset-2"
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-500 text-xs font-semibold italic text-zinc-700 group-hover:bg-zinc-100 group-focus-visible:ring-2 group-focus-visible:ring-zinc-900 group-focus-visible:ring-offset-2"
         >
           i
         </span>
@@ -60,7 +60,7 @@ export function Term(props: { label: string; explanation: string }) {
         <span
           role="tooltip"
           id={tooltipId}
-          className={`absolute top-full z-20 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-lg bg-slate-900 px-3 py-2 text-left text-sm font-normal not-italic leading-snug text-white shadow-lg ${alignRight ? 'right-0' : 'left-0'}`}
+          className={`absolute top-full z-20 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-lg bg-zinc-900 px-3 py-2 text-left text-sm font-normal not-italic leading-snug text-white shadow-lg ${alignRight ? 'right-0' : 'left-0'}`}
         >
           {explanation}
         </span>
