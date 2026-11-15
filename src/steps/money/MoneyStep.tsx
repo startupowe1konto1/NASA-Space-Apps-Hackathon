@@ -11,7 +11,8 @@ import { SourcedNumber, StateBoundary } from '../../ui-kit';
 import { Margins, Payments } from '../cards/IncomeSection';
 import { TermText } from '../cards/TermText';
 import { MarginChart } from './MarginChart';
-import { moneyRows, moneyScale, type MoneyRow } from './moneyRows';
+import { moneyRows, moneyScale, rankingGoal, type MoneyRow } from './moneyRows';
+import { SwitchOrStay } from './SwitchOrStay';
 
 /** A message template with React elements in place of its {placeholders}, as TermText does for glossary terms. */
 function Template({ code, parts }: { code: string; parts: Record<string, ReactNode> }) {
@@ -149,6 +150,21 @@ export function MoneyStep() {
 
   return (
     <div className="grid gap-5">
+      <SwitchOrStay rows={rows} analysis={data} goal={rankingGoal(data, goal)} />
+      <p className="flex flex-wrap gap-x-1 text-sm text-zinc-700">
+        <span className="font-medium text-zinc-800">{t('steps.rotations.income.notForecast')}</span>
+        <span>{t('app.support')}</span>
+      </p>
+
+      {/* Everything else stays one tap away: every option on one axis, bad and good years, payments, sources. */}
+      <details data-testid="money-more" className="group grid gap-5">
+        <summary className="flex min-h-12 w-fit cursor-pointer list-none items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 text-base font-semibold text-zinc-900 hover:border-zinc-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 [&::-webkit-details-marker]:hidden">
+          {t('steps.money.more')}
+          <span aria-hidden="true" className="text-zinc-500 transition-transform group-open:rotate-180 motion-reduce:transition-none">
+            ▾
+          </span>
+        </summary>
+      <div className="mt-5 grid gap-5">
       <section
         aria-labelledby="money-title"
         className="grid gap-5 rounded-[20px] border border-zinc-200 bg-white p-4 sm:p-5"
@@ -160,7 +176,6 @@ export function MoneyStep() {
           <p data-testid="money-intro" className="max-w-3xl text-sm leading-relaxed text-zinc-700">
             <TermText code="steps.money.intro" terms={{ margin: 'margin' }} />
           </p>
-          <p className="text-sm font-medium text-zinc-800">{t('steps.rotations.income.notForecast')}</p>
         </div>
 
         {anyReady ? (
@@ -181,10 +196,9 @@ export function MoneyStep() {
         {rows.map((row) => (
           <Details key={row.id} row={row} datasets={data.datasets} />
         ))}
-        <p className="border-t border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-snug text-zinc-700 sm:px-5">
-          {t('app.support')}
-        </p>
       </section>
+      </div>
+      </details>
     </div>
   );
 }
