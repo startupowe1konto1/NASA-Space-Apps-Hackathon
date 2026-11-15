@@ -64,9 +64,10 @@ function checkIds(data) {
 }
 
 export default {
-  // One key press plays all three: (1) the sheets fall, (2) their labels appear, (3) the facts count up.
-  steps: 3,
-  stepMs: 1900,   // the fall of five sheets: 0.9 s + 4 x 0.22 s
+  // One key press plays them all: (0) the camera, (1) title, (2) lede, (3) the sheets fall, (4) their labels appear,
+  // (5) the facts count up.
+  steps: 5,
+  stepMs: [700, 900, 700, 1900, 900, 1000],   // per step; 3 is the fall of five sheets: 0.9 s + 4 x 0.22 s
   mount(ctx) {
     const { data, scene } = ctx;
     const clim = data.climate;
@@ -82,10 +83,10 @@ export default {
     }
     ctx.el.innerHTML = `
       <div class="copy">
-        <div class="eyebrow">The data</div>
-        <div class="title lines">Several datasets,<br>cross-analyzed for<br>the best recommendation</div>
-        <div class="lede">Open data, read for this exact place.</div>
-        <div class="facts" data-from="3">${facts.map((f) => `<span><small>${f.label}</small><b></b></span>`).join('')}</div>
+        <div class="eyebrow" data-from="1">The data</div>
+        <div class="title lines" data-from="1">Several datasets,<br>cross-analyzed for<br>the best recommendation</div>
+        <div class="lede" data-from="2">Open data, read for this exact place.</div>
+        <div class="facts" data-from="5">${facts.map((f) => `<span><small>${f.label}</small><b></b></span>`).join('')}</div>
       </div>
       <svg class="leaders" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
       <div class="lbls">
@@ -147,7 +148,7 @@ export default {
     scene.onFrame(({ now }) => {
       // Visible only while this slide is active and its first step is reached. stage.js puts `.active` on ctx.el
       // before it calls enter(), so this is the slide's own state: no frame counts, no view check.
-      const live = ctx.el.classList.contains('active') && st.step >= 1 && st.fallAt !== null;
+      const live = ctx.el.classList.contains('active') && st.step >= 3 && st.fallAt !== null;
       const el = live ? (now - st.fallAt) / 1000 : 0;
       sheets.forEach((s, i) => {
         const q = live ? easeOut((el - i * SHEET_GAP_S) / SHEET_FALL_S) : 0;   // top sheet (01) first
@@ -174,15 +175,15 @@ export default {
   enter(step, ctx) {
     const st = this.st;
     ctx.scene.goTo('data', { instant: ctx.instant });
-    ctx.setWash(1, 1);
+    ctx.setWash(step >= 1 ? 1 : 0, step >= 4 ? 1 : 0);
     st.step = step;
-    if (step >= 1) {
+    if (step >= 3) {
       if (ctx.instant) st.fallAt = -1e9;                      // jump to the end of the fall
       else if (st.fallAt === null) st.fallAt = performance.now();
     } else st.fallAt = null;
-    ctx.el.querySelector('svg.leaders').style.opacity = ctx.scene.available && step >= 2 ? '1' : '0';
-    ctx.el.querySelector('.lbls').classList.toggle('on', step >= 2);
-    if (step >= 3) st.startCount(ctx.instant); else st.resetCount();
+    ctx.el.querySelector('svg.leaders').style.opacity = ctx.scene.available && step >= 4 ? '1' : '0';
+    ctx.el.querySelector('.lbls').classList.toggle('on', step >= 4);
+    if (step >= 5) st.startCount(ctx.instant); else st.resetCount();
   },
   final(ctx) { this.enter(this.steps, ctx); },
 };

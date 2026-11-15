@@ -1,6 +1,7 @@
 // Slide 5: similar regions. The camera rises to the Europe view; the field is a green dot with a slow ring, every case
 // in twins.cases is an amber dot at its place, numbered in table order and joined to the field by a thin line.
-// Steps: 1 the rise, 2 dots and lines in order of similarity, 3 the table and the footnote.
+// Steps: 0 the rise, 1 title, 2 the climate-twins row, 3 the CropShifter row, 4 dots and lines in order of similarity,
+// 5 the table, 6 the footnote.
 const NS = 'http://www.w3.org/2000/svg';
 const WORDS = { 2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five', 6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine', 10: 'Ten', 11: 'Eleven', 12: 'Twelve' };
 const STAGGER = 0.12; // seconds between dots at step 2
@@ -22,6 +23,10 @@ const CSS = `
 @keyframes regions-ring { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(2.6); opacity: 0; } }
 .slide[data-name="regions"] .foot { color: #b4bcc7; }
 .slide[data-name="regions"] .lede { margin-top: 24px; }
+.slide[data-name="regions"] .eq { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--hairline); display: grid; grid-template-columns: auto 1fr; column-gap: 24px; row-gap: 12px; align-items: baseline; font-size: 30px; line-height: 1.25; }
+.slide[data-name="regions"] .eq small { font-size: var(--fs-label); font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.slide[data-name="regions"] .eq .was { color: var(--muted); }
+.slide[data-name="regions"] .eq b { font-weight: 600; color: var(--twin); }
 .slide[data-name="regions"] .twins { position: absolute; right: var(--margin); top: 196px; width: 572px; }
 .slide[data-name="regions"] .twins .row { display: grid; grid-template-columns: 36px 1fr 100px 160px; column-gap: 8px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--hairline); font-size: 23px; line-height: 1.2; }
 .slide[data-name="regions"] .twins .row.head { border-top: 0; padding: 0 0 12px; font-size: 16px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); align-items: end; }
@@ -41,7 +46,8 @@ function check(cases) {
 }
 
 export default {
-  steps: 3,
+  steps: 6,
+  stepMs: [700, 900, 900, 1100, 1900, 900, 700],   // per step; 4 is ten dots 0.12 s apart
   mount(ctx) {
     const cases = ctx.data.twins.cases;
     const { word, years } = check(cases);
@@ -53,13 +59,17 @@ export default {
     ctx.el.innerHTML = `
       <svg class="map" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
       <div class="copy">
-        <div class="eyebrow">Similar regions</div>
-        <div class="title lines">Fields like Jan's<br>across the globe<br>and their past yields</div>
+        <div class="eyebrow" data-from="1">Similar regions</div>
+        <div class="title lines" data-from="1">Fields like Jan's<br>across the globe<br>and their past yields</div>
+        <div class="eq" data-from="2">
+          <small data-from="2">Climate twins</small><span class="was" data-from="2">similar climate</span>
+          <small data-from="3">CropShifter</small><span data-from="3">similar climate<br><b>+ same crop + recorded yields</b></span>
+        </div>
       </div>
-      <div class="twins" data-from="3">
+      <div class="twins" data-from="5">
         <div class="row head"><span>#</span><span>Region</span><span class="num">Similarity</span><span class="num">Winter rapeseed, t/ha</span></div>${rows}
       </div>
-      <div class="foot" data-from="3">Similarity is our calculation on five NASA POWER climate features. Yields: Eurostat, mean of ${esc(years)}. Evidence, not a forecast.</div>`;
+      <div class="foot" data-from="6">Similarity: our calculation on NASA POWER growing-season rain, root-zone soil moisture, frost days and the year's highest temperature, 2001–2025 (model estimates). Yields: Eurostat, mean of ${esc(years)}. Evidence, not a forecast.</div>`;
 
     const svg = ctx.el.querySelector('svg.map');
     const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.append(e); return e; };
@@ -97,11 +107,11 @@ export default {
   enter(step, ctx) {
     const s = this._s;
     ctx.scene.goTo('europe', { instant: ctx.instant });
-    ctx.setWash(1, step >= 3 ? 1 : 0);
+    ctx.setWash(step >= 1 ? 1 : 0, step >= 5 ? 1 : 0);
     s.home.classList.toggle('loop', !ctx.scene.still);
     s.marks.forEach((m, i) => {
-      m.g.style.transitionDelay = step >= 2 && !ctx.instant ? `${(0.2 + i * STAGGER).toFixed(2)}s` : '0s';
-      m.g.classList.toggle('on', step >= 2);
+      m.g.style.transitionDelay = step >= 4 && !ctx.instant ? `${(0.2 + i * STAGGER).toFixed(2)}s` : '0s';
+      m.g.classList.toggle('on', step >= 4);
     });
   },
   final(ctx) { this.enter(this.steps, ctx); },
