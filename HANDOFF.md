@@ -26,7 +26,7 @@ Written Sat 14 Nov 2026, 19:46 CET by the O1 session and updated at 23:30 by the
 
 The user asked to note it and check it later. The hourly e2e had 2 of 9 failing, both the new step 6 check in `e2e/demo-fields.spec.ts:20` ("step 6 shows a money row for every rotation of step 5, in the same order"), on the Iowa and the Poznań demo:
 - `getByRole('figure').getByRole('group').filter({ hasText: 'Your rotation' })` expected 1, received 4.
-- Likely cause, not checked in the code: every row group of the chart contains the text "Your rotation" somewhere (the reference line label or a heading), so `hasText` matches all four rows. If so, the fix is a narrower selector in the test (the row's own title), not a change in the data; if the chart really marks every row as the current rotation, it is a UI bug.
+- Likely cause: Playwright's `hasText` with a string is a case-insensitive substring match, and `steps.money.reference` is "your rotation, average year" (the reference line label). If that label is inside every row group, all four rows match. The fix is then a narrower selector in the test (for example the row whose own title starts with "Your rotation", or `hasText: /^Your rotation/`), not a change in the app; check in the browser whether each row really carries the label.
 - vitest was green (995). Main has moved since (#194 step 6 "Switch or stay?", #195 the name CropShifter, #196), so run `npx playwright test` on current `main` first: it may already pass or fail differently.
 - The hourly job does not post on #1 until a second red run in a row.
 
