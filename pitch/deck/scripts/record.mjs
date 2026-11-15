@@ -70,7 +70,7 @@ function parse(hash) {
 
 /** How long to hold after a key press, by what the press did (ms). */
 function holdAfter(before, after) {
-  if (before.slide === 1 && after.slide === 2) return 5000;   // the descent from the orbit
+  if (before.slide === 1 && after.slide === 2) return 6500;   // the descent from the orbit takes 5.2 s
   if (after.slide !== before.slide) return 3000;               // a slide change
   if (after.slide === 4 && after.step === 3) return 3500;      // slide 4 step 3: the playhead sweep
   return 2500;                                                 // a step within a slide

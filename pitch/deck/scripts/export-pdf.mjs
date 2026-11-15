@@ -70,7 +70,12 @@ async function captureSlide(context, base, n, failures, warnings) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(`page error: ${e.message}`));
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`console error: ${m.text()}`);
+    // A missing app screenshot logs Chrome's own 404 on every slide, because slide 6 preloads its images at start.
+    // Slide 6's data-missing check below is the gate for that case, so with --allow-missing the 404 for assets/app/
+    // is a warning, not a failure.
+    const from = m.location()?.url ?? '';
+    if (m.type() === 'error' && allowMissing && from.includes('/assets/app/')) warnings.push(`slide ${n}: ${m.text()} (${from})`);
+    else if (m.type() === 'error') errors.push(`console error: ${m.text()}`);
     else if (m.type() === 'warning') warnings.push(`slide ${n}: console warning: ${m.text()}`);
   });
   try {
