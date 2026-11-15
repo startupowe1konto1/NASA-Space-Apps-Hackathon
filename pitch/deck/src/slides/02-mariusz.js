@@ -38,7 +38,7 @@ export default {
     ctx.el.innerHTML = `
       <div class="copy" data-from="1">
         <div class="eyebrow">The problem</div>
-        <div class="title">Mariusz plans next year from a notebook.</div>
+        <div class="title">Traditionally, Mariusz has no data to back his decisions.</div>
         <div class="facts">
           <span><small>Location</small>Uzarzewo, near Poznań</span>
           <span><small>Coordinates</small>${fmtCoord(field.centroid.lat, 'N', 'S')}, ${fmtCoord(field.centroid.lon, 'E', 'W')}</span>

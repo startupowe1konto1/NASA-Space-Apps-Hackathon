@@ -81,7 +81,7 @@ export default {
     ctx.el.innerHTML = `
       <div class="copy">
         <div class="eyebrow">The data</div>
-        <div class="title">Five layers already describe this field.</div>
+        <div class="title">Several datasets, cross-analyzed for the best recommendation.</div>
         <div class="lede">Open data, read for this exact place.</div>
         <div class="facts" data-from="3">${facts.map((f) => `<span><small>${f.label}</small><b></b></span>`).join('')}</div>
       </div>

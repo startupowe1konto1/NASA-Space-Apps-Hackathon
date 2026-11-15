@@ -4,7 +4,7 @@
 // ctx.el.dataset.missing holds the number of screenshots not (yet) loaded, so the PDF script can refuse to print.
 
 // Stage px. Each frame: 800 px wide, a 22 px bar, then a 16:10 view (for 1280 x 800 screenshots).
-const FRAME = { top: 300, w: 800, bar: 22, gap: 96 };
+const FRAME = { top: 360, w: 800, bar: 22, gap: 96 };
 const VIEW_H = Math.round((FRAME.w - 2) * 10 / 16);
 
 const CSS = `
@@ -81,7 +81,7 @@ function toolSlide({ title, shots, rule }) {
 }
 
 export const toolStart = toolSlide({
-  title: 'Mariusz starts with his field and his notebook.',
+  title: 'Mariusz picks his field and his past crops.',
   shots: [
     { file: '01-field.png', n: '1', caption: 'Mark the field on the map' },
     { file: '02-history.png', n: '2', caption: 'Copy the notebook' },
@@ -89,7 +89,7 @@ export const toolStart = toolSlide({
 });
 
 export const toolResult = toolSlide({
-  title: 'Three rotations, each with its evidence.',
+  title: 'Then he picks a farming goal and gets recommendations from the analysis.',
   shots: [
     { file: '03-goal.png', n: '3', caption: 'Pick a goal' },
     { file: '04-rotations.png', n: '4', caption: 'Compare three rotations' },
