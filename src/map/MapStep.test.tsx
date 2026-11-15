@@ -66,7 +66,7 @@ async function search(user: ReturnType<typeof userEvent.setup>, query: string, b
 describe('MapStep', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('has no demo buttons; the address search finds the field (HANDOFF-frontend.md v2.1)', () => {
+  it('shows the address search next to the demo buttons', () => {
     render(<MapStep />);
     expect(screen.queryByRole('button', { name: demoFields.iowa.name })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: demoFields.poznan.name })).not.toBeInTheDocument();
@@ -112,6 +112,19 @@ describe('MapStep', () => {
     await user.click(pick);
     await screen.findByText(t('search.moved', { label: 'Des Moines, Iowa' }));
     await waitFor(() => expect(useAppStore.getState().fields).toHaveLength(1));
+  });
+
+  it('greys out and turns off the address and parcel search while a demo field is selected', async () => {
+    const user = userEvent.setup();
+    render(<MapStep />);
+    const searchBox = await screen.findByLabelText(t('search.label'));
+    expect(searchBox).toBeEnabled();
+    expect(screen.queryByText(t('demo.off'))).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: t('demo.iowa') }));
+    await waitFor(() => expect(screen.getByLabelText(t('search.label'))).toBeDisabled());
+    expect(screen.getByRole('textbox', { name: t('parcels.search.label') })).toBeDisabled();
+    expect(screen.getByText(t('demo.off'))).toBeInTheDocument();
   });
 
   it('adds a 4 ha field where the map is tapped', async () => {
