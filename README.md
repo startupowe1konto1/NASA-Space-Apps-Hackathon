@@ -23,6 +23,8 @@ Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift
 
 The app works on a phone. It has no accounts and stores nothing on a server.
 
+The hosted app is built from [startupowe1konto1/cropshifter-demo](https://github.com/startupowe1konto1/cropshifter-demo), a copy of this code prepared for the demo. On its two demo field buttons (Uzarzewo and Iowa) the current rotation is shown with illustrative scores below every option, labelled as such on screen. Any other field shows the engine's own result.
+
 ## What it does
 
 - **Four rotations per field**: the farmer's current one and the three best for the chosen goal. Soil health and climate resilience come first on every card, whatever the goal. Money enters the ranking only under the income goal.
