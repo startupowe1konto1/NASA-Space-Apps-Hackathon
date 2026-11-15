@@ -27,6 +27,17 @@ for (const demo of ['Iowa demo field', 'Poznań demo field'] as const) {
       await next(page);
 
       await expect(page.getByRole('heading', { level: 1 })).toContainText('Step 6 of 6');
+      // The top of step 6 (O1-F14) puts the first option next to the current rotation.
+      await expect(page.getByRole('heading', { name: 'Switch or stay?' })).toBeVisible();
+      const compare = page.getByRole('table', { name: 'The option next to your rotation' });
+      await expect(compare).toBeVisible();
+      const currentTitle = titles.find((title) => title.startsWith('Your rotation'))!;
+      const firstOption = titles.find((title) => title.startsWith('Option 1'))!;
+      for (const title of [currentTitle, firstOption]) {
+        await expect(compare.getByRole('columnheader').filter({ hasText: title.split(': ')[1]! })).toHaveCount(1);
+      }
+
+      // Under it, every rotation of step 5 as a ranked card against your rotation (O2-B6b).
       await expect(page.getByRole('heading', { name: 'What each rotation would have earned' })).toBeVisible();
       const groups = page.getByRole('figure').getByRole('group');
       await expect(groups).toHaveCount(titles.length);

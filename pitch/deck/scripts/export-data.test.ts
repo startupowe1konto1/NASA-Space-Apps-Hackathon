@@ -1,0 +1,126 @@
+// @vitest-environment node
+// Exports the numbers the pitch deck shows, from the app's own providers and engine, so no figure is typed by hand.
+// It is a vitest file because the app's modules use Vite features (import.meta.glob). Run it with
+// pitch/deck/scripts/export-data.sh, which copies it into src/app/ for the run and removes it afterwards.
+// It calls the live services the app calls: NASA POWER (profile) and GUGiK ULDK (parcel outlines).
+import { execSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import cases from '../../data/twins/cases.json';
+import type { CropYear, Score } from '../contracts';
+import { getParcelById, getParcelByPoint } from '../map/parcels/uldk';
+import { datasets } from './datasets';
+import { analyzeField, providers } from './providers';
+
+/** The field of the pitch: a land register parcel in Uzarzewo (Swarzędz commune), north-east of Poznań. Change it here only. */
+const PARCEL_ID = process.env.PITCH_PARCEL ?? '302116_5.0015.28/1';
+/** The farmer's notebook: an example history for the persona, the same rows the deck shows on slide 2. */
+const NOTEBOOK: CropYear[] = [
+  { year: 2022, crop: 'winter-wheat', source: 'farmer' },
+  { year: 2023, crop: 'winter-rapeseed', source: 'farmer' },
+  { year: 2024, crop: 'winter-wheat', source: 'farmer' },
+  { year: 2025, crop: 'winter-rapeseed', source: 'farmer' },
+  { year: 2026, crop: 'winter-wheat', source: 'farmer' },
+];
+const NEIGHBOUR_RADIUS_M = 900;
+const NEIGHBOUR_STEP_M = 150;
+
+interface CaseRegion { name: string; centroid: { lat: number; lon: number }; outcome: { outcomeRegion?: { name: string } } | null }
+const regions = (cases as unknown as { regions: CaseRegion[] }).regions;
+const score = (s: Score) => ({ value: Math.round(s.value), low: Math.round(s.low), high: Math.round(s.high), confidence: s.confidence });
+const round = (n: number, digits: number) => Math.round(n * 10 ** digits) / 10 ** digits;
+
+/** Where a twin case sits on the map: its region's centroid, or the mean centroid of a German Land's regions. */
+function placeOf(regionName: string): { lat: number; lon: number } | null {
+  const land = regions.filter((r) => r.outcome?.outcomeRegion && regionName.startsWith(r.outcome.outcomeRegion.name));
+  if (land.length > 0) {
+    return { lat: round(land.reduce((s, r) => s + r.centroid.lat, 0) / land.length, 4), lon: round(land.reduce((s, r) => s + r.centroid.lon, 0) / land.length, 4) };
+  }
+  const region = regions.find((r) => regionName.startsWith(r.name));
+  return region ? { lat: round(region.centroid.lat, 4), lon: round(region.centroid.lon, 4) } : null;
+}
+
+/** Every dataset id a value in the analysis says it depends on. */
+function datasetIdsIn(value: unknown, found = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) value.forEach((v) => datasetIdsIn(v, found));
+  else if (value && typeof value === 'object')
+    for (const [key, v] of Object.entries(value)) {
+      if (key === 'datasetIds' && Array.isArray(v)) v.forEach((id) => typeof id === 'string' && found.add(id));
+      else datasetIdsIn(v, found);
+    }
+  return found;
+}
+
+it('exports the pitch data', async () => {
+  const field = await getParcelById(PARCEL_ID);
+  if (!field) throw new Error(`ULDK has no parcel ${PARCEL_ID}`);
+
+  // Outlines of the parcels around the field, for the crisp lines under the camera.
+  const kmLat = 111.32, kmLon = 111.32 * Math.cos((field.centroid.lat * Math.PI) / 180);
+  const neighbours = new Map<string, number[][]>();
+  const jobs: Promise<void>[] = [];
+  for (let dy = -NEIGHBOUR_RADIUS_M; dy <= NEIGHBOUR_RADIUS_M; dy += NEIGHBOUR_STEP_M)
+    for (let dx = -NEIGHBOUR_RADIUS_M; dx <= NEIGHBOUR_RADIUS_M; dx += NEIGHBOUR_STEP_M)
+      jobs.push(getParcelByPoint(field.centroid.lat + dy / 1000 / kmLat, field.centroid.lon + dx / 1000 / kmLon).then((p) => {
+        const id = p?.parcelIds?.[0];
+        if (p && id && id !== PARCEL_ID) neighbours.set(id, p.polygon.coordinates[0]!.map(([lon = 0, lat = 0]) => [round(lon, 6), round(lat, 6)]));
+      }).catch(() => undefined));
+  await Promise.all(jobs);
+
+  const analysis = await analyzeField({ field, cropHistory: NOTEBOOK, priorities: { goal: 'keepSoil', on: [], excludedCrops: [] } }, providers);
+  const climate = analysis.profile;
+  const ranked = [...analysis.rotations].sort((a, b) => (a.rankByGoal.keepSoil ?? 99) - (b.rankByGoal.keepSoil ?? 99));
+  const current = analysis.rotations.find((r) => r.isCurrent);
+  const twins = await providers.twins.getTwins(field, climate, (current ?? ranked[0]!).years);
+  const real = datasets.filter((d) => d.id !== 'fixture');
+  // What this field's answer was actually computed from, as opposed to everything the app has registered.
+  const usedIds = datasetIdsIn([analysis, twins]);
+  // The field's outline comes from GUGiK ULDK through the map, not through the analysis, so no value carries its id.
+  // It is a dataset of this field all the same: it is in the registry, and the outline above was read from it.
+  const uldk = real.find((d) => d.id === 'gugik-uldk');
+  if (!uldk) throw new Error('The dataset registry has no "gugik-uldk" entry, but the field outline comes from GUGiK ULDK');
+  usedIds.add(uldk.id);
+  const used = real.filter((d) => usedIds.has(d.id));
+
+  const out = {
+    meta: {
+      generatedAt: new Date().toISOString(),
+      commit: execSync('git rev-parse --short HEAD').toString().trim(),
+      note: 'Generated by pitch/deck/scripts/export-data.sh from the app providers and engine. Do not edit by hand.',
+    },
+    field: {
+      parcelId: PARCEL_ID, name: field.name, country: field.country, areaHa: round(field.areaHa, 1),
+      centroid: { lat: round(field.centroid.lat, 5), lon: round(field.centroid.lon, 5) },
+      ring: field.polygon.coordinates[0]!.map(([lon = 0, lat = 0]) => [round(lon, 6), round(lat, 6)]),
+      source: 'GUGiK ULDK (land register parcel)',
+    },
+    neighbours: [...neighbours.entries()].map(([id, ring]) => ({ id, ring })),
+    notebook: NOTEBOOK.map(({ year, crop }) => ({ year, crop })),
+    soil: Object.fromEntries(Object.entries(climate.soil).map(([k, v]) => [k, { value: (v as { value: unknown }).value, unit: (v as { unit?: string }).unit, datasetIds: (v as { datasetIds: string[] }).datasetIds }])),
+    slopePct: { value: climate.slopePct.value, datasetIds: climate.slopePct.datasetIds, missingReason: climate.slopePct.missingReason },
+    climate: {
+      source: climate.source,
+      firstYear: climate.yearly[0]?.year, lastYear: climate.yearly[climate.yearly.length - 1]?.year, years: climate.yearly.length,
+      droughtYears: climate.droughtYears,
+      yearly: climate.yearly.map((y) => ({ year: y.year, drought: climate.droughtYears.includes(y.year), rainMm: y.rainMm.value, maxTempC: y.maxTempC.value, frostDays: y.frostDays.value, wetness: y.growingSeasonWetness.value })),
+    },
+    // The rotations the app shows for each goal, in the app's order (the current one and the best others).
+    shownByGoal: analysis.shownByGoal,
+    rotations: ranked.map((r) => ({
+      id: r.id,
+      // position among every candidate the engine scored for the soil goal, not among the few that are shown
+      rank: r.rankByGoal.keepSoil ?? null, isCurrent: r.isCurrent, belowSoilFloor: r.belowSoilFloor,
+      crops: r.years.map((y) => ({ crop: y.crop, coverCrop: y.coverCrop ?? null })),
+      soilHealth: score(r.soilHealth), climateResilience: score(r.climateResilience),
+      income: r.income.status === 'ready' ? score(r.income.data) : { status: r.income.status },
+      indicators: Object.fromEntries(Object.entries(r.indicators).map(([k, v]) => [k, score(v!)])),
+      gapCodes: r.gaps.map((g) => g.code),
+    })),
+    twins: twins.status === 'ready'
+      ? { rotation: (current ?? ranked[0]!).years.map((y) => y.crop), meanSimilarity: twins.data.meanSimilarity,
+          cases: twins.data.cases.map((c) => ({ region: c.regionName, country: c.country, similarity: c.similarity, crops: c.crops, yieldTPerHa: c.outcome.value, unit: c.outcome.unit, years: c.years, datasetIds: c.outcome.datasetIds, kind: c.outcome.kind, place: placeOf(c.regionName) })) }
+      : { status: twins.status },
+    datasetsUsedForThisField: { total: used.length, nasa: used.filter((d) => d.nasa).length, ids: used.map((d) => d.id), unknownIds: [...usedIds].filter((id) => !real.some((d) => d.id === id)) },
+    datasets: { total: real.length, nasa: real.filter((d) => d.nasa).length, list: real.map((d) => ({ id: d.id, name: d.name, provider: d.provider, nasa: d.nasa, period: d.period, resolution: d.resolution, kind: d.kind, url: d.url })) },
+  };
+  writeFileSync(process.env.PITCH_OUT!, JSON.stringify(out, null, 2) + '\n');
+}, 600000);
