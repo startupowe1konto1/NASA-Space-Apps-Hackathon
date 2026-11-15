@@ -24,12 +24,12 @@ const CSS = `
   font-size: 22px; color: var(--muted); }
 .s-tool .cap { margin-top: 16px; font-size: 26px; font-weight: 500; }
 .s-tool .cap i { font-style: normal; color: var(--muted); margin-right: 12px; font-feature-settings: "tnum" 1; }
-.s-tool .rule { position: absolute; left: var(--margin); right: var(--margin); bottom: 60px; font-size: 32px; font-weight: 500;
+.s-tool .rule { position: absolute; left: var(--margin); right: var(--margin); bottom: 100px; font-size: 32px; font-weight: 500;
   line-height: 1.25; opacity: 0; transition: opacity .6s ease .3s; }
 .s-tool .rule.on { opacity: 1; }
 `;
 
-function toolSlide({ title, shots, rule, top, viewH }) {
+function toolSlide({ title, shots, rule, foot, top, viewH }) {
   return {
     steps: 2,          // 1: left screenshot, 2: right screenshot (and the closing sentence on tool-2)
     stepMs: 900,
@@ -44,7 +44,8 @@ function toolSlide({ title, shots, rule, top, viewH }) {
           <div class="title">${title}</div>
         </div>
         <div class="pair"></div>
-        ${rule ? `<div class="rule">${rule}</div>` : ''}`;
+        ${rule ? `<div class="rule">${rule}</div>` : ''}
+        ${foot ? `<div class="foot">${foot}</div>` : ''}`;
       const pair = ctx.el.querySelector('.pair');
       pair.style.top = `${top}px`;
       this.aspects = shots.map(() => 1.6);
@@ -108,7 +109,8 @@ export const toolResult = toolSlide({
   top: 360, viewH: 520,
   shots: [
     { file: '03-goal.png', n: '3', caption: 'Pick a goal' },
-    { file: '04-rotations.png', n: '4', caption: 'Compare three rotations' },
+    { file: '04-income.png', n: '4', caption: 'Compare with what he grows now' },
   ],
   rule: "The tool supports the farmer's judgment. It does not replace it.",
+  foot: "Income: past years replayed at today's prices, not a forecast.",
 });

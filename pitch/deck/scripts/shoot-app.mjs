@@ -1,7 +1,7 @@
 // Screenshots of the running app for the two app slides (task P8): the Uzarzewo parcel, in English.
 // Run from pitch/deck, with the app served from current main:
 //   node scripts/shoot-app.mjs [appUrl=http://localhost:5179/] [--full]
-// Writes assets/app/01-field.png, 02-history.png, 03-goal.png, 04-rotations.png: 16:10 crops at 2x pixel density,
+// Writes assets/app/01-field.png, 02-history.png, 03-goal.png, 04-income.png: 16:10 crops at 2x pixel density,
 // each framed on the part of the screen the slide talks about. --full also writes full-page captures to
 // assets/app/full/ for choosing the crops. Waits for text, never for a fixed time. Stops on a source error.
 // The parcel, the notebook years and the goal come from data/field.json, so the app shows the slides' field.
@@ -109,12 +109,15 @@ try {
   await waitText('Rotations for this field');
   await waitText('Best for:');
   await assertClean('rotations');
-  // The four rotation cards with their two scores, in the app's two-column layout (a narrower window) so the text
-  // stays readable at slide size.
-  await page.setViewportSize({ width: 820, height: 2400 });
-  await waitText('Best for:');
-  const lastCard = page.getByRole('radio').last(); // each card is a button with the radio role
-  await shoot('04-rotations.png', await around(page.getByText('Your rotation and the three best others', { exact: false }), lastCard), 20);
+  // Step 6, income: "Switch or stay?", the best rotation for the goal against Jan's own, with soil health, climate
+  // resilience and income side by side. A narrower window keeps the table's text large at slide size.
+  await next();
+  await page.setViewportSize({ width: 900, height: 2400 });
+  await waitText('Switch or stay?');
+  await waitText('Income, average year');
+  await assertClean('income');
+  const table = page.locator('main table').first();
+  await shoot('04-income.png', await around(page.getByText('Switch or stay?', { exact: true }), table), 10);
   if (problems.length) console.log(problems.join('\n'));
   console.log(`page errors: ${problems.length}`);
 } finally {
