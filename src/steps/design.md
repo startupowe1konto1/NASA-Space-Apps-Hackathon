@@ -31,7 +31,7 @@ Reserved for later steps (calendar strip, cards): drought `amber-700`, heat `red
 
 ## Type
 
-System font stack (Tailwind `font-sans`). No web font, so nothing loads from a host outside SPEC section 15 and the first screen paints at once on a weak signal.
+Inter (`@fontsource-variable/inter`), then the system font stack (Tailwind `font-sans`). The font files ship with the app, so nothing loads from a host outside SPEC section 15. Each `@font-face` uses `font-display: swap` and a `unicode-range`, so the first screen paints at once in the system font on a weak signal and only the subsets on screen load, Polish included.
 
 | Use | Class |
 |---|---|
