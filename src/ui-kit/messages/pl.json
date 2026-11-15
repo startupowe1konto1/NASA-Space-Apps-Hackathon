@@ -26,5 +26,8 @@
   "ui.confidence.weak": "Słabe dowody",
   "ui.score.value": "{value} / 100",
   "ui.score.range": "zakres {low}–{high}",
-  "ui.score.barLabel": "{label}: {value} na 100, zakres od {low} do {high}"
+  "ui.score.barLabel": "{label}: {value} na 100, zakres od {low} do {high}",
+  "ui.sources.line": "Liczby tutaj: {kinds}, z: {names}. Kliknij liczbę, żeby zobaczyć źródło.",
+  "ui.sources.lineNoNames": "Liczby tutaj: {kinds}. Kliknij liczbę, żeby zobaczyć źródło.",
+  "ui.sources.more": "i {n} innych"
 }

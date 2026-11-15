@@ -7,7 +7,7 @@ import { t } from '../../app/i18n';
 import { useAppStore } from '../../app/store';
 import { useOnline } from '../../app/useOnline';
 import type { Dataset, Sourced } from '../../contracts';
-import { SourcedNumber, StateBoundary } from '../../ui-kit';
+import { SourcedNumber, SourcesNote, StateBoundary } from '../../ui-kit';
 import { Margins, Payments } from '../cards/IncomeSection';
 import { TermText } from '../cards/TermText';
 import { MarginChart } from './MarginChart';
@@ -151,6 +151,10 @@ export function MoneyStep() {
   return (
     <div className="grid gap-5">
       <SwitchOrStay rows={rows} analysis={data} goal={rankingGoal(data, goal)} />
+      <SourcesNote
+        values={rows.flatMap((r) => (r.status === 'ready' ? [r.margin!, ...r.money!.payments.map((p) => p.amountPerHa)] : []))}
+        datasets={data.datasets}
+      />
       <p className="flex flex-wrap gap-x-1 text-sm text-zinc-700">
         <span className="font-medium text-zinc-800">{t('steps.rotations.income.notForecast')}</span>
         <span>{t('app.support')}</span>
