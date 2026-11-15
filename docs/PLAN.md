@@ -1,4 +1,4 @@
-# Field Shift tool implementation plan
+# CropShifter implementation plan
 
 > **For agentic workers:** work one task at a time with `superpowers:subagent-driven-development` or `superpowers:executing-plans`. Read `CLAUDE.md`, `docs/SPEC.md` (contracts in section 6, your folders in section 13) and `docs/DECISIONS.md` first. Steps use checkbox (`- [ ]`) syntax.
 
