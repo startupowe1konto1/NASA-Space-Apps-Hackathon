@@ -15,7 +15,7 @@ Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift
 ## Try it
 
 1. Open the app and press Start.
-2. Find the field. In Poland, search a parcel number (try `302116_5.0015.28/1`, a 22 ha field in Uzarzewo near Poznań) or tap the map: the app loads the land register parcel from GUGiK. Elsewhere, search an address and draw the outline. Two demo fields sit behind the buttons on the map: one near Poznań, one in Iowa.
+2. Find the field. In Poland, search a parcel number (try `302116_5.0015.28/1`, a 22 ha field in Uzarzewo near Poznań) or tap the map: the app loads the land register parcel from GUGiK. Elsewhere, search an address and draw the outline. Faster: the two cards at the top of step 1 open the fields from the pitch, Uzarzewo near Poznań and Story County, Iowa (links: `?demo=poznan`, `?demo=iowa`). While a demo field is selected, the address and parcel search are greyed out.
 3. Pick a goal, for example "Keep my soil".
 4. Mark the crops of the last two or three years.
 5. Set the priorities (water, forage, nitrogen, erosion, organic matter) and the crops you will not grow.
@@ -23,7 +23,7 @@ Built in 48 hours for the NASA Space Apps Challenge 2026, challenge [Field Shift
 
 The app works on a phone. It has no accounts and stores nothing on a server.
 
-The hosted app is built from [startupowe1konto1/cropshifter-demo](https://github.com/startupowe1konto1/cropshifter-demo), a copy of this code prepared for the demo. On its two demo field buttons (Uzarzewo and Iowa) the current rotation is shown with illustrative scores below every option, labelled as such on screen. Any other field shows the engine's own result.
+The hosted app is built by Vercel from `main` of this repository, with the settings in `vercel.json`. [startupowe1konto1/cropshifter-demo](https://github.com/startupowe1konto1/cropshifter-demo) was the app-only copy used for the demo before that; its changes are merged here. On its two demo field buttons (Uzarzewo and Iowa) the current rotation is shown with illustrative scores below every option, labelled as such on screen. Any other field shows the engine's own result.
 
 ## What it does
 
